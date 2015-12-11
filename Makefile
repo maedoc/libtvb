@@ -23,10 +23,10 @@ debug: sk_tests
 	$(CC) $(CFLAGS) -c $< -o $*.o
 
 sk_tests.c: $(objects) $(patsubst %.c,%.o,$(testfiles))
-	./gentest.sh > sk_tests.c
+	./sk_tests_collect.sh > sk_tests.c
 
 sk_tests: sk_tests.c
 	$(CC) $(CFLAGS) $(objects) test_*.o sk_tests.c -o $@
 
 clean:
-	rm -rf *.o sk_test
+	rm -rf *.o sk_tests

@@ -3,3 +3,4 @@ sk_tests
 *.swp
 *.pyc
 tags
+sk_tests.c
