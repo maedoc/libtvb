@@ -48,6 +48,7 @@ flags = [
 '/usr/include',
 '-isystem',
 '/usr/local/include',
+'-DSKDEBUG',
 ]
 
 

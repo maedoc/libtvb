@@ -9,4 +9,7 @@ int sk_test_report();
 
 #define sk_test_true(cond) sk_test_true_(cond, #cond, __FILE__, __LINE__)
 
+#define sk_test_tol(l, r, tol)\
+sk_test_true((((l)-(r))*((l)-(r)))<tol)
+
 #endif
