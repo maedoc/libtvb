@@ -1,0 +1,5 @@
+*.o
+sk_tests
+*.swp
+*.pyc
+tags
