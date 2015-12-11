@@ -4,3 +4,4 @@ sk_tests
 *.pyc
 tags
 sk_tests.c
+pdfs

@@ -5,7 +5,7 @@ WFLAGS=-Wpedantic -Wall -Wextra
 CFLAGS=-ansi $(OPTFLAGS) $(WFLAGS) -g
 FFLAGS=-Ofast
 
-skmods=util test
+skmods=util test dmat imat
 objects=$(patsubst %,sk_%.o,$(skmods))
 testfiles=$(wildcard test_*.c)
 
