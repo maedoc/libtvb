@@ -1,4 +1,5 @@
 /* Apache 2.0 INS-AMU 2015 */
+
 #ifndef SK_HIST_H
 #define SK_HIST_H
 
@@ -15,7 +16,7 @@ struct sk_hist
 
 typedef void(*sk_hist_filler)(int n, double *t, int *indices, double *buf);
 
-void sk_hist_init(struct sk_hist *h, int nd, int *vi, double *vd, double dt);
+void sk_hist_init(struct sk_hist *h, int nd, int *vi, double *vd, double t0, double dt);
 
 void sk_hist_free(struct sk_hist *h);
 

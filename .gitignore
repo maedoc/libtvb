@@ -5,3 +5,6 @@ sk_tests
 tags
 sk_tests.c
 pdfs
+*.so
+*.dll
+*.lib

@@ -24,7 +24,7 @@ static void setup_buffer_structure(struct sk_hist *h)
 		if (h->uvi[i] > h->maxvi)
 			h->maxvi = h->uvi[i];
 
-	SK_MALLOCHECK(h->vi2i = malloc (sizeof(int) * h->maxvi));
+	SK_MALLOCHECK(h->vi2i = malloc (sizeof(int) * (h->maxvi + 1)));
 
 	for (i=0; i<h->nu; i++)
 	{
@@ -46,10 +46,10 @@ static void setup_buffer_structure(struct sk_hist *h)
 	h->lim[h->nu] = h->lim[h->nu-1] + h->len[h->nu-1];
 }
 
-void sk_hist_init(struct sk_hist *h, int nd, int *vi, double *vd, double dt)
+void sk_hist_init(struct sk_hist *h, int nd, int *vi, double *vd, double t0, double dt)
 {
 	h->dt = dt;
-	h->t = 0.0;
+	h->t = t0;
 	h->nd = nd;
 
 	/* identify unique delayed variable indices
@@ -81,6 +81,8 @@ void sk_hist_free(struct sk_hist *h)
 	free(h->lim);
 	free(h->len);
 	free(h->pos);
+    free(h->vi2i);
+    free(h->buf);
 }
 
 void sk_hist_fill(struct sk_hist *h, sk_hist_filler filler)
@@ -96,7 +98,7 @@ void sk_hist_fill(struct sk_hist *h, sk_hist_filler filler)
 	for (i=0; i<h->nu; i++)
 	{
 		ui = h->uvi[i];
-		for (j=h->lim[i]; j<h->lim[i+1]; i++)
+		for (j=h->lim[i]; j<h->lim[i+1]; j++)
 			vi[j] = ui;
 	}
 	
@@ -138,6 +140,12 @@ void sk_hist_get(struct sk_hist *h, double t, double *c)
 		i0 += h->lim[ui];
 		i1 += h->lim[ui];
 
+#ifdef SKDEBUG
+        if ((i0 < 0) || (i0 > h->lim[h->nu]))
+            fprintf(stderr, "[sk_hist] oob i0=%d %s:%d\n", i0, __FILE__, __LINE__);
+        if ((i1 < 0) || (i1 > h->lim[h->nu]))
+            fprintf(stderr, "[sk_hist] oob i1=%d %s:%d\n", i1, __FILE__, __LINE__);
+#endif
 		c[i] = (h->buf[i1] - h->buf[i0]) / h->dt
 			* fmod((t + h->del[i]), h->dt) + h->buf[i0];
 	}

@@ -1,4 +1,5 @@
 /* Apache 2.0 INS-AMU 2015 */
+
 #ifndef SK_UTIL_H
 #define SK_UTIL_H
 

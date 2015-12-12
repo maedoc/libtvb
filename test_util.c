@@ -30,8 +30,3 @@ int test_util_uniqi()
 
 	return 0;
 }
-
-int test_foo_bar()
-{
-	return 0;
-}

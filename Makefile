@@ -1,27 +1,32 @@
+# Apache 2.0 INS-AMU 2015
+
 CC=gcc
 FC=gfortran
 OPTFLAGS=-O0
 WFLAGS=-Wpedantic -Wall -Wextra
-CFLAGS=-ansi $(OPTFLAGS) $(WFLAGS) -g -DSKDEBUG
+CFLAGS=-ansi -fPIC $(OPTFLAGS) $(WFLAGS) -g -DSKDEBUG
 LFLAGS=-lm
-FFLAGS=-Ofast
+FFLAGS=-Ofast -fPIC
 
-skmods=util test hist
-objects=$(patsubst %,sk_%.o,$(skmods))
+skmods=util test hist solv
+objects=$(patsubst %,sk_%.o,$(skmods)) randomkit.o
 testfiles=$(wildcard test_*.c)
 
 # TODO handle expokit's blas vs user-provided
 
-all: $(objects)
+all: $(objects) libsk.so
 
-test: sk_tests
-	./sk_tests
+check: sk_tests
+	valgrind --error-exitcode=1 --leak-check=full ./sk_tests
 
 gdb: sk_tests
 	gdb sk_tests -ex "b sk_test_failed"
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $*.o
+
+libsk.so: $(objects)
+	$(CC) -shared $(objects) -o libsk.so
 
 sk_tests.c: $(objects) $(patsubst %.c,%.o,$(testfiles))
 	./sk_tests_collect.sh > sk_tests.c
@@ -30,4 +35,4 @@ sk_tests: sk_tests.c
 	$(CC) $(CFLAGS) $(objects) test_*.o sk_tests.c $(LFLAGS) -o $@
 
 clean:
-	rm -rf *.o sk_tests
+	rm -rf *.o sk_tests *.so tags
