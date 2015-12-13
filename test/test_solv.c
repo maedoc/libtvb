@@ -12,6 +12,7 @@ typedef struct {
 static SK_DEFSYS(test_sys)
 {
 	sys_data *d = data;
+	/* unused */ (void) Jce; (void) hist;
 	d->n_calls++;
 	d->t = t;
 	d->nx = nx;
@@ -37,7 +38,7 @@ static SK_DEFSCH(test_sch)
 	d->n_calls++;
 	d->dt = dt;
 	d->rng = rng;
-	(*sys)(sysd, t, nx, x, NULL, NULL, NULL, NULL, nc, c);
+	(*sys)(sysd, hist, t, nx, x, NULL, NULL, NULL, NULL, nc, c, NULL);
 	return 0;
 }
 
@@ -49,6 +50,7 @@ typedef struct {
 static SK_DEFOUT(test_out)
 {
 	out_data *d = data;
+	/* unused */ (void) nc; (void) c;
 	d->nx = nx;
 	d->x = x;
 	return t < d->tf;
@@ -102,7 +104,8 @@ int test_solv()
 	sk_test_true(sysd.n_calls==1);
 	sk_test_true(sysd.nx==NX);
 	sk_test_true(sysd.nc==NC);
-	sk_test_true(sysd.t==T0+DT);
+	sk_test_true(sysd.t==T0);
+	sk_test_true(solv.t==T0+DT);
 	sk_test_true(sysd.x==solv.x);
 	sk_test_true(sysd.c==solv.c);
 	sk_test_true(sysd.f==NULL);
@@ -113,7 +116,7 @@ int test_solv()
 	outd.tf = T0 + 17 * DT;
 	sk_solv_cont(&solv);
 	sk_test_true(sysd.n_calls==17);
-	sk_test_tol(sysd.t, outd.tf, 1e-15);
+	sk_test_tol(sysd.t+DT, outd.tf, 1e-15);
 
 	sk_solv_free(&solv);
 	return 0;

@@ -16,15 +16,11 @@ typedef struct {
 static SK_DEFOUT(test_out)
 {
 	out_data *d = data;
-	(void) nx; /* unused */
+	(void) nx; (void) nc; (void) c; /* unused */
 	fprintf(d->fd, "%f\t%f\t%f\n", t, x[0], x[1]);
 	if (x[0] < 0.0)
 		d->crossed = 1;
 	return t < d->tf;
-}
-
-static void test_hist_filler()
-{
 }
 
 static double x0[2] = {1.010403, 0.030870};
@@ -35,12 +31,16 @@ static int for_scheme(sk_sch sch, void *schd, char *name)
 	out_data outd;
 	sk_solv solv;
 	char dat_name[100];
+	int vi[1];
+	double vd[1];
 
 	/* init solver */
+	vi[0] = 0;
+	vd[0] = 25.0;
 	sk_solv_init(&solv, &sk_sys_exc, &sysd,
 		sch, schd, &test_out, &outd,
-		&test_hist_filler, NULL,
-		42, 2, x0, 0, NULL, NULL,
+		&sk_hist_zero_filler, NULL,
+		42, 2, x0, 1, vi, vd,
 		0.0, 0.05);
 
 	/* fill in data */
@@ -49,6 +49,7 @@ static int for_scheme(sk_sch sch, void *schd, char *name)
 	outd.fd = fopen(dat_name, "w");
 	sysd.a = 1.01;
 	sysd.tau = 3.0;
+	sysd.k = -1e-3;
 
 	/* deterministic sub-thresh, no crossing */
 	outd.crossed = 0;

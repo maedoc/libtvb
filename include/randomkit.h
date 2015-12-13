@@ -113,7 +113,7 @@ extern char *rk_strerror[RK_ERR_MAX];
 extern "C" {
 #endif
 
-/*
+/**
  * Initialize the RNG state using the given seed.
  */
 extern void rk_seed(unsigned long seed, rk_state *state);
@@ -148,7 +148,7 @@ extern unsigned long rk_ulong(rk_state *state);
  */
 extern unsigned long rk_interval(unsigned long max, rk_state *state);
 
-/*
+/**
  * Returns a random double between 0.0 and 1.0, 1.0 excluded.
  */
 extern double rk_double(rk_state *state);
@@ -177,10 +177,15 @@ extern rk_error rk_devfill(void *buffer, size_t size, int strong);
 extern rk_error rk_altfill(void *buffer, size_t size, int strong,
                             rk_state *state);
 
-/*
+/**
  * return a random gaussian deviate with variance unity and zero mean.
  */
 extern double rk_gauss(rk_state *state);
+
+/**
+ * fill a double buffer with gaussian numbers
+ */
+extern void rk_gauss_fill(rk_state *state, int nx, double *x);
 
 #ifdef __cplusplus
 }

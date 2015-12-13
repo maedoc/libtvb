@@ -3,6 +3,8 @@
 #ifndef SK_HIST_H
 #define SK_HIST_H
 
+#include "sk_util.h"
+
 /**
  * t - time of positions in buffer
  */
@@ -20,7 +22,7 @@ typedef struct
  * \param name name of function being defined.
  */
 #define SK_DEFHFILL(name) void name\
-	(void *data, int n, double *t, int *indices, double *buf)
+	(void * restrict data, int n, double * restrict t, int * restrict indices, double * restrict buf)
 
 /**
  * Signature of callback to fill a history buffer expected.
@@ -32,21 +34,54 @@ typedef struct
  */
 typedef SK_DEFHFILL((*sk_hist_filler));
 
-void sk_hist_init(sk_hist *h, int nd, int *vi, double *vd, double t0, double dt);
+/**
+ * Initialize an history instance.
+ *
+ * nd is len(afferent), max(vi) implicitly len(efferent)
+ *
+ * \param h history instance
+ * \param nd number of delayed coupling terms
+ * \param vi efferent index of each delayed coupling term
+ * \param vd delay of each delayed coupling term
+ * \param t0 starting time
+ * \param dt time-step to use in history buffer (need not equal solution dt)
+ */
+void sk_hist_init(sk_hist * restrict h, int nd, int * restrict vi, double * restrict vd, double t0, double dt);
 
 void sk_hist_free(sk_hist *h);
 
-void sk_hist_fill(sk_hist *h, sk_hist_filler filler, void *fill_data);
+void sk_hist_fill(sk_hist * restrict h, sk_hist_filler filler, void * restrict fill_data);
 
-void sk_hist_get(sk_hist *h, double t, double *c);
+/**
+ * Get delayed data from history buffer.
+ *
+ * If a and e denote afferent and efferent coupling terms, then 
+ * this compute a[i] = e[vi[i]](t - vd[i]).
+ *
+ * \note len(aff) == nd
+ *
+ * \param[in,out] h history instance; if NULL, call is no-op.
+ * \param[in] t current time.
+ * \param[out] aff vector of afferent coupling terms, determined by vi/vd
+ */
+void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff);
 
-void sk_hist_set(sk_hist *h, double t, double *x);
+/**
+ * Update history buffer with new data.
+ *
+ * \note len(eff) == max(vi)
+ *
+ * \param[in,out] h history instance; if NULL, call is no-op.
+ * \param[in] t current time.
+ * \param[in] eff vector of efferent coupling terms, determined by system.
+ */
+void sk_hist_set(sk_hist * restrict h, double t, double * restrict eff);
 
 int sk_hist_nbytes(sk_hist *h);
 
 /**
  * Fills the history with zeros.
  */
-void sk_hist_zero_filler(void *data, int n, double *t, int *indices, double *buf);
+void sk_hist_zero_filler(void * restrict data, int n, double * restrict t, int * restrict indices, double * restrict buf);
 
 #endif

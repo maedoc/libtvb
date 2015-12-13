@@ -400,3 +400,35 @@ rk_gauss(rk_state *state)
         return f*x2;
     }
 }
+
+void
+rk_gauss_fill(rk_state *state, int nx, double *x)
+{
+	int i;
+	for (i=0; i<nx; i++)
+	{
+		if (state->has_gauss) {
+			const double tmp = state->gauss;
+			state->gauss = 0;
+			state->has_gauss = 0;
+			x[i] = tmp;
+		}
+		else {
+			double f, x1, x2, r2;
+
+			do {
+				x1 = 2.0*rk_double(state) - 1.0;
+				x2 = 2.0*rk_double(state) - 1.0;
+				r2 = x1*x1 + x2*x2;
+			}
+			while (r2 >= 1.0 || r2 == 0.0);
+
+			/* Box-Muller transform */
+			f = sqrt(-2.0*log(r2)/r2);
+			/* Keep for next call */
+			state->gauss = f*x1;
+			state->has_gauss = 1;
+			x[i] = f*x2;
+		}
+	}
+}

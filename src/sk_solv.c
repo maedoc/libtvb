@@ -8,14 +8,14 @@
 
 
 int sk_solv_init(
-	sk_solv *s,
-	sk_sys sys, void *sys_data,
-	sk_sch scheme, void *scheme_data,
-	sk_out out, void *out_data,
-	sk_hist_filler hf, void *hfill_data,
+	sk_solv * restrict s,
+	sk_sys sys, void * restrict sys_data,
+	sk_sch scheme, void * restrict scheme_data,
+	sk_out out, void * restrict out_data,
+	sk_hist_filler hf, void * restrict hfill_data,
 	int seed,
-	int nx, double *x0,
-	int nc, int *vi, double *vd,
+	int nx, double * restrict x0,
+	int nc, int * restrict vi, double * restrict vd,
 	double t0, double dt
 	)
 {
@@ -33,9 +33,14 @@ int sk_solv_init(
 	SK_MALLOCHECK(s->x = malloc (sizeof(double) * nx));
 	SK_MALLOCHECK(s->x0 = malloc (sizeof(double) * nx));
 	if (nc > 0 && vi!=NULL && vd!=NULL) {
+		int cn;
 		sk_hist_init(&s->hist, nc, vi, vd, t0, dt);
 		sk_hist_fill(&s->hist, hf, hfill_data);
-		SK_MALLOCHECK(s->c = malloc(sizeof(double) * s->nc));
+		cn = s->hist.maxvi;
+		/* s->c big enough to accomate aff or eff */
+		if (cn < s->nc)
+			cn = s->nc;
+		SK_MALLOCHECK(s->c = malloc(sizeof(double) * cn));
 	} else {
 		s->nc = 0;
 		s->c = NULL;
@@ -60,23 +65,17 @@ void sk_solv_free(sk_solv *s)
 
 int sk_solv_cont(sk_solv *s)
 {
+	sk_hist *h;
+
+	h = s->nc ? &s->hist : NULL;
 	s->cont = 1;
-	if (s->nc)
-		do {
-			s->t += s->dt;
-			sk_hist_get(&s->hist, s->t, s->c);
-			s->sch(s->schd, &(s->rng), s->sys, s->sysd, s->t, s->dt,
-			       s->nx, s->x, s->nc, s->c);
-			sk_hist_set(&s->hist, s->t, s->x);
-			s->cont = s->out(s->outd, s->t, s->nx, s->x);
-		} while (s->cont);
-	else
-		do {
-			s->t += s->dt;
-			s->sch(s->schd, &(s->rng), s->sys, s->sysd, s->t, s->dt,
-			       s->nx, s->x, s->nc, s->c);
-			s->cont = s->out(s->outd, s->t, s->nx, s->x);
-		} while (s->cont);
+
+	do {
+		s->sch(s->schd, h, &(s->rng), s->sys, s->sysd, s->t, s->dt,
+		       s->nx, s->x, s->nc, s->c);
+		s->t += s->dt;
+		s->cont = s->out(s->outd, s->t, s->nx, s->x, s->nc, s->c);
+	} while (s->cont);
 
 	return 0;
 }

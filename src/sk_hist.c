@@ -41,12 +41,12 @@ static void setup_buffer_structure(sk_hist *h)
 		if (i==0)
 			h->lim[i] = 0;
 		else
-			h->lim[i] = h->pos[i-1] + h->len[i-1];
+			h->lim[i] = h->lim[i-1] + h->len[i-1];
 	}
 	h->lim[h->nu] = h->lim[h->nu-1] + h->len[h->nu-1];
 }
 
-void sk_hist_init(sk_hist *h, int nd, int *vi, double *vd, double t0, double dt)
+void sk_hist_init(sk_hist * restrict h, int nd, int * restrict vi, double * restrict vd, double t0, double dt)
 {
 	h->dt = dt;
 	h->t = t0;
@@ -85,7 +85,7 @@ void sk_hist_free(sk_hist *h)
     free(h->buf);
 }
 
-void sk_hist_fill(sk_hist *h, sk_hist_filler filler, void *fill_data)
+void sk_hist_fill(sk_hist * restrict h, sk_hist_filler filler, void * restrict fill_data)
 {
 	int i, j, ui, o, n, *vi;
 	double *t;
@@ -127,27 +127,61 @@ void sk_hist_fill(sk_hist *h, sk_hist_filler filler, void *fill_data)
 	free(vi);
 }
 
-void sk_hist_get(sk_hist *h, double t, double *c)
+void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff)
 {
-	int i, i0, i1, ui;
+	int i;
 
+	if (h==NULL)
+		return;
+
+	/* TODO optimize this mess */
 	for (i=0; i<h->nd; i++)
 	{
+		int ui, i0, i1, p, l, o;
+		double dt, y0, y1, m, dx;
+
 		ui = h->vi2i[h->vi[i]];
+		p = h->pos[ui];
+		l = h->len[ui];
+		o = h->lim[ui];
+
+		dt = (t - h->del[i]) - (h->t - (l-2)*h->dt);
+
+		i0 = (int) ceil((l-2) - dt/h->dt);
+		i1 = i0 ? i0 - 1 : l - 1;
+
+		y0 = h->buf[(p + i0) % l + o];
+		y1 = h->buf[(p + i1) % l + o];
+
+		m = (y1 - y0) / h->dt;
+
+		dx = (t - h->del[i]) - (h->t - i0*h->dt);
+
+		aff[i] = m * dx + y0;
+		continue;
+
+		/* t - h->del[i] - h->t is delay time rel to h->t,
+		 * then in steps, then round to left, sub from current position
+		 * to get index of value on right of desired value  */
 		i0 = h->pos[ui] - floor((t - h->del[i] - h->t) / h->dt);
+		if (i0 < 0)
+			i0 += h->len[ui];
 		i0 %= h->len[ui];
+		/* obtain index on left of desired value */
 		i1 = i0 ? i0 - 1 : h->len[ui]-1;
 		i0 += h->lim[ui];
 		i1 += h->lim[ui];
-
 #ifdef SKDEBUG
-        if ((i0 < 0) || (i0 > h->lim[h->nu]))
-            fprintf(stderr, "[sk_hist] oob i0=%d %s:%d\n", i0, __FILE__, __LINE__);
-        if ((i1 < 0) || (i1 > h->lim[h->nu]))
-            fprintf(stderr, "[sk_hist] oob i1=%d %s:%d\n", i1, __FILE__, __LINE__);
+        if ((i0 < h->lim[ui]) || (i0 > h->lim[ui+1]))
+            fprintf(stderr, "[sk_hist_get] t=%.3f ui=%d, i0=%d not in [%d,%d) %s:%d\n", 
+		    t, ui, i0, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__);
+        if ((i1 < h->lim[ui]) || (i1 > h->lim[ui+1]))
+            fprintf(stderr, "[sk_hist_get] t=%.3f ui=%d, i1=%d not in [%d,%d) %s:%d\n", 
+		    t, ui, i1, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__);
 #endif
-		c[i] = (h->buf[i1] - h->buf[i0]) / h->dt
-			* fmod((t + h->del[i]), h->dt) + h->buf[i0];
+		dt = fmod(t + h->del[i], h->dt);
+		/* dt = (t - h->del[i]) - (h->pos[ui] - i0)*h->dt; */
+		aff[i] = (h->buf[i1] - h->buf[i0]) / h->dt * dt + h->buf[i0];
 	}
 }
 
@@ -157,9 +191,13 @@ static void update_time(sk_hist *h, double new_t)
 
 	/* the current time must always be contained between 
 	 * pos and pos-1 in the buffer
+	 * 
+	 * TODO handle case of irregular time step where new_t could 
+	 * be several h->dt ahead, and we need to fill in the buffer
+	 * correctly.
 	 */
 	n_steps = 0;
-	while ((h->t + h->dt) < new_t)
+	while ((h->t + h->dt) <= new_t)
 	{
 		h->t += h->dt;
 		n_steps++;
@@ -178,24 +216,46 @@ static void update_time(sk_hist *h, double new_t)
 	}
 }
 
-void sk_hist_set(sk_hist *h, double t, double *x)
+void sk_hist_set(sk_hist * restrict h, double t, double * restrict eff)
 {
 	int i, i0, i1;
 	double x0, dx, dt;
 
+	if (h==NULL)
+		return;
+
 	update_time(h, t);
 
-	/* extrapolate from (x(h->t), x(t)) to next grid point*/
 	for (i=0; i<h->nu; i++)
 	{
 		i0 = h->pos[i];
 		i1 = i0 ? i0 - 1 : h->len[i] - 1;
 		i0 += h->lim[i];
 		i1 += h->lim[i];
+#ifdef SKDEBUG
+        if ((i0 < h->lim[i]) || (i0 > h->lim[i+1]))
+            fprintf(stderr, "[sk_hist_set] t=%.3f ui=%d, i0=%d not in [%d,%d) %s:%d\n", 
+		    t, i, i0, h->lim[i], h->lim[i+1], __FILE__, __LINE__);
+        if ((i1 < h->lim[i]) || (i1 > h->lim[i+1]))
+            fprintf(stderr, "[sk_hist_set] t=%.3f ui=%d, i1=%d not in [%d,%d) %s:%d\n", 
+		    t, i, i1, h->lim[i], h->lim[i+1], __FILE__, __LINE__);
+#endif
 		x0 = h->buf[i0];
 		dt = t - h->t;
-		dx = x[h->uvi[i]] - h->buf[i0];
-		h->buf[i1] = (dx / dt) * h->dt + x0;
+
+#ifdef SKDEBUG
+		if (dt < 0)
+			fprintf(stderr, "[sk_hist] unhandled dt<0 at %s:%d\n", __FILE__, __LINE__);
+#endif
+
+		if (dt > 0) {
+			/* extrapolate from (x(h->t), x(t)) to next grid point*/
+			dx = eff[h->vi2i[h->uvi[i]]] - h->buf[i0];
+			h->buf[i1] = (dx / dt) * h->dt + x0;
+		} else {
+			/* reset grid point value */
+			h->buf[i0] = eff[h->vi2i[h->uvi[i]]];
+		}
 	}
 }
 
@@ -208,7 +268,7 @@ int sk_hist_nbytes(sk_hist *h)
 	return nb;
 }
 
-void sk_hist_zero_filler(void *data, int n, double *t, int *indices, double *buf)
+void sk_hist_zero_filler(void * restrict data, int n, double * restrict t, int * restrict indices, double * restrict buf)
 {
 	int i;
 	/* suppress unused parameter warnings */

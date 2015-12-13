@@ -23,17 +23,26 @@ int sk_util_fill_gauss(rk_state *rng, int nx, double *x)
 	return 0;
 }
 
-int sk_util_uniqi(const int n, const int *ints, int *nuniq, int **uints)
+int sk_util_uniqi(
+	const int n, 
+	const int * restrict ints, 
+	int * restrict nuniq, 
+	int ** restrict uints)
 { 
 	int i, j, *ints_copy;
 
 	if (n==0) return 0;
 
-	/* sort copy of input vector */
-	ints_copy = (int*) malloc(sizeof(int) * n);
-	memcpy(ints_copy, ints, n*sizeof(int));
+	if (n==1) {
+		*nuniq = 1;
+		SK_MALLOCHECK(*uints = malloc (sizeof(int)));
+		(*uints)[0] = ints[0];
+		return 0;
+	}
 
-	if (n==1) return 0;
+	/* sort copy of input vector */
+	SK_MALLOCHECK(ints_copy = (int*) malloc(sizeof(int) * n));
+	memcpy(ints_copy, ints, n*sizeof(int));
 
 	qsort(ints_copy, n, sizeof(int), compare_int);
 
@@ -43,7 +52,7 @@ int sk_util_uniqi(const int n, const int *ints, int *nuniq, int **uints)
 		if (ints_copy[i] != ints_copy[i+1])
 			(*nuniq)++;
 
-	*uints = (int*) malloc (sizeof(int) * *nuniq);
+	SK_MALLOCHECK(*uints = (int*) malloc (sizeof(int) * *nuniq));
 
 	/* copy unique into output array */
 	j = 0;
