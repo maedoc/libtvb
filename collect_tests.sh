@@ -1,6 +1,6 @@
 #!/bin/bash
 
-syms=$(nm test_*.o | grep "T test_" | cut -f 3 -d' ')
+syms=$(nm objs/test_*.o | grep "T test_" | cut -f 3 -d' ')
 
 echo "/* Apache 2.0 INS-AMU 2015 */"
 echo

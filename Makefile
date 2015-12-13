@@ -6,17 +6,18 @@ OPTFLAGS=-O0
 WFLAGS=-Wpedantic 
 CFLAGS=$(WFLAGS) -Wall -Wextra -fstrict-aliasing -Wstrict-aliasing
 CFLAGS+=-ansi -fPIC $(OPTFLAGS) $(WFLAGS) -g -DSKDEBUG
+CFLAGS+=-I./include
 LFLAGS=-lm
 FFLAGS=-Ofast -fPIC
 VALGRINDFLAGS=--error-exitcode=1 --track-origins=yes --leak-check=full --show-leak-kinds=all
 
 skmods=util test hist solv sys scheme
-ekobjs=lapack.o blas.o expokit.o
+ekobjs=objs/lapack.o objs/blas.o objs/expokit.o
 figs=exc_em_heun
 pngs=$(patsubst %,fig_%.png,$(figs))
-objects=$(patsubst %,sk_%.o,$(skmods)) randomkit.o
-testfiles=$(wildcard test_*.c)
-src=$(wildcard *.c) $(wildcard *.h) $(wildcard *.f)
+objects=$(patsubst %,objs/sk_%.o,$(skmods)) objs/randomkit.o
+testfiles=$(wildcard test/*.c)
+src=$(wildcard src/*.c) $(wildcard include/*.h) $(wildcard src/*.f)
 
 
 all: $(objects) libsk.so
@@ -27,20 +28,24 @@ test: sk_tests
 gdb: sk_tests
 	gdb sk_tests -ex "b sk_test_failed"
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $*.o
+objs:
+	mkdir -p objs
 
-%.o: %.f
-	$(FC) $(FFLAGS) -c $< -o $*.o
+objs/%.o: src/%.c objs
+	$(CC) $(CFLAGS) -c $< -o objs/$*.o
+
+objs/test_%.o: test/test_%.c
+	$(CC) $(CFLAGS) -c $< -o objs/test_$*.o
+
+objs/%.o: src/%.f
+	$(FC) $(FFLAGS) -c $< -o objs/$*.o
 
 libsk.so: $(objects)
 	$(CC) -shared $(objects) -o libsk.so
 
-sk_tests.c: $(objects) $(patsubst %.c,%.o,$(testfiles))
-	./sk_tests_collect.sh > sk_tests.c
-
-sk_tests: sk_tests.c
-	$(CC) $(CFLAGS) $(objects) test_*.o sk_tests.c $(LFLAGS) -o $@
+sk_tests: $(objects) $(patsubst test/%.c,objs/%.o,$(testfiles))
+	./collect_tests.sh > sk_tests.c
+	$(CC) $(CFLAGS) $(objects) objs/test_*.o sk_tests.c $(LFLAGS) -o $@
 
 fig: test $(pngs)
 
@@ -51,7 +56,7 @@ dox: $(src) Doxyfile
 	doxygen Doxyfile
 
 clean:
-	rm -rf *.o sk_tests *.so tags *.dat *.png dox
+	rm -rf objs sk_tests sk_tests.c *.so tags *.dat *.png dox
 
 license:
 	head -n 1 *.c *.h *.f *.pyc
