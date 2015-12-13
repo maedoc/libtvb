@@ -7,6 +7,7 @@ WFLAGS=-Wpedantic -Wall -Wextra
 CFLAGS=-ansi -fPIC $(OPTFLAGS) $(WFLAGS) -g -DSKDEBUG
 LFLAGS=-lm
 FFLAGS=-Ofast -fPIC
+VALGRINDFLAGS=--error-exitcode=1 --track-origins=yes --leak-check=full --show-leak-kinds=all
 
 skmods=util test hist solv sys scheme
 ekobjs=lapack.o blas.o expokit.o
@@ -18,8 +19,8 @@ testfiles=$(wildcard test_*.c)
 
 all: $(objects) libsk.so
 
-check: sk_tests
-	valgrind --error-exitcode=1 --track-origins=yes --show-leak-kinds=all --leak-check=full ./sk_tests
+test: sk_tests
+	valgrind $(VALGRINDFLAGS) ./sk_tests
 
 gdb: sk_tests
 	gdb sk_tests -ex "b sk_test_failed"
@@ -48,4 +49,4 @@ clean:
 	rm -rf *.o sk_tests *.so tags *.dat *.png
 
 license:
-	head -n 1 *.c *.h *.f
+	head -n 1 *.c *.h *.f *.pyc

@@ -1,0 +1,6 @@
+addons:
+ apt:
+  packages:
+  - valgrind
+language: c
+script: make VALGRINDFLAGS="--error-exitcode=1 --track-origins=yes --leak-check=full" WFLAGS="-Wall" test

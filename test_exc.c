@@ -28,7 +28,7 @@ static void test_hist_filler()
 
 static double x0[2] = {1.010403, 0.030870};
 
-int for_scheme(sk_sch sch, void *schd, char *name)
+static int for_scheme(sk_sch sch, void *schd, char *name)
 {
 	sk_sys_exc_dat sysd;
 	out_data outd;
