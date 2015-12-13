@@ -16,6 +16,7 @@ typedef struct {
 static SK_DEFOUT(test_out)
 {
 	out_data *d = data;
+	(void) nx; /* unused */
 	fprintf(d->fd, "%f\t%f\t%f\n", t, x[0], x[1]);
 	if (x[0] < 0.0)
 		d->crossed = 1;
@@ -32,13 +33,14 @@ static int for_scheme(sk_sch sch, void *schd, char *name)
 {
 	sk_sys_exc_dat sysd;
 	out_data outd;
-	struct sk_solv solv;
+	sk_solv solv;
 	char dat_name[100];
 
 	/* init solver */
 	sk_solv_init(&solv, &sk_sys_exc, &sysd,
 		sch, schd, &test_out, &outd,
-		&test_hist_filler, 42, 2, x0, 0, NULL, NULL,
+		&test_hist_filler, NULL,
+		42, 2, x0, 0, NULL, NULL,
 		0.0, 0.05);
 
 	/* fill in data */

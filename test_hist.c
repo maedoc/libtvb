@@ -6,18 +6,21 @@
 #include "sk_test.h"
 #include "sk_hist.h"
 
-void hist_t_fill(int n, double *t, int *indices, double *buf)
+void hist_t_fill(void *data, int n, double *t, int *indices, double *buf)
 {
+	/* suppress unused arguments */
+	(void) data; (void) indices;
+	/* fill buffer from times */
 	memcpy(buf, t, n*sizeof(double));
-	indices[0] = indices[0]; /* avoid unused warning */
 }
+
 #define ND 3
 
 int test_hist()
 {
 	int i, vi[ND], nb;
 	double dt, vd[ND], x[43];
-	struct sk_hist *h;
+	sk_hist *h;
 
 	/* set up */
 	dt = 0.1;
@@ -27,7 +30,7 @@ int test_hist()
 	vd[0] = 5.5 * dt;
 	vd[1] = 4.5 * dt;
 	vd[2] = 33.3 * dt;
-	h = malloc (sizeof(struct sk_hist));
+	h = malloc (sizeof(sk_hist));
 
 	sk_hist_init(h, ND, vi, vd, 0.0, dt);
 	sk_test_true(h->nd==ND);
@@ -56,7 +59,7 @@ int test_hist()
 	sk_test_true(h->del[2]==vd[2]);
 	sk_test_true(h->buf!=NULL);
 
-	sk_hist_fill(h, &hist_t_fill);
+	sk_hist_fill(h, &hist_t_fill, NULL);
 	for (i=0; i<35; i++)
 		sk_test_true(h->buf[i]==-i*dt);
 	sk_test_true(h->buf[35]==dt);
@@ -74,7 +77,7 @@ int test_hist()
 	sk_test_tol(h->buf[35], 3.0, 1e-15);
 	sk_test_tol(h->buf[36 + 7], 2.0, 1e-15);
 
-	nb = sizeof(struct sk_hist);
+	nb = sizeof(sk_hist);
 	nb += sizeof(int) * (3+2+2+2+3+42);
 	nb += sizeof(double) * (44+2+3);
 	sk_test_true(nb == sk_hist_nbytes(h));

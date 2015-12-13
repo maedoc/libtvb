@@ -4,14 +4,14 @@
 #include "sk_solv.h"
 #include "randomkit.h"
 
-struct sys_data {
+typedef struct {
 	int n_calls, nx, nc;
 	double t, *x, *c, *f, *g, *Jf, *Jg;
-};
+} sys_data;
 
 static SK_DEFSYS(test_sys)
 {
-	struct sys_data *d = (struct sys_data*) data;
+	sys_data *d = data;
 	d->n_calls++;
 	d->t = t;
 	d->nx = nx;
@@ -25,15 +25,15 @@ static SK_DEFSYS(test_sys)
 	return 0;
 }
 
-struct sch_data {
+typedef struct {
 	int n_calls;
 	double dt;
 	rk_state *rng;
-};
+} sch_data;
 
 static SK_DEFSCH(test_sch)
 {
-	struct sch_data *d = (struct sch_data*) data;
+	sch_data *d = data;
 	d->n_calls++;
 	d->dt = dt;
 	d->rng = rng;
@@ -41,14 +41,14 @@ static SK_DEFSCH(test_sch)
 	return 0;
 }
 
-struct out_data {
+typedef struct {
 	int nx;
 	double tf, *x;
-};
+} out_data;
 
 static SK_DEFOUT(test_out)
 {
-	struct out_data *d = (struct out_data*) data;
+	out_data *d = data;
 	d->nx = nx;
 	d->x = x;
 	return t < d->tf;
@@ -68,10 +68,10 @@ int test_solv()
 {
 	int vi[NC];
 	double x[NX], vd[NX], rand0;
-	struct sys_data sysd;
-	struct sch_data schd;
-	struct out_data outd;
-	struct sk_solv solv;
+	sys_data sysd;
+	sch_data schd;
+	out_data outd;
+	sk_solv solv;
 	rk_state rng;
 
 	rk_seed(SEED, &rng);
@@ -86,7 +86,7 @@ int test_solv()
 
 	sk_solv_init(&solv, &test_sys, &sysd,
 		&test_sch, &schd, &test_out, &outd,
-		&test_hist_filler, SEED, NX, x, NC, vi, vd,
+		&test_hist_filler, NULL, SEED, NX, x, NC, vi, vd,
 		T0, DT);
 
 	sk_test_true(rand0==rk_gauss(&solv.rng));

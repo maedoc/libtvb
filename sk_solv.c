@@ -8,11 +8,11 @@
 
 
 int sk_solv_init(
-	struct sk_solv *s,
+	sk_solv *s,
 	sk_sys sys, void *sys_data,
 	sk_sch scheme, void *scheme_data,
 	sk_out out, void *out_data,
-	sk_hist_filler hf,
+	sk_hist_filler hf, void *hfill_data,
 	int seed,
 	int nx, double *x0,
 	int nc, int *vi, double *vd,
@@ -29,10 +29,12 @@ int sk_solv_init(
 	s->out = out;
 	s->outd = out_data;
 	s->hf = hf;
+	s->hfd = hfill_data;
 	SK_MALLOCHECK(s->x = malloc (sizeof(double) * nx));
+	SK_MALLOCHECK(s->x0 = malloc (sizeof(double) * nx));
 	if (nc > 0 && vi!=NULL && vd!=NULL) {
 		sk_hist_init(&s->hist, nc, vi, vd, t0, dt);
-		sk_hist_fill(&s->hist, hf);
+		sk_hist_fill(&s->hist, hf, hfill_data);
 		SK_MALLOCHECK(s->c = malloc(sizeof(double) * s->nc));
 	} else {
 		s->nc = 0;
@@ -40,21 +42,23 @@ int sk_solv_init(
 	}
 	rk_seed(seed, &(s->rng));
 	memcpy(s->x, x0, sizeof(double) * s->nx);
+	memcpy(s->x0, x0, sizeof(double) * s->nx);
 	s->t = t0;
 	s->dt = dt;
 	return 0;
 }
 
-void sk_solv_free(struct sk_solv *s)
+void sk_solv_free(sk_solv *s)
 {
 	free(s->x);
+	free(s->x0);
 	if (s->c != NULL) {
 		free(s->c);
 		sk_hist_free(&s->hist);
 	}
 }
 
-int sk_solv_cont(struct sk_solv *s)
+int sk_solv_cont(sk_solv *s)
 {
 	s->cont = 1;
 	if (s->nc)

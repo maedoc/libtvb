@@ -8,7 +8,7 @@
 #include "sk_hist.h"
 
 
-static void setup_buffer_structure(struct sk_hist *h)
+static void setup_buffer_structure(sk_hist *h)
 {
 	int i, j, ui;
 	double maxd;
@@ -46,7 +46,7 @@ static void setup_buffer_structure(struct sk_hist *h)
 	h->lim[h->nu] = h->lim[h->nu-1] + h->len[h->nu-1];
 }
 
-void sk_hist_init(struct sk_hist *h, int nd, int *vi, double *vd, double t0, double dt)
+void sk_hist_init(sk_hist *h, int nd, int *vi, double *vd, double t0, double dt)
 {
 	h->dt = dt;
 	h->t = t0;
@@ -72,7 +72,7 @@ void sk_hist_init(struct sk_hist *h, int nd, int *vi, double *vd, double t0, dou
 	SK_MALLOCHECK(h->buf = malloc (sizeof(double) * h->lim[h->nu]));
 }
 
-void sk_hist_free(struct sk_hist *h)
+void sk_hist_free(sk_hist *h)
 {
 	free(h->uvi);
 	free(h->del);
@@ -85,7 +85,7 @@ void sk_hist_free(struct sk_hist *h)
     free(h->buf);
 }
 
-void sk_hist_fill(struct sk_hist *h, sk_hist_filler filler)
+void sk_hist_fill(sk_hist *h, sk_hist_filler filler, void *fill_data)
 {
 	int i, j, ui, o, n, *vi;
 	double *t;
@@ -121,13 +121,13 @@ void sk_hist_fill(struct sk_hist *h, sk_hist_filler filler)
 		t[o] = h->t + h->dt; /* last point is next grid point */
 	}
 
-	filler(n, t, vi, h->buf);
+	filler(fill_data, n, t, vi, h->buf);
 
 	free(t);
 	free(vi);
 }
 
-void sk_hist_get(struct sk_hist *h, double t, double *c)
+void sk_hist_get(sk_hist *h, double t, double *c)
 {
 	int i, i0, i1, ui;
 
@@ -151,7 +151,7 @@ void sk_hist_get(struct sk_hist *h, double t, double *c)
 	}
 }
 
-static void update_time(struct sk_hist *h, double new_t)
+static void update_time(sk_hist *h, double new_t)
 {
 	int i, n_steps;
 
@@ -178,7 +178,7 @@ static void update_time(struct sk_hist *h, double new_t)
 	}
 }
 
-void sk_hist_set(struct sk_hist *h, double t, double *x)
+void sk_hist_set(sk_hist *h, double t, double *x)
 {
 	int i, i0, i1;
 	double x0, dx, dt;
@@ -199,11 +199,20 @@ void sk_hist_set(struct sk_hist *h, double t, double *x)
 	}
 }
 
-int sk_hist_nbytes(struct sk_hist *h)
+int sk_hist_nbytes(sk_hist *h)
 {
 	int nb;
-	nb = sizeof(struct sk_hist);
+	nb = sizeof(sk_hist);
 	nb += sizeof(int) * ((h->nu+1) + 3*h->nu + h->nd + h->maxvi);
 	nb += sizeof(double) * (h->lim[h->nu] + h->nu + h->nd);
 	return nb;
+}
+
+void sk_hist_zero_filler(void *data, int n, double *t, int *indices, double *buf)
+{
+	int i;
+	/* suppress unused parameter warnings */
+	(void) data; (void) n; (void) t; (void) indices;
+	for (i=0; i<n; i++)
+		buf[i] = 0.0;
 }

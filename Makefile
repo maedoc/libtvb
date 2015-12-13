@@ -3,8 +3,9 @@
 CC=gcc
 FC=gfortran
 OPTFLAGS=-O0
-WFLAGS=-Wpedantic -Wall -Wextra
-CFLAGS=-ansi -fPIC $(OPTFLAGS) $(WFLAGS) -g -DSKDEBUG
+WFLAGS=-Wpedantic 
+CFLAGS=$(WFLAGS) -Wall -Wextra -fstrict-aliasing -Wstrict-aliasing
+CFLAGS+=-ansi -fPIC $(OPTFLAGS) $(WFLAGS) -g -DSKDEBUG
 LFLAGS=-lm
 FFLAGS=-Ofast -fPIC
 VALGRINDFLAGS=--error-exitcode=1 --track-origins=yes --leak-check=full --show-leak-kinds=all
@@ -15,6 +16,7 @@ figs=exc_em_heun
 pngs=$(patsubst %,fig_%.png,$(figs))
 objects=$(patsubst %,sk_%.o,$(skmods)) randomkit.o
 testfiles=$(wildcard test_*.c)
+src=$(wildcard *.c) $(wildcard *.h) $(wildcard *.f)
 
 
 all: $(objects) libsk.so
@@ -45,7 +47,7 @@ fig: check $(pngs)
 fig_%.png: fig_%.gpi
 	gnuplot -e "set terminal png; set output '$@'" $<
 
-dox:
+dox: $(src) Doxyfile
 	doxygen Doxyfile
 
 clean:
