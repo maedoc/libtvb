@@ -45,8 +45,11 @@ fig: check $(pngs)
 fig_%.png: fig_%.gpi
 	gnuplot -e "set terminal png; set output '$@'" $<
 
+dox:
+	doxygen Doxyfile
+
 clean:
-	rm -rf *.o sk_tests *.so tags *.dat *.png
+	rm -rf *.o sk_tests *.so tags *.dat *.png dox
 
 license:
 	head -n 1 *.c *.h *.f *.pyc
