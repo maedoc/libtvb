@@ -46,3 +46,6 @@ fig_%.png: fig_%.gpi
 
 clean:
 	rm -rf *.o sk_tests *.so tags *.dat *.png
+
+license:
+	head -n 1 *.c *.h *.f
