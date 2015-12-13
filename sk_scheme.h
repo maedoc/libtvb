@@ -19,20 +19,16 @@ SK_DEFSCH(sk_sch_em);
 /* E-M for colored noise, derived from Fox 1998, 
  * (no proof of convergence for multiplicate noise!)
  */
-SK_DEFSCH(emcolor);
-/*
-def em_color(f, g, Δt, λ, x):
-    i = 0
-    nd = x.shape
-    ϵ = sqrt(g(i, x) * λ) * randn(*nd)
-    E = exp(-λ * Δt)
-    while True:
-	yield x, ϵ
-	i += 1
-	x += Δt * (f(i, x) + ϵ)
-	h = sqrt(g(i, x) * λ * (1 - E**2)) * randn(*nd)
-	ϵ = ϵ * E + h
-*/
+typedef struct { 
+	int first_call;
+	double *f, *g, *z, *eps, lam; 
+} sk_sch_emcolor_data;
+
+int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam);
+
+void sk_sch_emcolor_free(sk_sch_emcolor_data *d);
+
+SK_DEFSCH(sk_sch_emcolor);
 
 /* c.f. Manella 2002, O(2) in drift term, additive noise only */
 typedef struct {
@@ -45,7 +41,7 @@ void sk_sch_heun_free(sk_sch_heun_data *d);
 
 SK_DEFSCH(sk_sch_heun);
 
-/* http://arxiv.org/pdf/1506.05708v1.pdf LL for mult noise  */
+/* TODO http://arxiv.org/pdf/1506.05708v1.pdf LL for mult noise  */
 SK_DEFSCH(llmult);
 
 #endif

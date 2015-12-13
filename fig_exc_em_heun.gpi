@@ -1,3 +1,5 @@
 #!/usr/bin/env gnuplot
 
-plot 'test_exc_em.dat' u 1:2 w lines, 'test_exc_heun.dat' u 1:2 w lines
+plot 'test_exc_em.dat' u 1:2 w lines, \
+     'test_exc_heun.dat' u 1:2 w lines,\
+     'test_exc_emcolor.dat' u 1:2 w lines

@@ -35,6 +35,49 @@ SK_DEFSCH(sk_sch_em)
 	return 0;
 }
 
+int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam)
+{
+	SK_MALLOCHECK(d->f=malloc(sizeof(double)*nx));
+	SK_MALLOCHECK(d->g=malloc(sizeof(double)*nx));
+	SK_MALLOCHECK(d->z=malloc(sizeof(double)*nx));
+	SK_MALLOCHECK(d->eps=malloc(sizeof(double)*nx));
+	d->first_call = 1;
+	d->lam = lam;
+	return 0;
+}
+
+void sk_sch_emcolor_free(sk_sch_emcolor_data *d)
+{
+	free(d->f);
+	free(d->g);
+	free(d->z);
+	free(d->eps);
+}
+
+SK_DEFSCH(sk_sch_emcolor)
+{
+	int i;
+	double E; /* not stored so can be chaned while running */
+	sk_sch_emcolor_data *d = data;
+	if (d->first_call) {
+		sk_util_fill_gauss(rng, nx, d->z);
+		(*sys)(sysd, t-dt, nx, x, d->f, d->g, NULL, NULL, nc, c);
+		for (i=0; i<nx; i++)
+			d->eps[i] = sqrt(d->g[i] * d->lam) * d->z[i];
+		d->first_call = 0;
+	}
+	E = exp(-d->lam * dt);
+	sk_util_fill_gauss(rng, nx, d->z);
+	(*sys)(sysd, t, nx, x, d->f, d->g, NULL, NULL, nc, c);
+	for (i=0; i<nx; i++) {
+		x[i] += dt * (d->f[i] + d->eps[i]);
+		d->eps[i] *= E;
+		d->eps[i] += sqrt(d->g[i] * d->lam * (1 - E*E)) * d->z[i];
+	}
+	return 0;
+}
+
+
 int sk_sch_heun_init(sk_sch_heun_data *d, int nx)
 {
 	SK_MALLOCHECK(d->fl=malloc(sizeof(double)*nx));

@@ -75,6 +75,7 @@ int test_exc()
 {
 	sk_sch_em_data emd;
 	sk_sch_heun_data heund;
+	sk_sch_emcolor_data emcolord;
 
 	sk_sch_em_init(&emd, 2);
 	for_scheme(sk_sch_em, &emd, "em");
@@ -83,6 +84,10 @@ int test_exc()
 	sk_sch_heun_init(&heund, 2);
 	for_scheme(sk_sch_heun, &heund, "heun");
 	sk_sch_heun_free(&heund);
+
+	sk_sch_emcolor_init(&emcolord, 2, 1.0);
+	for_scheme(sk_sch_emcolor, &emcolord, "emcolor");
+	sk_sch_emcolor_free(&emcolord);
 
 	return 0;
 }

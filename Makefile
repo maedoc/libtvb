@@ -42,7 +42,7 @@ sk_tests.c: $(objects) $(patsubst %.c,%.o,$(testfiles))
 sk_tests: sk_tests.c
 	$(CC) $(CFLAGS) $(objects) test_*.o sk_tests.c $(LFLAGS) -o $@
 
-fig: check $(pngs)
+fig: test $(pngs)
 
 fig_%.png: fig_%.gpi
 	gnuplot -e "set terminal png; set output '$@'" $<
