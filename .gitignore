@@ -8,3 +8,4 @@ pdfs
 *.so
 *.dll
 *.lib
+*.dat

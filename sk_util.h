@@ -7,7 +7,11 @@
 #include "stdio.h"
 #endif
 
+#include "randomkit.h"
+
 int sk_util_uniqi(const int n, const int *ints, int *nuniq, int **uints);
+
+int sk_util_fill_gauss(rk_state *rng, int nx, double *x);
 
 #ifdef SKDEBUG
 #define SK_MALLOCHECK(ptr) \

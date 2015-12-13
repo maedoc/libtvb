@@ -13,13 +13,28 @@ static int compare_int(const void *a, const void *b)
 	else /* a > b */ return  1;
 }
 
+int sk_util_fill_gauss(rk_state *rng, int nx, double *x)
+{
+	int i;
+
+	for (i=0; i<nx; i++)
+		x[i] = rk_gauss(rng);
+
+	return 0;
+}
+
 int sk_util_uniqi(const int n, const int *ints, int *nuniq, int **uints)
 { 
 	int i, j, *ints_copy;
-       
+
+	if (n==0) return 0;
+
 	/* sort copy of input vector */
 	ints_copy = (int*) malloc(sizeof(int) * n);
 	memcpy(ints_copy, ints, n*sizeof(int));
+
+	if (n==1) return 0;
+
 	qsort(ints_copy, n, sizeof(int), compare_int);
 
 	/* count uniq */

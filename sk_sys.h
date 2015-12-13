@@ -3,8 +3,12 @@
 #ifndef SK_SYS_H
 #define SK_SYS_H
 
-typedef int (*sk_sys)(
-	int nx, double *x, double *f, double *g, double *Jf, double *Jg,
-	int nc, double *c, void *data);
+#include "sk_solv.h"
+
+typedef struct {
+    double a, tau, D;
+} sk_sys_exc_dat;
+
+SK_DEFSYS(sk_sys_exc);
 
 #endif

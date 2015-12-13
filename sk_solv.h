@@ -15,7 +15,7 @@
 typedef SK_DEFSYS((*sk_sys));
 
 #define SK_DEFSCH(name) int name(\
-	void *data,\
+	void *data, rk_state *rng,\
 	sk_sys sys, void *sysd,\
 	double t, double dt,\
 	int nx, double *x,\
@@ -29,6 +29,7 @@ typedef SK_DEFSCH((*sk_sch));
 
 typedef SK_DEFOUT((*sk_out));
 
+/* TODO typedef */
 struct sk_solv
 {
 	int nx, nc, cont;
@@ -37,13 +38,14 @@ struct sk_solv
 	sk_out out;
 	void *sysd, *schd, *outd;
 	sk_hist_filler hf;
-	struct sk_hist *hist; /* nd==nc, ci, cd */
+	struct sk_hist hist; /* nd==nc, ci, cd */
 	rk_state rng;
 	double t, dt, *x, *c;
 };
 
 /* usr handles data alloc, init, free, etc */
-struct sk_solv *sk_solv_init(
+int sk_solv_init(
+	struct sk_solv *solv,
 	sk_sys sys, void *sys_data,
 	sk_sch scheme, void *scheme_data,
 	sk_out out, void *out_data,

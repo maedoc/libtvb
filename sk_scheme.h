@@ -6,14 +6,19 @@
 #include "sk_solv.h"
 
 /* Euler-Maruyama O(1) general purpose */
-SK_DEFSCH(em);
-/*
-        ! compute
-        call sys(x, f, g, Jf, Jg, c, par)
-        call randn(z)
-        x = x + dt * f + sqrt(dt) * g * z
-*/
+typedef struct {
+	double *f, *g, *z;
+} sk_sch_em_data;
 
+int sk_sch_em_init(sk_sch_em_data *d, int nx);
+
+void sk_sch_em_free(sk_sch_em_data *d);
+
+SK_DEFSCH(sk_sch_em);
+
+/* E-M for colored noise, derived from Fox 1998, 
+ * (no proof of convergence for multiplicate noise!)
+ */
 SK_DEFSCH(emcolor);
 /*
 def em_color(f, g, Δt, λ, x):
