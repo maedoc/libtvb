@@ -35,14 +35,15 @@ def em_color(f, g, Δt, λ, x):
 */
 
 /* c.f. Manella 2002, O(2) in drift term, additive noise only */
-SK_DEFSCH(heun);
-/*
+typedef struct {
+	double *fl, *fr, *gl, *gr, *z, *xr;
+} sk_sch_heun_data;
 
-        call sys(x, fl, gl, Jf, Jg, c, par)
-        call sys(x + dt * fl, fr, gr, Jf, Jg, c, par)
-        call randn(z)
-        x = x + 0.5_dp * (dt*(fl + fr) + sqrt(dt)*(gl + gr)*z)
-*/
+int sk_sch_heun_init(sk_sch_heun_data *d, int nx);
+
+void sk_sch_heun_free(sk_sch_heun_data *d);
+
+SK_DEFSCH(sk_sch_heun);
 
 /* http://arxiv.org/pdf/1506.05708v1.pdf LL for mult noise  */
 SK_DEFSCH(llmult);

@@ -10,6 +10,8 @@ FFLAGS=-Ofast -fPIC
 
 skmods=util test hist solv sys scheme
 ekobjs=lapack.o blas.o expokit.o
+figs=exc_em_heun
+pngs=$(patsubst %,fig_%.png,$(figs))
 objects=$(patsubst %,sk_%.o,$(skmods)) randomkit.o
 testfiles=$(wildcard test_*.c)
 
@@ -17,7 +19,7 @@ testfiles=$(wildcard test_*.c)
 all: $(objects) libsk.so
 
 check: sk_tests
-	valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./sk_tests
+	valgrind --error-exitcode=1 --track-origins=yes --show-leak-kinds=all --leak-check=full ./sk_tests
 
 gdb: sk_tests
 	gdb sk_tests -ex "b sk_test_failed"
@@ -37,5 +39,10 @@ sk_tests.c: $(objects) $(patsubst %.c,%.o,$(testfiles))
 sk_tests: sk_tests.c
 	$(CC) $(CFLAGS) $(objects) test_*.o sk_tests.c $(LFLAGS) -o $@
 
+fig: check $(pngs)
+
+fig_%.png: fig_%.gpi
+	gnuplot -e "set terminal png; set output '$@'" $<
+
 clean:
-	rm -rf *.o sk_tests *.so tags *.dat
+	rm -rf *.o sk_tests *.so tags *.dat *.png

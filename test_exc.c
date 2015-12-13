@@ -26,27 +26,25 @@ static void test_hist_filler()
 {
 }
 
-int test_em_exc()
+static double x0[2] = {1.010403, 0.030870};
+
+int for_scheme(sk_sch sch, void *schd, char *name)
 {
-	double x[2];
-	sk_sch_em_data schd;
 	sk_sys_exc_dat sysd;
 	out_data outd;
 	struct sk_solv solv;
+	char dat_name[100];
 
-	x[0] = 1.010403;
-	x[1] = 0.030870;
-
-	/* init scheme & solver */
-	sk_sch_em_init(&schd, 2);
+	/* init solver */
 	sk_solv_init(&solv, &sk_sys_exc, &sysd,
-		&sk_sch_em, &schd, &test_out, &outd,
-		&test_hist_filler, 42, 2, x, 0, NULL, NULL,
+		sch, schd, &test_out, &outd,
+		&test_hist_filler, 42, 2, x0, 0, NULL, NULL,
 		0.0, 0.05);
 
 	/* fill in data */
 	outd.tf = 20.0;
-	outd.fd = fopen("test_em_exc.dat", "w");
+	sprintf(dat_name, "test_exc_%s.dat", name);
+	outd.fd = fopen(dat_name, "w");
 	sysd.a = 1.01;
 	sysd.tau = 3.0;
 
@@ -63,9 +61,26 @@ int test_em_exc()
 	sk_solv_cont(&solv);
 	sk_test_true(outd.crossed);
 
-	sk_solv_free(&solv);
-	sk_sch_em_free(&schd);
+	/* clean up */
 	fclose(outd.fd);
+	sk_solv_free(&solv);
+
+	return 0;
+}
+
+
+int test_exc()
+{
+	sk_sch_em_data emd;
+	sk_sch_heun_data heund;
+
+	sk_sch_em_init(&emd, 2);
+	for_scheme(sk_sch_em, &emd, "em");
+	sk_sch_em_free(&emd);
+	
+	sk_sch_heun_init(&heund, 2);
+	for_scheme(sk_sch_heun, &heund, "heun");
+	sk_sch_heun_free(&heund);
 
 	return 0;
 }
