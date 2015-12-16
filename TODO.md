@@ -9,10 +9,11 @@ x rework interpretation of c in/out
 x add restrict everywhere
 x (REJECTED) models loop over nx as appropriate (too complicated)
 x network sys (connectivity, heterogeneous model sets & couplings)
-- impl Jf Jg Jc (they are placeholders for now), scheme (taylor o(2) / llmult), tests (sparse jac)
 - out fn spatio temporal filtering, plain file binary/ascii, in-mem buffer
+- impl Jf Jg Jc (they are placeholders for now), scheme (taylor o(2) / llmult), tests (sparse jac)
 - bindings Java/R/Py/MATLAB
 - provide finite diff scheme
+- general temporal filter
 
 ## verification & validation
 
@@ -35,10 +36,15 @@ x exact history test from TVB
 - eval randn only for nnz g? test w/ benchmark
 - allow specializations to SDE, ignoring delays, idem for DDE, ignore g
 - sort net.M to evaluate models block-wise 
+- specialize out sfilt handle differet nfilt for x & c
 
 ## software engineering
 
 - const correctness?
+- consistently memcpy inputs during init to make easier bindings
+  to dynamic langs which may dealloc param arrays (free after of course).
+- error handler system like GSL
+- test malloc fails a la http://stackoverflow.com/questions/3868716
 - add lint checks to lint.sh (e.g. all allocations use MALLOCHECK)
 - hide structs into opaque pointers, impl get/set methods
 x doxygen

@@ -2,16 +2,24 @@
 
 CC=gcc
 FC=gfortran
+
+ifeq ($(BUILD), release)
+OPTFLAGS=-O3 -ffast-math -march=native -fomit-frame-pointer -mfpmath=sse -msse3
+CFLAGS=
+else # dev/debug
 OPTFLAGS=-O0
+CFLAGS=-g -DSKDEBUG
+endif
+
 WFLAGS=-Wpedantic 
-CFLAGS=$(WFLAGS) -Wall -Wextra -fstrict-aliasing -Wstrict-aliasing
-CFLAGS+=-ansi -fPIC $(OPTFLAGS) $(WFLAGS) -g -DSKDEBUG
+CFLAGS+=$(WFLAGS) -Wall -Wextra -fstrict-aliasing -Wstrict-aliasing
+CFLAGS+=-ansi -fPIC $(OPTFLAGS) $(WFLAGS)
 CFLAGS+=-I./include
 LFLAGS=-lm
 FFLAGS=-Ofast -fPIC
 VALGRINDFLAGS=--error-exitcode=1 --track-origins=yes --leak-check=full --show-leak-kinds=all
 
-skmods=util test hist solv sys scheme net sparse
+skmods=util test hist solv sys scheme net sparse out
 ekobjs=objs/lapack.o objs/blas.o objs/expokit.o
 objects=$(patsubst %,objs/sk_%.o,$(skmods)) objs/randomkit.o
 testfiles=$(wildcard test/*.c)

@@ -3,11 +3,10 @@
 #ifndef SK_UTIL_H
 #define SK_UTIL_H
 
-#ifdef SKDEBUG
-#include "stdio.h"
-#endif
+#include <stdio.h>
 
 #include "randomkit.h"
+
 
 /* sk_restrict should be used anywhere a function takes two or more
  * pointer arguments with same type:
