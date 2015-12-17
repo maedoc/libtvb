@@ -31,7 +31,6 @@ static void setup_buffer_structure(sk_hist *h)
 		ui = h->uvi[i];
 		h->vi2i[ui] = i;
 		maxd = 0.0;
-		/* TODO double check */
 		for (j=0; j<h->nd; j++)
 			if (h->vi[j]==ui && h->del[j]>maxd)
 				maxd = h->del[j];
@@ -81,8 +80,8 @@ void sk_hist_free(sk_hist *h)
 	free(h->lim);
 	free(h->len);
 	free(h->pos);
-    free(h->vi2i);
-    free(h->buf);
+	free(h->vi2i);
+	free(h->buf);
 }
 
 void sk_hist_fill(sk_hist * restrict h, sk_hist_filler filler, void * restrict fill_data)
@@ -134,8 +133,7 @@ void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff)
 	if (h==NULL)
 		return;
 
-	/* TODO optimize this mess */
-	for (i=0; i<h->nd; i++)
+	for (i = 0; i < h->nd; i++)
 	{
 		int ui, i0, i1, p, l, o;
 		double dt, y0, y1, m, dx;
@@ -145,11 +143,12 @@ void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff)
 		l = h->len[ui];
 		o = h->lim[ui];
 
-		dt = (t - h->del[i]) - (h->t - (l-2)*h->dt);
+		dt = (t - h->del[i]) - (h->t - (l - 2)*h->dt);
 
-		i0 = (int) ceil((l-2) - dt/h->dt);
+		i0 = (int)ceil((l - 2) - dt / h->dt);
 		i1 = i0 ? i0 - 1 : l - 1;
 
+		/* bottleneck */
 		y0 = h->buf[(p + i0) % l + o];
 		y1 = h->buf[(p + i1) % l + o];
 
@@ -159,29 +158,6 @@ void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff)
 
 		aff[i] = m * dx + y0;
 		continue;
-
-		/* t - h->del[i] - h->t is delay time rel to h->t,
-		 * then in steps, then round to left, sub from current position
-		 * to get index of value on right of desired value  */
-		i0 = h->pos[ui] - floor((t - h->del[i] - h->t) / h->dt);
-		if (i0 < 0)
-			i0 += h->len[ui];
-		i0 %= h->len[ui];
-		/* obtain index on left of desired value */
-		i1 = i0 ? i0 - 1 : h->len[ui]-1;
-		i0 += h->lim[ui];
-		i1 += h->lim[ui];
-#ifdef SKDEBUG
-        if ((i0 < h->lim[ui]) || (i0 > h->lim[ui+1]))
-            fprintf(stderr, "[sk_hist_get] t=%.3f ui=%d, i0=%d not in [%d,%d) %s:%d\n", 
-		    t, ui, i0, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__);
-        if ((i1 < h->lim[ui]) || (i1 > h->lim[ui+1]))
-            fprintf(stderr, "[sk_hist_get] t=%.3f ui=%d, i1=%d not in [%d,%d) %s:%d\n", 
-		    t, ui, i1, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__);
-#endif
-		dt = fmod(t + h->del[i], h->dt);
-		/* dt = (t - h->del[i]) - (h->pos[ui] - i0)*h->dt; */
-		aff[i] = (h->buf[i1] - h->buf[i0]) / h->dt * dt + h->buf[i0];
 	}
 }
 

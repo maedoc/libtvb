@@ -8,7 +8,7 @@
 
 SK_DEFSYS(sk_net_sys)
 {
-	int i, j, mi;
+	int l, j, mi;
 	double *xi, *fi, *gi, *ci;
 	sk_net_data *d = data;
 
@@ -19,18 +19,18 @@ SK_DEFSYS(sk_net_sys)
 	 *
 	 * solver deals with c following Ic,d, but here we wanted ce
 	 */
-	for (i=0; i<d->ne; i++) 
-		for (d->cn[i]=0.0, j=d->Or[i]; j<d->Or[i+1]; j++)
+	for (l=0; l<d->ne; l++) 
+		for (d->cn[l]=0.0, j=d->Or[l]; j<d->Or[l+1]; j++)
 			/* c is len(ui), not ne! Ic[j] can't index it directly */
-			d->cn[i] += c[hist->vi2i[d->Ic[j]]] * d->w[j];
+			d->cn[l] += c[hist->vi2i[d->Ic[j]]] * d->w[j];
 
 	/* evaluate system(s) */
 	if (Jf==NULL) {
-		for  (i=0, xi=x, fi=f, gi=g, ci=d->cn; i<d->n; i++, 
+		for  (l=0, xi=x, fi=f, gi=g, ci=d->cn; l<d->n; l++, 
 		      xi+=d->Ms[mi], fi+=d->Ms[mi], gi+=d->Ms[mi], ci+=d->Me[mi]) 
 		{
-			mi = d->M[i];
-			(*(d->models[mi]))(d->models_data[mi], hist, t,
+			mi = d->M[l];
+			(*(d->models[mi]))(d->models_data[mi], hist, t, i,
 				d->Ms[mi], xi, fi, gi, NULL, NULL,
 				d->Me[mi], ci, NULL);
 		}
@@ -55,22 +55,22 @@ SK_DEFSYS(sk_net_sys)
 	 * solver deals with c following Ic,d, but here we wanted ce
 	 * so we need to pack our cn into c.
 	 */
-	for (i=0; i<d->nnz; i++)
-		c[i] = d->cn[d->Ic[i]];
+	for (l=0; l<d->nnz; l++)
+		c[l] = d->cn[d->Ic[l]];
 	return 0;
 }
 
 SK_DEFSYS(sk_net_regmap)
 {
-	int i;
+	int l;
 	sk_net_regmap_data *d = data;
 	/* unused arguments */
-	(void) nx;(void) t; (void) Jf; (void) Jg; (void) Jce; (void) hist;
+	(void) nx;(void) t; (void) Jf; (void) Jg; (void) Jce; (void) hist; (void) i;
 	f[0] = 0.0;
 	g[0] = 0.0;
 	x[0] = 0.0;
-	for (i=0; i<nc; i++)
-		x[0] += c[0];
+	for (l=0; l<nc; l++)
+		x[0] += c[l];
 	c[0] = x[0] / d->n[d->i];
 	return 0;
 }

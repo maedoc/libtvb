@@ -34,6 +34,7 @@ int sk_solv_init(
 	SK_MALLOCHECK(s->x0 = malloc (sizeof(double) * nx));
 	if (nc > 0 && vi!=NULL && vd!=NULL) {
 		int cn;
+		/* TODO allow hist dt to vary */
 		sk_hist_init(&s->hist, nc, vi, vd, t0, dt);
 		sk_hist_fill(&s->hist, hf, hfill_data);
 		cn = s->hist.maxvi;

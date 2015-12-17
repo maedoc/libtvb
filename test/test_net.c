@@ -74,7 +74,7 @@ int test_net1()
 	c[0] = x[0] = 1.0;
 	c[1] = x[2] = 2.0;
 	c[2] = x[4] = 3.0;
-	sk_net_sys(&net, &hist, 0.0, n*ns, x, f, g, NULL, NULL, n*ne, c, NULL);
+	sk_net_sys(&net, &hist, 0.0, 0, n*ns, x, f, g, NULL, NULL, n*ne, c, NULL);
 	sk_test_true(f[1]==(sysd.a - x[0] + sysd.k*w[0]*x[2])/sysd.tau);
 	sk_test_true(f[3]==(sysd.a - x[2] + sysd.k*w[1]*x[4])/sysd.tau);
 	sk_test_true(f[5]==(sysd.a - x[4])/sysd.tau);

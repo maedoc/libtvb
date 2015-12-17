@@ -1,25 +1,45 @@
 # Apache 2.0 INS-AMU 2015
 
+
 CC=gcc
 FC=gfortran
 
-ifeq ($(BUILD), release)
+ifeq ($(BUILD),release)
 OPTFLAGS=-O3 -ffast-math -march=native -fomit-frame-pointer -mfpmath=sse -msse3
 CFLAGS=
 else # dev/debug
 OPTFLAGS=-O0
-CFLAGS=-g -DSKDEBUG
+CFLAGS=-DSKDEBUG
 endif
+
+ifeq ($(BUILD),profile)
+CFLAGS+=-pg 
+else
+CFLAGS+=-g
+endif
+
 
 WFLAGS=-Wpedantic 
 CFLAGS+=$(WFLAGS) -Wall -Wextra -fstrict-aliasing -Wstrict-aliasing
-CFLAGS+=-ansi -fPIC $(OPTFLAGS) $(WFLAGS)
+CFLAGS+=-ansi $(OPTFLAGS) $(WFLAGS)
 CFLAGS+=-I./include
 LFLAGS=-lm
-FFLAGS=-Ofast -fPIC
-VALGRINDFLAGS=--error-exitcode=1 --track-origins=yes --leak-check=full --show-leak-kinds=all
+FFLAGS=-Ofast
 
-skmods=util test hist solv sys scheme net sparse out
+ifeq ($(OS),Windows_NT)
+else
+	CFLAGS += -fPIC
+	FFLAGS += -fPIC
+endif
+
+VALGRINDFLAGS=--error-exitcode=1 --track-origins=yes --leak-check=full --show-leak-kinds=all
+ifeq ($(shell uname -s),Linux)
+	TESTER=valgrind $(VALGRINDFLAGS)
+else
+	TESTER=
+endif
+
+skmods=util test hist solv sys scheme net sparse out dat
 ekobjs=objs/lapack.o objs/blas.o objs/expokit.o
 objects=$(patsubst %,objs/sk_%.o,$(skmods)) objs/randomkit.o
 testfiles=$(wildcard test/*.c)
@@ -30,7 +50,7 @@ src=$(wildcard src/*.c) $(wildcard include/*.h) $(wildcard src/*.f)
 all: $(objects) libsk.so
 
 test: sk_tests
-	valgrind $(VALGRINDFLAGS) ./sk_tests --all
+	$(TESTER) ./sk_tests --all
 
 gdb: sk_tests
 	gdb sk_tests -ex "b sk_test_failed"
@@ -69,7 +89,7 @@ dox: $(src) Doxyfile
 	doxygen Doxyfile
 
 clean:
-	rm -rf objs sk_tests sk_tests.c *.so tags *.dat fig/*.png dox
+	rm -rf objs sk_tests sk_tests.c *.so tags *.dat fig/*.png dox *.exe
 
 license:
 	head -n 1 *.c *.h *.f *.pyc

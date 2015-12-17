@@ -1,11 +1,5 @@
 /* Apache 2.0 INS-AMU 2015 */
 
-#ifdef _WIN32
-/* TODO */
-#else
-#include <unistd.h>
-#endif
-
 #include <stdio.h>
 
 #include "sk_test.h"
@@ -21,7 +15,7 @@ void test_out_file() {
 	x[0] = 2*t;
 	x[1] = 3*t;
 	c[0] = 4*t;
-	fname = "test_out_file.txt";
+	fname = "test_out_file.dat";
 
 	sk_out_file_from_std(&d, stderr);
 	sk_test_true(d.fd==stderr);
@@ -49,13 +43,6 @@ void test_out_file() {
 		sk_test_tol(c_[0], c[0], 1e-10);
 	}
 	fclose(fd);
-
-	/* clean up */
-#ifdef _WIN32
-	DeleteFile(fname);
-#else
-	unlink(fname);
-#endif
 }
 
 void test_out_mem() {

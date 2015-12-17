@@ -29,7 +29,7 @@ SK_DEFOUT(sk_out_file) {
 	fprintf(d->fd, "%d ", nc);
 	for (i=0; i<nc; i++) fprintf(d->fd, "%f ", c[i]);
 	fprintf(d->fd, "\n");
-	return 0;
+	return 1;
 }
 
 void sk_out_file_free(sk_out_file_data *d) {
@@ -64,15 +64,15 @@ SK_DEFOUT(sk_out_mem) {
 		/* expand buffer */
 		x_ = realloc (d->xs, sizeof(double)*nx*2*d->capacity);
 		if (x_==NULL)
-			return 1;
+			return 0;
 		c_ = realloc (d->cs, sizeof(double)*nc*2*d->capacity);
 		if (c_==NULL)
-			return 1;
+			return 0;
 		d->capacity *= 2;
 		d->xs = x_;
 		d->cs = c_;
 	}
-	return 0;
+	return 1;
 }
 
 void sk_out_mem_free(sk_out_mem_data *d) {
@@ -103,9 +103,9 @@ int sk_out_tee_set_out(sk_out_tee_data *d, int i, sk_out out, void *data) {
 SK_DEFOUT(sk_out_tee) {
 	int i, flag;
 	sk_out_tee_data *d = data;
-	flag = 0;
+	flag = 1;
 	for (i=0; i<d->nout; i++)
-		flag |= (*(d->outs[i]))(d->outd[i], t, nx, x, nc, c);
+		flag &= (*(d->outs[i]))(d->outd[i], t, nx, x, nc, c);
 	return flag;
 }
 
@@ -139,7 +139,7 @@ SK_DEFOUT(sk_out_tavg) {
 		ALL(nx) d->x[i] = 0.0;
 		ALL(nc) d->c[i] = 0.0;
 	}
-	flag = 0;
+	flag = 1;
 	ALL(nx) d->x[i] += x[i];
 	ALL(nc) d->c[i] += c[i];
 	d->t += t;

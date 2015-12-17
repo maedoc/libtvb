@@ -28,7 +28,7 @@ SK_DEFSCH(sk_sch_id) {
 	/* unused */ (void) dt;
 	d = data;
 	sk_hist_get(hist, t, c);	      /*  Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
+	(*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
 	sk_util_fill_gauss(rng, nx, d->z);
 	for (i=0; i<nx; i++)
 		x[i] = d->f[i] + d->g[i] * d->z[i];
@@ -57,7 +57,7 @@ SK_DEFSCH(sk_sch_em)
 	double sqrt_dt;
 	sk_sch_em_data *d = data;
 	sk_hist_get(hist, t, c);	     /*  Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
+	(*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
 	sk_util_fill_gauss(rng, nx, d->z);
 	sqrt_dt = sqrt(dt);
 	for (i=0; i<nx; i++)
@@ -92,7 +92,7 @@ SK_DEFSCH(sk_sch_emcolor)
 	sk_sch_emcolor_data *d = data;
 	if (d->first_call) {
 		sk_util_fill_gauss(rng, nx, d->z);      /*  Jf    Jg           Jc */
-		(*sys)(sysd, hist, t-dt, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
+		(*sys)(sysd, hist, t-dt, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
 		for (i=0; i<nx; i++)
 			d->eps[i] = sqrt(d->g[i] * d->lam) * d->z[i];
 		d->first_call = 0;
@@ -100,7 +100,7 @@ SK_DEFSCH(sk_sch_emcolor)
 	E = exp(-d->lam * dt);
 	sk_util_fill_gauss(rng, nx, d->z);
 	sk_hist_get(hist, t, c);	     /*  Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
+	(*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL);
 	for (i=0; i<nx; i++) {
 		x[i] += dt * (d->f[i] + d->eps[i]);
 		d->eps[i] *= E;
@@ -139,13 +139,13 @@ SK_DEFSCH(sk_sch_heun)
 	sk_sch_heun_data *d = data;
 	/* predictor */
 	sk_hist_get(hist, t, c);	     /*    Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, nx, x, d->fl, d->gl, NULL, NULL, nc, c, NULL);
+	(*sys)(sysd, hist, t, 0, nx, x, d->fl, d->gl, NULL, NULL, nc, c, NULL);
 	for (i=0; i<nx; i++)
 		d->xr[i] = x[i] + dt * d->fl[i];
 	sk_hist_set(hist, t, c);
 	/* corrector */
 	sk_hist_get(hist, t+dt, c);	            /*    Jf    Jg           Jc */
-	(*sys)(sysd, hist, t+dt, nx, d->xr, d->fr, d->gr, NULL, NULL, nc, c, NULL);
+	(*sys)(sysd, hist, t+dt, 0, nx, d->xr, d->fr, d->gr, NULL, NULL, nc, c, NULL);
 	sk_util_fill_gauss(rng, nx, d->z);
 	sqrt_dt = sqrt(dt);
 	for (i=0; i<nx; i++)

@@ -15,7 +15,7 @@
 #define SK_DEFSYS(name) int name(\
 		void * restrict data,\
 		sk_hist * restrict hist,\
-		double t,\
+		double t, int i,\
 		int nx, double * restrict x, \
 		double * restrict f, double * restrict g,\
 		double * restrict Jf, double * restrict Jg,\
@@ -33,7 +33,9 @@
  * the mapping from efferent coupling terms to afferent terms.
  *
  * \param data user data passed to system for defining e.g. parameters of the system.
+ * \param hist history of system.
  * \param t current time in solution.
+ * \param i index of system (relevant for composite systems).
  * \param nx number of state variables of system.
  * \param x vector of current state variable values.
  * \param f vector of drift terms per state variable.

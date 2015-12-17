@@ -12,7 +12,7 @@ typedef struct {
 static SK_DEFSYS(test_sys)
 {
 	sys_data *d = data;
-	/* unused */ (void) Jce; (void) hist;
+	/* unused */ (void) Jce; (void) hist; (void) i;
 	d->n_calls++;
 	d->t = t;
 	d->nx = nx;
@@ -38,7 +38,7 @@ static SK_DEFSCH(test_sch)
 	d->n_calls++;
 	d->dt = dt;
 	d->rng = rng;
-	(*sys)(sysd, hist, t, nx, x, NULL, NULL, NULL, NULL, nc, c, NULL);
+	(*sys)(sysd, hist, t, 0, nx, x, NULL, NULL, NULL, NULL, nc, c, NULL);
 	return 0;
 }
 
