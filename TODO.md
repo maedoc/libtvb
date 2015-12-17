@@ -29,7 +29,6 @@ x exact history test from TVB
 - e.g. convergence test systems from Biscay et al
 - LL DDE tests from Jimenez  2006
 - test problems from Kuechler Platen 2000 references (page 1)
-- convert test collector to makefile
 - lorenz chaos, test lyapunov expo 
 - test main --test-name --test --bench (if whole suite gets too slow)
 - drift & diffusion integrals can be handled independently?
@@ -51,6 +50,7 @@ x const correctness (not really a thing in c)
 - move to cmake (cython: github.com/thewtex/cython-cmake-example)
 - convert makefile to premake / cmake, adhoc stuff to python script
 - use py/matlab/java test frameworks over bindings
+- convert test collector to makefile
 - consistently memcpy inputs during init to make easier bindings
   to dynamic langs which may dealloc param arrays (free after of course).
 - error handler system like GSL
