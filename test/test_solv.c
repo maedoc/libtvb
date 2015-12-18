@@ -121,3 +121,8 @@ int test_solv()
 	sk_solv_free(&solv);
 	return 0;
 }
+
+int main() {
+	test_solv();
+	return sk_test_report();
+}

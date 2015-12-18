@@ -99,3 +99,8 @@ int test_netn()
 {
 	return 0;
 }
+
+int main() {
+	test_net1();
+	return sk_test_report();
+}

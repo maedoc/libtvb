@@ -9,3 +9,5 @@ pdfs
 *.dll
 *.lib
 *.dat
+*~
+cmake_build

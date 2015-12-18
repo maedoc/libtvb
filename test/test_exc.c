@@ -72,7 +72,7 @@ static int for_scheme(sk_sch sch, void *schd, char *name)
 }
 
 
-int test_exc()
+int main()
 {
 	sk_sch_em_data emd;
 	sk_sch_heun_data heund;
@@ -90,5 +90,5 @@ int test_exc()
 	for_scheme(sk_sch_emcolor, &emcolord, "emcolor");
 	sk_sch_emcolor_free(&emcolord);
 
-	return 0;
+	return sk_test_report();
 }

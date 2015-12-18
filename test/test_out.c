@@ -239,3 +239,13 @@ void test_out_sfilt() {
 	sk_out_mem_free(&m);
 }
 
+
+int main() {
+	test_out_file();
+	test_out_mem();
+	test_out_tee();
+	test_out_tavg();
+	test_out_sfilt();
+	return sk_test_report();
+}
+

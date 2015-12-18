@@ -53,3 +53,8 @@ int test_util_uniqi()
 	}
 	return 0;
 }
+
+int main() {
+	test_util_uniqi();
+	return sk_test_report();
+}

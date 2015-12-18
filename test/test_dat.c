@@ -14,13 +14,13 @@ static int sk_res_conn76_tl25[25] = {
 };
 
 
-int test_dat_read_square() {
+int main() {
 	int i, n;
 	double *w;
-	sk_dat_read_square_matrix("res/conn76/weights.txt", &n, &w);
+	sk_dat_read_square_matrix("../../res/conn76/weights.txt", &n, &w);
 	sk_test_true(n==76);
 	for (i=0; i<25; i++)
 		sk_test_true(sk_res_conn76_tl25[i]==w[(i/5)*76 + (i%5)]);
 	free(w);
-	return 0;
+	return sk_test_report();
 }

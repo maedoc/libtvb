@@ -81,3 +81,8 @@ int test_sparse_from_dense()
 
 	return 0;
 }
+
+int main() {
+	test_sparse_from_dense();
+	return sk_test_report();
+}

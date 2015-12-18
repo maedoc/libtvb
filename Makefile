@@ -27,7 +27,10 @@ LFLAGS=-lm
 FFLAGS=-Ofast
 
 ifeq ($(OS),Windows_NT)
+	# MinGW from cmd.exe, MSYS from sh....
+	CMAKE_GENERATOR=MSYS Makefiles
 else
+	CMAKE_GENERATOR=Unix Makefiles
 	CFLAGS += -fPIC
 	FFLAGS += -fPIC
 endif
@@ -89,7 +92,15 @@ dox: $(src) Doxyfile
 	doxygen Doxyfile
 
 clean:
-	rm -rf objs sk_tests sk_tests.c *.so tags *.dat fig/*.png dox *.exe
+	rm -rf objs sk_tests sk_tests.c *.so tags *.dat fig/*.png dox *.exe cmake_build
 
 license:
 	head -n 1 *.c *.h *.f *.pyc
+
+cmake_build:
+	mkdir cmake_build
+	cd cmake_build && cmake -G "$(CMAKE_GENERATOR)" ..  && make -B -j
+
+ctest: cmake_build
+	cd cmake_build/test && ctest
+

@@ -46,6 +46,7 @@ x exact history test from TVB
 ## software engineering
 
 - move this todo to jira
+- move repo to ins-amu and develop via pull request, travis labels each with test results
 x const correctness (not really a thing in c)
 - move to cmake (cython: github.com/thewtex/cython-cmake-example)
 - convert makefile to premake / cmake, adhoc stuff to python script

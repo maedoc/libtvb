@@ -222,3 +222,9 @@ int test_hist_exact() {
 
 	return 0;
 }
+
+int main() {
+	test_hist();
+	test_hist_exact();
+	return sk_test_report();
+}

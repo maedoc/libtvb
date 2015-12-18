@@ -2,5 +2,6 @@ addons:
  apt:
   packages:
   - valgrind
+  - cmake
 language: c
-script: make VALGRINDFLAGS="--error-exitcode=1 --track-origins=yes --leak-check=full" WFLAGS="-Wall" test
+script: mkdir build && cd build && cmake .. && make && cd test && ctest
