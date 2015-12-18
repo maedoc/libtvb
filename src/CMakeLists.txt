@@ -3,4 +3,7 @@ set(libsk_srcs randomkit.c sk_dat.c sk_hist.c sk_net.c sk_out.c
 	sk_util.c)
 
 add_library(libsk ${libsk_srcs})
-target_link_libraries(libsk m)
+
+if (UNIX)
+	target_link_libraries(libsk m)
+endif(UNIX)

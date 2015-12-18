@@ -42,8 +42,8 @@ int main() {
 
 
 	/* connectivity, assuming conduction velocity of 1.0 */
-	sk_dat_read_square_matrix("res/conn76/weights.txt", &n, &w);
-	sk_dat_read_square_matrix("res/conn76/tract_lengths.txt", &n, &d);
+	sk_dat_read_square_matrix("../../res/conn76/weights.txt", &n, &w);
+	sk_dat_read_square_matrix("../../res/conn76/tract_lengths.txt", &n, &d);
 	sk_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &sw, &sd);
 	fprintf(stdout, "[bench_net_exc] nnz=%d\n", nnz);
 
