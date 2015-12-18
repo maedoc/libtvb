@@ -2,13 +2,13 @@
 
 #include <stdlib.h>
 
-#include "sk_test.h"
+#include "gtest/gtest.h"
+
 #include "sk_util.h"
 
 #define N 10
 
-int test_util_uniqi()
-{
+TEST(util, uniqi) {
 	{
 		int i, *ints, *uints, nuniq;
 
@@ -19,12 +19,12 @@ int test_util_uniqi()
 
 		sk_util_uniqi(N, ints, &nuniq, &uints);
 
-		sk_test_true(nuniq == 5);
-		sk_test_true(uints[0] == -2);
-		sk_test_true(uints[1] == -1);
-		sk_test_true(uints[2] == 0);
-		sk_test_true(uints[3] == 1);
-		sk_test_true(uints[4] == 2);
+		EXPECT_EQ( 5,nuniq );
+		EXPECT_EQ( -2,uints[0] );
+		EXPECT_EQ( -1,uints[1] );
+		EXPECT_EQ( 0,uints[2] );
+		EXPECT_EQ( 1,uints[3] );
+		EXPECT_EQ( 2,uints[4] );
 
 		free(uints);
 		free(ints);
@@ -34,10 +34,9 @@ int test_util_uniqi()
 		int i, nuniq, *uints;
 		i=3;
 		sk_util_uniqi(1, &i, &nuniq, &uints);
-		sk_test_true(nuniq==1);
-		sk_test_true(uints[0]==3);
+		EXPECT_EQ(1,nuniq);
+		EXPECT_EQ(3,uints[0]);
 		free(uints);
-		return 0;
 	}
 
 	{
@@ -45,11 +44,9 @@ int test_util_uniqi()
 		ints[0] = 1;
 		ints[1] = 0;
 		sk_util_uniqi(2, ints, &nuniq, &uints);
-		sk_test_true(nuniq==2);
-		sk_test_true(uints[0]==0);
-		sk_test_true(uints[1]==1);
+		EXPECT_EQ(2,nuniq);
+		EXPECT_EQ(0,uints[0]);
+		EXPECT_EQ(1,uints[1]);
 		free(uints);
-		return 0;
 	}
-	return 0;
 }

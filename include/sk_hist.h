@@ -5,6 +5,10 @@
 
 #include "sk_util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * t - time of positions in buffer
  */
@@ -83,5 +87,9 @@ int sk_hist_nbytes(sk_hist *h);
  * Fills the history with zeros.
  */
 void sk_hist_zero_filler(void * restrict data, int n, double * restrict t, int * restrict indices, double * restrict buf);
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

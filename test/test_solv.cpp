@@ -1,6 +1,7 @@
 /* Apache 2.0 INS-AMU 2015 */
 
-#include "sk_test.h"
+#include "gtest/gtest.h"
+
 #include "sk_solv.h"
 #include "randomkit.h"
 
@@ -66,8 +67,7 @@ static void test_hist_filler()
 #define NX 3
 #define NC 2
 
-int test_solv()
-{
+TEST(solv, simple) {
 	int vi[NC];
 	double x[NX], vd[NX], rand0;
 	sys_data sysd;
@@ -91,33 +91,32 @@ int test_solv()
 		&test_hist_filler, NULL, SEED, NX, x, NC, vi, vd,
 		T0, DT);
 
-	sk_test_true(rand0==rk_gauss(&solv.rng));
+	EXPECT_EQ(rk_gauss(&solv.rng),rand0);
 
 	outd.tf = T0 + DT;
 
 	sk_solv_cont(&solv);
 
-	sk_test_true(schd.n_calls==1);
-	sk_test_true(schd.dt==DT);
-	sk_test_true(schd.rng==&solv.rng);
+	EXPECT_EQ(1,schd.n_calls);
+	EXPECT_EQ(DT,schd.dt);
+	EXPECT_EQ(&solv.rng,schd.rng);
 
-	sk_test_true(sysd.n_calls==1);
-	sk_test_true(sysd.nx==NX);
-	sk_test_true(sysd.nc==NC);
-	sk_test_true(sysd.t==T0);
-	sk_test_true(solv.t==T0+DT);
-	sk_test_true(sysd.x==solv.x);
-	sk_test_true(sysd.c==solv.c);
-	sk_test_true(sysd.f==NULL);
-	sk_test_true(sysd.g==NULL);
-	sk_test_true(sysd.Jf==NULL);
-	sk_test_true(sysd.Jg==NULL);
+	EXPECT_EQ(1,sysd.n_calls);
+	EXPECT_EQ(NX,sysd.nx);
+	EXPECT_EQ(NC,sysd.nc);
+	EXPECT_EQ(T0,sysd.t);
+	EXPECT_EQ(T0+DT,solv.t);
+	EXPECT_EQ(solv.x,sysd.x);
+	EXPECT_EQ(solv.c,sysd.c);
+	EXPECT_EQ(NULL,sysd.f);
+	EXPECT_EQ(NULL,sysd.g);
+	EXPECT_EQ(NULL,sysd.Jf);
+	EXPECT_EQ(NULL,sysd.Jg);
 
 	outd.tf = T0 + 17 * DT;
 	sk_solv_cont(&solv);
-	sk_test_true(sysd.n_calls==17);
-	sk_test_tol(sysd.t+DT, outd.tf, 1e-15);
+	EXPECT_EQ(17,sysd.n_calls);
+	ASSERT_NEAR(sysd.t+DT, outd.tf, 1e-14);
 
 	sk_solv_free(&solv);
-	return 0;
 }

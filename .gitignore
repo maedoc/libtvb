@@ -1,11 +1,6 @@
-*.o
-sk_tests
 *.swp
 *.pyc
-tags
-sk_tests.c
-pdfs
-*.so
-*.dll
-*.lib
 *.dat
+*~
+CMakeLists.txt.user
+build

@@ -3,6 +3,10 @@
 #ifndef SK_TEST_H
 #define SK_TEST_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void sk_test_true_(int cond, char *scond, char *fname, int lineno);
 
 int sk_test_report();
@@ -11,5 +15,9 @@ int sk_test_report();
 
 #define sk_test_tol(l, r, tol)\
 sk_test_true((((l)-(r))*((l)-(r)))<tol)
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

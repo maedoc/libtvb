@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 
-#include "sk_test.h"
+#include "gtest/gtest.h"
+
 #include "sk_solv.h"
 #include "sk_sys.h"
 #include "sk_scheme.h"
@@ -15,7 +16,7 @@ typedef struct {
 
 static SK_DEFOUT(test_out)
 {
-	out_data *d = data;
+	out_data *d = (out_data*) data;
 	(void) nx; (void) nc; (void) c; /* unused */
 	fprintf(d->fd, "%f\t%f\t%f\n", t, x[0], x[1]);
 	if (x[0] < 0.0)
@@ -55,14 +56,14 @@ static int for_scheme(sk_sch sch, void *schd, char *name)
 	outd.crossed = 0;
 	sysd.D = 0.0;
 	sk_solv_cont(&solv);
-	sk_test_true(!outd.crossed);
+	EXPECT_TRUE(!outd.crossed);
 
 	/* stochastic sub-thresh, crossing */
 	outd.crossed = 0;
 	outd.tf = 40.0;
 	sysd.D = 0.05;
 	sk_solv_cont(&solv);
-	sk_test_true(outd.crossed);
+	EXPECT_TRUE(outd.crossed);
 
 	/* clean up */
 	fclose(outd.fd);
@@ -72,23 +73,24 @@ static int for_scheme(sk_sch sch, void *schd, char *name)
 }
 
 
-int test_exc()
-{
-	sk_sch_em_data emd;
-	sk_sch_heun_data heund;
-	sk_sch_emcolor_data emcolord;
+TEST(exc, em){
 
+	sk_sch_em_data emd;
 	sk_sch_em_init(&emd, 2);
 	for_scheme(sk_sch_em, &emd, "em");
 	sk_sch_em_free(&emd);
+}
 	
+TEST(exc, heun){
+	sk_sch_heun_data heund;
 	sk_sch_heun_init(&heund, 2);
 	for_scheme(sk_sch_heun, &heund, "heun");
 	sk_sch_heun_free(&heund);
+}
 
+TEST(exc, emcolor){
+	sk_sch_emcolor_data emcolord;
 	sk_sch_emcolor_init(&emcolord, 2, 1.0);
 	for_scheme(sk_sch_emcolor, &emcolord, "emcolor");
 	sk_sch_emcolor_free(&emcolord);
-
-	return 0;
 }

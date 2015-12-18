@@ -7,6 +7,10 @@
 
 #include "sk_util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** SK_DEFOUT aids in creating a new output definition.
  * See ::sk_out for details of the generated output callback signature.
  *
@@ -103,5 +107,9 @@ void sk_out_sfilt_free(sk_out_sfilt_data *d);
 
 SK_DEFOUT(sk_out_sfilt);
 
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

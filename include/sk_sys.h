@@ -3,8 +3,13 @@
 #ifndef SK_SYS_H
 #define SK_SYS_H
 
+
 #include "sk_hist.h"
 #include "sk_util.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * SK_DEFSYS aids in creating a new system defintion.
@@ -54,5 +59,9 @@ typedef struct {
 } sk_sys_exc_dat;
 
 SK_DEFSYS(sk_sys_exc);
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

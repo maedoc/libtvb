@@ -7,6 +7,9 @@
 
 #include "randomkit.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* sk_restrict should be used anywhere a function takes two or more
  * pointer arguments with same type:
@@ -21,7 +24,15 @@
 #   define restrict
 #endif
 
-int sk_util_uniqi(const int n, 
+/**
+ * Build string of resource file name relative to compile time resource path.
+ * Caller should free resulting string when done.
+ * \param[in] relname relative name of resource file
+ * \param[out] absname absolute name of resource file
+ */
+void sk_util_res_name(char *relname, char **absname);
+
+int sk_util_uniqi(const int n,
 		  const int * restrict ints, 
 		  int * restrict nuniq, 
 		  int ** restrict uints);
@@ -36,5 +47,8 @@ int sk_util_fill_gauss(rk_state *rng, int nx, double *x);
 #define SK_MALLOCHECK(ptr)  ptr
 #endif
 
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

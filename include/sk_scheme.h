@@ -14,7 +14,11 @@
 #include "sk_sys.h"
 #include "sk_util.h"
 
-/** SK_DEFSCH aids in creating a new scheme definition. 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** SK_DEFSCH aids in creating a new scheme definition.
  * See ::sk_sch for details of the generated callback signature.
  *
  * \param name name of scheme being defined.
@@ -110,5 +114,9 @@ SK_DEFSCH(sk_sch_heun);
 
 /* TODO http://arxiv.org/pdf/1506.05708v1.pdf LL for mult noise  */
 SK_DEFSCH(sk_sch_llmult);
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

@@ -3,6 +3,10 @@
 #ifndef SK_SPARSE_H
 #define SK_SPARSE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Provides utilities for sparse structures, such as matrices which are 
  * mostly zero.
@@ -22,7 +26,7 @@
  * \param[in] b right hand side vector.
  */
 void
-sk_sparse_solve_ax_b(int n, double *A, double *x, double *b);
+		sk_sparse_solve_ax_b(int n, double *A, double *x, double *b);
 
 /**
  * Create CSR format sparse matrix from dense matrix, possibly thresholding.
@@ -43,5 +47,10 @@ sk_sparse_solve_ax_b(int n, double *A, double *x, double *b);
  * \return 1 on success, 0 on failure.
  */
 int sk_sparse_from_dense(int m, int n, double *dA, double *dB, double eps,
-		int *nnz, int **Or, int **Ic, double **sA, double **sB);
+						 int *nnz, int **Or, int **Ic, double **sA, double **sB);
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
+
 #endif

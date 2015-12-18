@@ -2,13 +2,13 @@
 
 #include <stdlib.h>
 
-#include "sk_test.h"
+#include "gtest/gtest.h"
+
 #include "sk_net.h"
 #include "sk_sys.h"
 #include "sk_hist.h"
 
-int test_net1()
-{
+TEST(net, simple) {
 
 	int n, ns, ne, nnz, *Ic, *Or;
 	double *w, *d, *x, *f, *g, *c;
@@ -45,26 +45,26 @@ int test_net1()
 	sk_net_init1(&net, n, sk_sys_exc, &sysd, ns, ne, nnz, Or, Ic, w, d);
 
 	/* initn */
-	sk_test_true(net.n==n);
-	sk_test_true(net.m==1);
-	sk_test_true(net.nnz==nnz);
-	sk_test_true(net.Or==Or);
-	sk_test_true(net.Ic==Ic);
-	sk_test_true(net.w==w);
-	sk_test_true(net.d==d);
-	sk_test_true(net.ns==ns*n);
-	sk_test_true(net.ne==ne*n);
-	sk_test_true(net.cn!=NULL);
+	EXPECT_EQ(n,net.n);
+	EXPECT_EQ(1,net.m);
+	EXPECT_EQ(nnz,net.nnz);
+	EXPECT_EQ(Or,net.Or);
+	EXPECT_EQ(Ic,net.Ic);
+	EXPECT_EQ(w,net.w);
+	EXPECT_EQ(d,net.d);
+	EXPECT_EQ(ns*n,net.ns);
+	EXPECT_EQ(ne*n,net.ne);
+	EXPECT_TRUE(net.cn!=NULL);
 
 	/* init1 */
-	sk_test_true(net.Ms[0]==ns);
-	sk_test_true(net.Me[0]==ne);
-	sk_test_true(net.M[0]==0);
-	sk_test_true(net.M[1]==0);
-	sk_test_true(net.M[1]==0);
-	sk_test_true(net.models[0]==sk_sys_exc);
-	sk_test_true(net.models_data[0]==&sysd);
-	sk_test_true(net._init1==1);
+	EXPECT_EQ(ns,net.Ms[0]);
+	EXPECT_EQ(ne,net.Me[0]);
+	EXPECT_EQ(0,net.M[0]);
+	EXPECT_EQ(0,net.M[1]);
+	EXPECT_EQ(0,net.M[1]);
+	EXPECT_EQ(&sk_sys_exc,net.models[0]);
+	EXPECT_EQ(&sysd,net.models_data[0]);
+	EXPECT_EQ(1,net._init1);
 
 	/* evaluate */
 	x = malloc (sizeof(double) * n*ns);
@@ -75,9 +75,9 @@ int test_net1()
 	c[1] = x[2] = 2.0;
 	c[2] = x[4] = 3.0;
 	sk_net_sys(&net, &hist, 0.0, 0, n*ns, x, f, g, NULL, NULL, n*ne, c, NULL);
-	sk_test_true(f[1]==(sysd.a - x[0] + sysd.k*w[0]*x[2])/sysd.tau);
-	sk_test_true(f[3]==(sysd.a - x[2] + sysd.k*w[1]*x[4])/sysd.tau);
-	sk_test_true(f[5]==(sysd.a - x[4])/sysd.tau);
+	EXPECT_EQ((sysd.a - x[0] + sysd.k*w[0]*x[2])/sysd.tau,f[1]);
+	EXPECT_EQ((sysd.a - x[2] + sysd.k*w[1]*x[4])/sysd.tau,f[3]);
+	EXPECT_EQ((sysd.a - x[4])/sysd.tau,f[5]);
 
 	/* clean up */
 	sk_net_free(&net);
@@ -90,12 +90,4 @@ int test_net1()
 	free(f);
 	free(g);
 	free(c);
-
-	return 0;
-}
-
-
-int test_netn()
-{
-	return 0;
 }

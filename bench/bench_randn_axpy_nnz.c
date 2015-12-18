@@ -6,7 +6,7 @@
 
 #include "randomkit.h"
 
-int bench_randn_axpy_nnz()
+int main()
 {
 	int i, j, n, m;
 	double *g, *z;

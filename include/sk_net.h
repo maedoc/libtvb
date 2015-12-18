@@ -40,11 +40,15 @@
 #include "sk_sys.h"
 #include "sk_util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	int n, m, nnz, *M, *Ms, *Me, ns, ne, *Or, *Ic;
 	double *w, *d, * restrict cn;
 	sk_sys *models;
-	void * restrict * restrict models_data;
+	void **models_data;
 	/* flag for init1 use */
 	int _init1;
 } sk_net_data;
@@ -108,5 +112,9 @@ typedef struct {
 } sk_net_regmap_data;
 
 SK_DEFSYS(sk_net_regmap);
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

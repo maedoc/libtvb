@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "sk_test.h"
+#include "gtest/gtest.h"
+
 #include "sk_hist.h"
 #include "sk_sys.h"
 #include "sk_net.h"
@@ -21,7 +22,7 @@ static void hist_t_fill(void *data, int n, double *t, int *indices, double *buf)
 
 #define ND 3
 
-int test_hist() {
+TEST(hist, basic) {
 	int i, vi[ND];
 	double dt, vd[ND], x[3];
 	sk_hist *h;
@@ -34,58 +35,56 @@ int test_hist() {
 	vd[0] = 5.5 * dt;
 	vd[1] = 4.5 * dt;
 	vd[2] = 33.3 * dt;
-	h = malloc (sizeof(sk_hist));
+	h = (sk_hist*) malloc (sizeof(sk_hist));
 
 	sk_hist_init(h, ND, vi, vd, 0.0, dt);
-	sk_test_true(h->nd==ND);
-	sk_test_true(h->t==0.0);
-	sk_test_true(h->dt==dt);
-	sk_test_true(h->nu==2);
-	sk_test_true(h->lim[0]==0);
-	sk_test_true(h->lim[1]==36);
-	sk_test_true(h->lim[2]==8 + 36);
-	sk_test_true(h->len[0]==36);
-	sk_test_true(h->len[1]==8);
-	sk_test_true(h->pos[0]==0);
-	sk_test_true(h->pos[1]==0);
-	sk_test_true(h->uvi[0]==0);
-	sk_test_true(h->uvi[1]==1);
-	sk_test_true(h->maxvi==1);
-	sk_test_true(h->vi2i[0]==0);
-	sk_test_true(h->vi2i[1]==1);
-	sk_test_true(h->maxd[1]==vd[0]);
-	sk_test_true(h->maxd[0]==vd[2]);
-	sk_test_true(h->vi[0]==1);
-	sk_test_true(h->vi[1]==1);
-	sk_test_true(h->vi[2]==0);
-	sk_test_true(h->del[0]==vd[0]);
-	sk_test_true(h->del[1]==vd[1]);
-	sk_test_true(h->del[2]==vd[2]);
-	sk_test_true(h->buf!=NULL);
+	EXPECT_EQ(ND,h->nd);
+	EXPECT_EQ(0.0,h->t);
+	EXPECT_EQ(dt,h->dt);
+	EXPECT_EQ(2,h->nu);
+	EXPECT_EQ(0,h->lim[0]);
+	EXPECT_EQ(36,h->lim[1]);
+	EXPECT_EQ(8 + 36,h->lim[2]);
+	EXPECT_EQ(36,h->len[0]);
+	EXPECT_EQ(8,h->len[1]);
+	EXPECT_EQ(0,h->pos[0]);
+	EXPECT_EQ(0,h->pos[1]);
+	EXPECT_EQ(0,h->uvi[0]);
+	EXPECT_EQ(1,h->uvi[1]);
+	EXPECT_EQ(1,h->maxvi);
+	EXPECT_EQ(0,h->vi2i[0]);
+	EXPECT_EQ(1,h->vi2i[1]);
+	EXPECT_EQ(vd[0],h->maxd[1]);
+	EXPECT_EQ(vd[2],h->maxd[0]);
+	EXPECT_EQ(1,h->vi[0]);
+	EXPECT_EQ(1,h->vi[1]);
+	EXPECT_EQ(0,h->vi[2]);
+	EXPECT_EQ(vd[0],h->del[0]);
+	EXPECT_EQ(vd[1],h->del[1]);
+	EXPECT_EQ(vd[2],h->del[2]);
+	EXPECT_TRUE(NULL!=h->buf);
 
 	sk_hist_fill(h, &hist_t_fill, NULL);
 	for (i=0; i<35; i++)
-		sk_test_true(h->buf[i]==-i*dt);
-	sk_test_true(h->buf[35]==dt);
+		EXPECT_EQ(-i*dt,h->buf[i]);
+	EXPECT_EQ(dt,h->buf[35]);
 	for (i=0; i<7; i++)
-		sk_test_true(h->buf[36+i]==-i*dt);
-	sk_test_true(h->buf[36+7]==dt);
+		EXPECT_EQ(-i*dt,h->buf[36+i]);
+	EXPECT_EQ(dt,h->buf[36+7]);
 
 	sk_hist_get(h, dt/3, x);
-	sk_test_tol(x[0], -vd[0]+dt/3, 1e-15);
-	sk_test_tol(x[1], -vd[1]+dt/3, 1e-15);
-	sk_test_tol(x[2], -vd[2]+dt/3, 1e-15);
+	ASSERT_NEAR(x[0], -vd[0]+dt/3, 1e-15);
+	ASSERT_NEAR(x[1], -vd[1]+dt/3, 1e-15);
+	ASSERT_NEAR(x[2], -vd[2]+dt/3, 1e-15);
 
 	x[0] = 1.5;
 	x[1] = 1.0;
 	sk_hist_set(h, dt/2.0, x);
-	sk_test_tol(h->buf[35], 3.0, 1e-15);
-	sk_test_tol(h->buf[36 + 7], 2.0, 1e-15);
+	ASSERT_NEAR(h->buf[35], 3.0, 1e-15);
+	ASSERT_NEAR(h->buf[36 + 7], 2.0, 1e-15);
 
 	sk_hist_free(h);
 	free(h);
-
-	return 0;
 }
 
 /* port of TVB's history test */
@@ -150,13 +149,13 @@ static double xexpect[12][4] = {
 static SK_DEFOUT(hist_exact_out) {
 	int i;
 	/* unused */ (void) nc; (void) c; (void) data;
-	sk_test_true(nx==4);
+	EXPECT_EQ(4,nx);
 	for (i=0; i<4; i++)
-		sk_test_true(xexpect[(int) t][i]==x[i]);
+		EXPECT_EQ(x[i], xexpect[(int) t][i]);
 	return t < 11;
 }
 
-int test_hist_exact() {
+TEST(hist, exact) {
 	int i, n=4, nnz, *Or, *Ic;
 	double w[16], d[16], *nzw, *nzd, x0[4];
 	sk_net_data net;
@@ -178,24 +177,24 @@ int test_hist_exact() {
 
 	/* setup network */
 	sk_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &nzw, &nzd);
-	sk_test_true(Or[0]==0);
-	sk_test_true(Or[1]==1);
-	sk_test_true(Or[2]==2);
-	sk_test_true(Or[3]==3);
-	sk_test_true(Ic[0]==1);
-	sk_test_true(Ic[1]==2);
-	sk_test_true(Ic[2]==3);
-	sk_test_true(nzw[0]==1);
-	sk_test_true(nzw[1]==1);
-	sk_test_true(nzw[2]==1);
-	sk_test_true(nzd[0]==1);
-	sk_test_true(nzd[1]==6);
-	sk_test_true(nzd[2]==11);
+	EXPECT_EQ(0,Or[0]);
+	EXPECT_EQ(1,Or[1]);
+	EXPECT_EQ(2,Or[2]);
+	EXPECT_EQ(3,Or[3]);
+	EXPECT_EQ(1,Ic[0]);
+	EXPECT_EQ(2,Ic[1]);
+	EXPECT_EQ(3,Ic[2]);
+	EXPECT_EQ(1,nzw[0]);
+	EXPECT_EQ(1,nzw[1]);
+	EXPECT_EQ(1,nzw[2]);
+	EXPECT_EQ(1,nzd[0]);
+	EXPECT_EQ(6,nzd[1]);
+	EXPECT_EQ(11,nzd[2]);
 
 	sk_net_init1(&net, n, hist_exact_sys, NULL, 1, 1, nnz, Or, Ic, nzw, nzd);
 
-	sk_test_true(nnz==3);
-	sk_test_true(net.ne==4);
+	EXPECT_EQ(3,nnz);
+	EXPECT_EQ(4,net.ne);
 
 	/* setup scheme & driver */
 	sk_sch_id_init(&schd, n);
@@ -203,8 +202,8 @@ int test_hist_exact() {
 			hist_exact_out, NULL, hist_fill_ones, NULL, 42,
 			n, x0, nnz, Ic, nzd, 0.0, 1.0);
 
-	sk_test_true(sol.nc==3);
-	sk_test_true(sol.hist.nu==3);
+	EXPECT_EQ(3,sol.nc);
+	EXPECT_EQ(3,sol.hist.nu);
 
 	/* run */
 	sk_solv_cont(&sol);
@@ -219,6 +218,4 @@ int test_hist_exact() {
 	free(Ic);
 	free(nzw);
 	free(nzd);
-
-	return 0;
 }

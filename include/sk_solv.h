@@ -10,12 +10,17 @@
 #ifndef SK_SOLV_H
 #define SK_SOLV_H
 
+
 #include "randomkit.h"
 #include "sk_hist.h"
 #include "sk_util.h"
 #include "sk_sys.h"
 #include "sk_scheme.h"
 #include "sk_out.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* TODO typedef */
 typedef struct
@@ -72,5 +77,9 @@ void sk_solv_free(sk_solv *s);
  * \return 0 if successful else 1.
  */
 int sk_solv_cont(sk_solv *s);
+
+#ifdef __cplusplus
+}; /* extern "C" */
+#endif
 
 #endif

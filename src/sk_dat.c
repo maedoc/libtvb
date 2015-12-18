@@ -34,8 +34,10 @@ int sk_dat_read_square_matrix(char *fname, int *n, double **w)
 	*n = (int) sqrt(nn);
 	SK_MALLOCHECK(wi = malloc (sizeof(double)*nn));
 	*w = wi;
-	if (wi==NULL)
+	if (wi==NULL) {
+		fclose(fd);
 		return 1;
+	}
 	/* read data into memory this time */
 	{
 		int count;

@@ -2,11 +2,13 @@
 
 #include <stdlib.h>
 
-#include "sk_test.h"
-#include "sk_sparse.h"
+#include "gtest/gtest.h"
 
-int test_sparse_from_dense()
-{
+extern "C" {
+#include "sk_sparse.h"
+}
+
+TEST(test_sparse, test_sparse_from_dense) {
 	int n, nnz, *Or, *Ic;
 	double A[4], B[4], *sA, *sB; 
 
@@ -23,16 +25,16 @@ int test_sparse_from_dense()
 	/* no cutoff, eps=0 */
 	sk_sparse_from_dense(n, n, A, NULL, 0.0, &nnz, &Or, &Ic, &sA, NULL);
 
-	sk_test_true(nnz==3);
-	sk_test_true(Or[0]==0);
-	sk_test_true(Or[1]==2);
-	sk_test_true(Or[2]==3);
-	sk_test_true(Ic[0]==0);
-	sk_test_true(Ic[1]==1);
-	sk_test_true(Ic[2]==1);
-	sk_test_true(sA[0]==A[0]);
-	sk_test_true(sA[1]==A[1]);
-	sk_test_true(sA[2]==A[3]);
+	EXPECT_EQ(3,nnz);
+	EXPECT_EQ(0,Or[0]);
+	EXPECT_EQ(2,Or[1]);
+	EXPECT_EQ(3,Or[2]);
+	EXPECT_EQ(0,Ic[0]);
+	EXPECT_EQ(1,Ic[1]);
+	EXPECT_EQ(1,Ic[2]);
+	EXPECT_EQ(A[0],sA[0]);
+	EXPECT_EQ(A[1],sA[1]);
+	EXPECT_EQ(A[3],sA[2]);
 
 	free(Or);
 	free(Ic);
@@ -41,10 +43,10 @@ int test_sparse_from_dense()
 	/* with auxiliary matrix */
 	sk_sparse_from_dense(n, n, A, B, 0.0, &nnz, &Or, &Ic, &sA, &sB);
 
-	sk_test_true(nnz==3);
-	sk_test_true(sB[0]==B[0]);
-	sk_test_true(sB[1]==B[1]);
-	sk_test_true(sB[2]==B[3]);
+	EXPECT_EQ(3,nnz);
+	EXPECT_EQ(B[0],sB[0]);
+	EXPECT_EQ(B[1],sB[1]);
+	EXPECT_EQ(B[3],sB[2]);
 
 	free(Or);
 	free(Ic);
@@ -54,14 +56,14 @@ int test_sparse_from_dense()
 	/* apply cutoff */
 	sk_sparse_from_dense(n, n, A, NULL, 1e-5, &nnz, &Or, &Ic, &sA, NULL);
 
-	sk_test_true(nnz==2);
-	sk_test_true(Or[0]==0);
-	sk_test_true(Or[1]==1);
-	sk_test_true(Or[2]==2);
-	sk_test_true(Ic[0]==0);
-	sk_test_true(Ic[1]==1);
-	sk_test_true(sA[0]==A[0]);
-	sk_test_true(sA[1]==A[3]);
+	EXPECT_EQ(2,nnz);
+	EXPECT_EQ(0,Or[0]);
+	EXPECT_EQ(1,Or[1]);
+	EXPECT_EQ(2,Or[2]);
+	EXPECT_EQ(0,Ic[0]);
+	EXPECT_EQ(1,Ic[1]);
+	EXPECT_EQ(A[0],sA[0]);
+	EXPECT_EQ(A[3],sA[1]);
 
 	free(Or);
 	free(Ic);
@@ -70,14 +72,19 @@ int test_sparse_from_dense()
 	/* with auxiliary matrix */
 	sk_sparse_from_dense(n, n, A, B, 1e-5, &nnz, &Or, &Ic, &sA, &sB);
 
-	sk_test_true(nnz==2);
-	sk_test_true(sB[0]==B[0]);
-	sk_test_true(sB[1]==B[3]);
+	EXPECT_EQ(2,nnz);
+	EXPECT_EQ(B[0],sB[0]);
+	EXPECT_EQ(B[3],sB[1]);
 
 	free(Or);
 	free(Ic);
 	free(sA);
 	free(sB);
-
-	return 0;
 }
+
+/*
+int main() {
+	test_sparse_from_dense();
+	return sk_test_report();
+}
+*/

@@ -1,10 +1,16 @@
 /* Apache 2.0 INS-AMU 2015 */
 
-#include "stdlib.h"
-#include "string.h"
-#include "limits.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+#include "sk_config.h"
 #include "sk_util.h"
+
+void sk_util_res_name(char *relname, char **absname) {
+	*absname = malloc (1024);
+	sprintf(*absname, "%s/%s", sk_res_dir, relname);
+}
 
 static int compare_int(const void *a, const void *b)
 {
