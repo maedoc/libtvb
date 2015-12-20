@@ -19,7 +19,7 @@ void func2(cb2 c, void *data) {
 	fprintf(stderr, "\n");
 	(*c)(data, n, x);
 	for (i=0; i<n; i++)
-		fprintf(stderr, "x[%d]=%.2f ", i, x[i]=i*1.2);
+		fprintf(stderr, "x[%d]=%.2f ", i, x[i]);
 	fprintf(stderr, "\n");
 }
 
