@@ -3,8 +3,7 @@
 #include <string.h> /* memcpy */
 
 #include "sk_net.h"
-#include "sk_util.h" /* SK_MALLOCHECK */
-
+#include "sk_malloc.h"
 
 SK_DEFSYS(sk_net_sys)
 {
@@ -81,11 +80,11 @@ int sk_net_init1(sk_net_data *net, int n, sk_sys sys, void *data,
 	int i, *M, *Ms, *Me;
 	sk_sys *models;
 	void **model_data;
-	SK_MALLOCHECK(M = malloc (sizeof(int) * n));
-	SK_MALLOCHECK(Ms = malloc (sizeof(int)));
-	SK_MALLOCHECK(Me = malloc (sizeof(int)));
-	SK_MALLOCHECK(models = malloc (sizeof(sk_sys)));
-	SK_MALLOCHECK(model_data = malloc (sizeof(void*)));
+	M = sk_malloc (sizeof(int) * n);
+	Ms = sk_malloc (sizeof(int));
+	Me = sk_malloc (sizeof(int));
+	models = sk_malloc (sizeof(sk_sys));
+	model_data = sk_malloc (sizeof(void*));
 	Ms[0] = ns;
 	Me[0] = ne;
 	for(i=0; i<n; i++)
@@ -100,12 +99,12 @@ int sk_net_init1(sk_net_data *net, int n, sk_sys sys, void *data,
 void sk_net_free(sk_net_data *net)
 {
 	if (net->_init1) {
-		free(net->M);
-		free(net->Ms);
-		free(net->Me);
-		free(net->models);
-		free((void*) net->models_data);
-		free(net->cn);
+		sk_free(net->M);
+		sk_free(net->Ms);
+		sk_free(net->Me);
+		sk_free(net->models);
+		sk_free((void*) net->models_data);
+		sk_free(net->cn);
 	}
 }
 
@@ -134,7 +133,7 @@ int sk_net_initn(sk_net_data *net, int n, int m,
 		net->ns += net->Ms[net->M[i]];
 		net->ne += net->Me[net->M[i]];
 	}
-	SK_MALLOCHECK(net->cn = malloc (sizeof(double) * net->ne));
+	net->cn = sk_malloc (sizeof(double) * net->ne);
 	net->_init1 = 0;
 	return 0;
 }

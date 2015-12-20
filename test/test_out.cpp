@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sk_out.h"
+#include "sddekit.h"
 
 TEST(out, file) {
 	double t, x[2], c[1];

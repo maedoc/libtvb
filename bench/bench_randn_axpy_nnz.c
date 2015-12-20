@@ -5,6 +5,7 @@
 #include <time.h>
 
 #include "randomkit.h"
+#include "sk_malloc.h"
 
 int main()
 {
@@ -18,8 +19,8 @@ int main()
 	m = 10;
 	rk_seed(42, &rng);
 
-	g = malloc (sizeof(double) * n);
-	z = malloc (sizeof(double) * n);
+	g = sk_malloc (sizeof(double) * n);
+	z = sk_malloc (sizeof(double) * n);
 	for (i=1; i<n; i+=100)
 	{
 		for (j=0; j<n; j++) g[i] = 0.0;

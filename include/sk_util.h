@@ -39,14 +39,6 @@ int sk_util_uniqi(const int n,
 
 int sk_util_fill_gauss(rk_state *rng, int nx, double *x);
 
-#ifdef SKDEBUG
-#define SK_MALLOCHECK(ptr) \
-	if ((ptr)==NULL) \
-		fprintf(stderr, "[sk_util] NULL malloc at %s:%d `%s'\n", __FILE__, __LINE__, #ptr);
-#else
-#define SK_MALLOCHECK(ptr)  ptr
-#endif
-
 #ifdef __cplusplus
 }; /* extern "C" */
 #endif

@@ -5,6 +5,7 @@
 
 #include "sk_out.h"
 #include "sk_util.h"
+#include "sk_malloc.h"
 
 /* write data to file */
 
@@ -52,8 +53,8 @@ SK_DEFOUT(sk_out_mem) {
 	(void) t;
 	if (d->capacity==0) {
 		/* first alloc */
-		SK_MALLOCHECK(d->xs = malloc (sizeof(double)*nx));
-		SK_MALLOCHECK(d->cs = malloc (sizeof(double)*nc));
+		d->xs = sk_malloc (sizeof(double)*nx);
+		d->cs = sk_malloc (sizeof(double)*nc);
 		d->capacity = 1;
 	}
 	memcpy(d->xs + d->n_sample*nx, x, sizeof(double)*nx);
@@ -62,10 +63,10 @@ SK_DEFOUT(sk_out_mem) {
 	if (d->n_sample==d->capacity) {
 		double *x_, *c_;
 		/* expand buffer */
-		x_ = realloc (d->xs, sizeof(double)*nx*2*d->capacity);
+		x_ = sk_realloc (d->xs, sizeof(double)*nx*2*d->capacity);
 		if (x_==NULL)
 			return 0;
-		c_ = realloc (d->cs, sizeof(double)*nc*2*d->capacity);
+		c_ = sk_realloc (d->cs, sizeof(double)*nc*2*d->capacity);
 		if (c_==NULL)
 			return 0;
 		d->capacity *= 2;
@@ -77,17 +78,17 @@ SK_DEFOUT(sk_out_mem) {
 
 void sk_out_mem_free(sk_out_mem_data *d) {
 	if (d->xs!=NULL)
-		free(d->xs);
+		sk_free(d->xs);
 	if (d->cs!=NULL)
-		free(d->cs);
+		sk_free(d->cs);
 }
 
 /* split n-ways */
 
 int sk_out_tee_init(sk_out_tee_data *d, int nout) {
 	d->nout = nout;
-	SK_MALLOCHECK(d->outs = malloc (sizeof(sk_out) * nout));
-	SK_MALLOCHECK(d->outd = malloc (sizeof(void*) * nout));
+	d->outs = sk_malloc (sizeof(sk_out) * nout);
+	d->outd = sk_malloc (sizeof(void*) * nout);
 	return 0;
 }
 
@@ -110,8 +111,8 @@ SK_DEFOUT(sk_out_tee) {
 }
 
 void sk_out_tee_free(sk_out_tee_data *d) {
-	free(d->outs);
-	free(d->outd);
+	sk_free(d->outs);
+	sk_free(d->outd);
 }
 
 /* temporal average / downsample */
@@ -134,8 +135,8 @@ SK_DEFOUT(sk_out_tavg) {
 	d = data;
 #define ALL(lim) for(i=0;i<(lim);i++)
 	if (d->x==NULL) {
-		SK_MALLOCHECK(d->x = malloc (sizeof(double) * nx));
-		SK_MALLOCHECK(d->c = malloc (sizeof(double) * nc));
+		d->x = sk_malloc (sizeof(double) * nx);
+		d->c = sk_malloc (sizeof(double) * nc);
 		ALL(nx) d->x[i] = 0.0;
 		ALL(nc) d->c[i] = 0.0;
 	}
@@ -159,8 +160,8 @@ SK_DEFOUT(sk_out_tavg) {
 }
 
 void sk_out_tavg_free(sk_out_tavg_data *d) {
-	free(d->x);
-	free(d->c);
+	sk_free(d->x);
+	sk_free(d->c);
 }
 
 /* spatial filter (bank) 
@@ -174,10 +175,10 @@ int sk_out_sfilt_init(sk_out_sfilt_data *d, int nfilt, int filtlen,
 	d->nfilt = nfilt;
 	d->filtlen = filtlen;
 	nb = nfilt * filtlen * sizeof(double);
-	SK_MALLOCHECK(d->xfilts = malloc(nb));
-	SK_MALLOCHECK(d->cfilts = malloc(nb));
-	SK_MALLOCHECK(d->x = malloc (sizeof(double) * nfilt));
-	SK_MALLOCHECK(d->c = malloc (sizeof(double) * nfilt));
+	d->xfilts = sk_malloc(nb);
+	d->cfilts = sk_malloc(nb);
+	d->x = sk_malloc (sizeof(double) * nfilt);
+	d->c = sk_malloc (sizeof(double) * nfilt);
 	memcpy(d->xfilts, xfilts, nb);
 	memcpy(d->cfilts, cfilts, nb);
 	d->out = out;
@@ -200,9 +201,9 @@ SK_DEFOUT(sk_out_sfilt) {
 }
 
 void sk_out_sfilt_free(sk_out_sfilt_data *d) {
-	free(d->xfilts);
-	free(d->cfilts);
-	free(d->x);
-	free(d->c);
+	sk_free(d->xfilts);
+	sk_free(d->cfilts);
+	sk_free(d->x);
+	sk_free(d->c);
 }
 

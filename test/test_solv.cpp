@@ -2,8 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sk_solv.h"
-#include "randomkit.h"
+#include "sddekit.h"
 
 typedef struct {
 	int n_calls, nx, nc;

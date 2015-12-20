@@ -4,9 +4,7 @@
 
 #include "gtest/gtest.h"
 
-extern "C" {
-#include "sk_sparse.h"
-}
+#include "sddekit.h"
 
 TEST(test_sparse, test_sparse_from_dense) {
 	int n, nnz, *Or, *Ic;
@@ -36,9 +34,9 @@ TEST(test_sparse, test_sparse_from_dense) {
 	EXPECT_EQ(A[1],sA[1]);
 	EXPECT_EQ(A[3],sA[2]);
 
-	free(Or);
-	free(Ic);
-	free(sA);
+	sk_free(Or);
+	sk_free(Ic);
+	sk_free(sA);
 
 	/* with auxiliary matrix */
 	sk_sparse_from_dense(n, n, A, B, 0.0, &nnz, &Or, &Ic, &sA, &sB);
@@ -48,10 +46,10 @@ TEST(test_sparse, test_sparse_from_dense) {
 	EXPECT_EQ(B[1],sB[1]);
 	EXPECT_EQ(B[3],sB[2]);
 
-	free(Or);
-	free(Ic);
-	free(sA);
-	free(sB);
+	sk_free(Or);
+	sk_free(Ic);
+	sk_free(sA);
+	sk_free(sB);
 
 	/* apply cutoff */
 	sk_sparse_from_dense(n, n, A, NULL, 1e-5, &nnz, &Or, &Ic, &sA, NULL);
@@ -65,9 +63,9 @@ TEST(test_sparse, test_sparse_from_dense) {
 	EXPECT_EQ(A[0],sA[0]);
 	EXPECT_EQ(A[3],sA[1]);
 
-	free(Or);
-	free(Ic);
-	free(sA);
+	sk_free(Or);
+	sk_free(Ic);
+	sk_free(sA);
 
 	/* with auxiliary matrix */
 	sk_sparse_from_dense(n, n, A, B, 1e-5, &nnz, &Or, &Ic, &sA, &sB);
@@ -76,10 +74,10 @@ TEST(test_sparse, test_sparse_from_dense) {
 	EXPECT_EQ(B[0],sB[0]);
 	EXPECT_EQ(B[3],sB[1]);
 
-	free(Or);
-	free(Ic);
-	free(sA);
-	free(sB);
+	sk_free(Or);
+	sk_free(Ic);
+	sk_free(sA);
+	sk_free(sB);
 }
 
 /*

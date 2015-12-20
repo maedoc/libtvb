@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sk_util.h"
+#include "sddekit.h"
 
 #define N 10
 
@@ -12,7 +12,7 @@ TEST(util, uniqi) {
 	{
 		int i, *ints, *uints, nuniq;
 
-		ints = (int*) malloc (sizeof(int) * N);
+		ints = (int*) sk_malloc (sizeof(int) * N);
 
 		for (i=0; i<N; i++)
 			ints[i] = (i - 2) % 3;
@@ -26,8 +26,8 @@ TEST(util, uniqi) {
 		EXPECT_EQ( 1,uints[3] );
 		EXPECT_EQ( 2,uints[4] );
 
-		free(uints);
-		free(ints);
+		sk_free(uints);
+		sk_free(ints);
 	}
 
 	{
@@ -36,7 +36,7 @@ TEST(util, uniqi) {
 		sk_util_uniqi(1, &i, &nuniq, &uints);
 		EXPECT_EQ(1,nuniq);
 		EXPECT_EQ(3,uints[0]);
-		free(uints);
+		sk_free(uints);
 	}
 
 	{
@@ -47,6 +47,6 @@ TEST(util, uniqi) {
 		EXPECT_EQ(2,nuniq);
 		EXPECT_EQ(0,uints[0]);
 		EXPECT_EQ(1,uints[1]);
-		free(uints);
+		sk_free(uints);
 	}
 }

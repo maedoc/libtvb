@@ -4,9 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sk_net.h"
-#include "sk_sys.h"
-#include "sk_hist.h"
+#include "sddekit.h"
 
 TEST(net, simple) {
 
@@ -20,10 +18,10 @@ TEST(net, simple) {
 	ns = 2;
 	ne = 1;
 	nnz = 2;
-	Or = malloc (sizeof(int)*(n+1));
-	Ic = malloc (sizeof(int)*nnz);
-	w = malloc (sizeof(double)*nnz);
-	d = malloc (sizeof(double)*nnz);
+	Or = sk_malloc (sizeof(int)*(n+1));
+	Ic = sk_malloc (sizeof(int)*nnz);
+	w = sk_malloc (sizeof(double)*nnz);
+	d = sk_malloc (sizeof(double)*nnz);
 	Or[0] = 0;
 	Or[1] = 1;
 	Or[2] = 2;
@@ -37,7 +35,7 @@ TEST(net, simple) {
 	sysd.a = 1.0;
 	sysd.k = 0.5;
 	sysd.tau = 3.0;
-	hist.vi2i = malloc (sizeof(int)*n);
+	hist.vi2i = sk_malloc (sizeof(int)*n);
 	hist.vi2i[0] = 0;
 	hist.vi2i[1] = 1;
 	hist.vi2i[2] = 2;
@@ -67,10 +65,10 @@ TEST(net, simple) {
 	EXPECT_EQ(1,net._init1);
 
 	/* evaluate */
-	x = malloc (sizeof(double) * n*ns);
-	f = malloc (sizeof(double) * n*ns);
-	g = malloc (sizeof(double) * n*ns);
-	c = malloc (sizeof(double) * n*ne);
+	x = sk_malloc (sizeof(double) * n*ns);
+	f = sk_malloc (sizeof(double) * n*ns);
+	g = sk_malloc (sizeof(double) * n*ns);
+	c = sk_malloc (sizeof(double) * n*ne);
 	c[0] = x[0] = 1.0;
 	c[1] = x[2] = 2.0;
 	c[2] = x[4] = 3.0;
@@ -81,13 +79,13 @@ TEST(net, simple) {
 
 	/* clean up */
 	sk_net_free(&net);
-	free(hist.vi2i);
-	free(Or);
-	free(Ic);
-	free(w);
-	free(d);
-	free(x);
-	free(f);
-	free(g);
-	free(c);
+	sk_free(hist.vi2i);
+	sk_free(Or);
+	sk_free(Ic);
+	sk_free(w);
+	sk_free(d);
+	sk_free(x);
+	sk_free(f);
+	sk_free(g);
+	sk_free(c);
 }

@@ -5,13 +5,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sk_hist.h"
-#include "sk_sys.h"
-#include "sk_net.h"
-#include "sk_sparse.h"
-#include "sk_solv.h"
-#include "sk_scheme.h"
-#include "sk_out.h"
+#include "sddekit.h"
 
 static void hist_t_fill(void *data, int n, double *t, int *indices, double *buf) {
 	/* suppress unused arguments */
@@ -35,7 +29,7 @@ TEST(hist, basic) {
 	vd[0] = 5.5 * dt;
 	vd[1] = 4.5 * dt;
 	vd[2] = 33.3 * dt;
-	h = (sk_hist*) malloc (sizeof(sk_hist));
+	h = (sk_hist*) sk_malloc (sizeof(sk_hist));
 
 	sk_hist_init(h, ND, vi, vd, 0.0, dt);
 	EXPECT_EQ(ND,h->nd);
@@ -84,7 +78,7 @@ TEST(hist, basic) {
 	ASSERT_NEAR(h->buf[36 + 7], 2.0, 1e-15);
 
 	sk_hist_free(h);
-	free(h);
+	sk_free(h);
 }
 
 /* port of TVB's history test */
@@ -214,8 +208,8 @@ TEST(hist, exact) {
 	sk_solv_free(&sol);
 	sk_sch_id_free(&schd);
 	sk_net_free(&net);
-	free(Or);
-	free(Ic);
-	free(nzw);
-	free(nzd);
+	sk_free(Or);
+	sk_free(Ic);
+	sk_free(nzw);
+	sk_free(nzd);
 }

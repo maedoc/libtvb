@@ -5,21 +5,21 @@
 #include <stdlib.h>
 
 #include "sk_scheme.h"
-#include "sk_util.h"
+#include "sk_malloc.h"
 
 int sk_sch_id_init(sk_sch_id_data *d, int nx)
 {
-	SK_MALLOCHECK(d->f=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->g=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->z=malloc(sizeof(double)*nx));
+	d->f=sk_malloc(sizeof(double)*nx);
+	d->g=sk_malloc(sizeof(double)*nx);
+	d->z=sk_malloc(sizeof(double)*nx);
 	return 0;
 }
 
 void sk_sch_id_free(sk_sch_id_data *d)
 {
-	free(d->f);
-	free(d->g);
-	free(d->z);
+	sk_free(d->f);
+	sk_free(d->g);
+	sk_free(d->z);
 }
 
 SK_DEFSCH(sk_sch_id) {
@@ -38,17 +38,17 @@ SK_DEFSCH(sk_sch_id) {
 
 int sk_sch_em_init(sk_sch_em_data *d, int nx)
 {
-	SK_MALLOCHECK(d->f=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->g=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->z=malloc(sizeof(double)*nx));
+	d->f=sk_malloc(sizeof(double)*nx);
+	d->g=sk_malloc(sizeof(double)*nx);
+	d->z=sk_malloc(sizeof(double)*nx);
 	return 0;
 }
 
 void sk_sch_em_free(sk_sch_em_data *d)
 {
-	free(d->f);
-	free(d->g);
-	free(d->z);
+	sk_free(d->f);
+	sk_free(d->g);
+	sk_free(d->z);
 }
 
 SK_DEFSCH(sk_sch_em)
@@ -68,10 +68,10 @@ SK_DEFSCH(sk_sch_em)
 
 int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam)
 {
-	SK_MALLOCHECK(d->f=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->g=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->z=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->eps=malloc(sizeof(double)*nx));
+	d->f=sk_malloc(sizeof(double)*nx);
+	d->g=sk_malloc(sizeof(double)*nx);
+	d->z=sk_malloc(sizeof(double)*nx);
+	d->eps=sk_malloc(sizeof(double)*nx);
 	d->first_call = 1;
 	d->lam = lam;
 	return 0;
@@ -79,10 +79,10 @@ int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam)
 
 void sk_sch_emcolor_free(sk_sch_emcolor_data *d)
 {
-	free(d->f);
-	free(d->g);
-	free(d->z);
-	free(d->eps);
+	sk_free(d->f);
+	sk_free(d->g);
+	sk_free(d->z);
+	sk_free(d->eps);
 }
 
 SK_DEFSCH(sk_sch_emcolor)
@@ -113,23 +113,23 @@ SK_DEFSCH(sk_sch_emcolor)
 
 int sk_sch_heun_init(sk_sch_heun_data *d, int nx)
 {
-	SK_MALLOCHECK(d->fl=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->fr=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->gl=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->gr=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->z=malloc(sizeof(double)*nx));
-	SK_MALLOCHECK(d->xr=malloc(sizeof(double)*nx));
+	d->fl=sk_malloc(sizeof(double)*nx);
+	d->fr=sk_malloc(sizeof(double)*nx);
+	d->gl=sk_malloc(sizeof(double)*nx);
+	d->gr=sk_malloc(sizeof(double)*nx);
+	d->z=sk_malloc(sizeof(double)*nx);
+	d->xr=sk_malloc(sizeof(double)*nx);
 	return 0;
 }
 
 void sk_sch_heun_free(sk_sch_heun_data *d)
 {
-	free(d->fl);
-	free(d->fr);
-	free(d->gl);
-	free(d->gr);
-	free(d->z);
-	free(d->xr);
+	sk_free(d->fl);
+	sk_free(d->fr);
+	sk_free(d->gl);
+	sk_free(d->gr);
+	sk_free(d->z);
+	sk_free(d->xr);
 }
 
 SK_DEFSCH(sk_sch_heun)

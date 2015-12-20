@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "sk_util.h"
+#include "sk_malloc.h"
 
 int sk_dat_read_square_matrix(char *fname, int *n, double **w)
 {
@@ -32,7 +32,7 @@ int sk_dat_read_square_matrix(char *fname, int *n, double **w)
 	rewind(fd);
 	/* setup memory */
 	*n = (int) sqrt(nn);
-	SK_MALLOCHECK(wi = malloc (sizeof(double)*nn));
+	wi = sk_malloc (sizeof(double)*nn);
 	*w = wi;
 	if (wi==NULL) {
 		fclose(fd);

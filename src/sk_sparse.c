@@ -5,6 +5,7 @@
 
 #include "sk_sparse.h"
 #include "sk_util.h"
+#include "sk_malloc.h"
 
 int sk_sparse_from_dense(int m, int n, double *dA, double *dB, double eps,
 		int *nnz, int **Or, int **Ic, double **sA, double **sB)
@@ -21,11 +22,11 @@ int sk_sparse_from_dense(int m, int n, double *dA, double *dB, double eps,
 	}
 #undef DO_IF
 	/* alloc */
-	SK_MALLOCHECK(*Or = malloc (sizeof(int)*(m + 1)));
-	SK_MALLOCHECK(*Ic = malloc (sizeof(int)**nnz));
-	SK_MALLOCHECK(*sA = malloc (sizeof(double)**nnz));
+	*Or = sk_malloc (sizeof(int)*(m + 1));
+	*Ic = sk_malloc (sizeof(int)**nnz);
+	*sA = sk_malloc (sizeof(double)**nnz);
 	if (dB!=NULL)
-		SK_MALLOCHECK(*sB = malloc (sizeof(double)**nnz));
+		*sB = sk_malloc (sizeof(double)**nnz);
 	/* copy elements */
 #define DO_IF(cond)\
 		ci = 0;\

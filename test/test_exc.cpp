@@ -4,9 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sk_solv.h"
-#include "sk_sys.h"
-#include "sk_scheme.h"
+#include "sddekit.h"
 
 typedef struct {
 	int crossed;

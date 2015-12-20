@@ -4,8 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "sk_util.h"
-#include "sk_dat.h"
+#include "sddekit.h"
 
 static int sk_res_conn76_tl25[25] = { 
 	2, 2, 0, 2, 0, 
@@ -24,6 +23,6 @@ TEST(dat, read_square_matrix) {
 	EXPECT_EQ(76,n);
 	for (i=0; i<25; i++)
 		EXPECT_EQ(sk_res_conn76_tl25[i], w[(i/5)*76 + (i%5)]);
-	free(w);
-	free(fname);
+	sk_free(w);
+	sk_free(fname);
 }

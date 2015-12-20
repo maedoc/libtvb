@@ -2,13 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "sk_solv.h"
-#include "sk_sys.h"
-#include "sk_scheme.h"
-#include "sk_dat.h"
-#include "sk_out.h"
-#include "sk_sparse.h"
-#include "sk_net.h"
+#include "sddekit.h"
 
 typedef struct { sk_out out; void *outd; } bench_out_ignore_c_data;
 
@@ -66,7 +60,7 @@ int main() {
 	sk_net_init1(&netd, n, sk_sys_exc, &excd, 2, 1, nnz, Or, Ic, w, d);
 
 	/* setup scheme & solver */
-	x0 = malloc (sizeof(double)*2*n);
+	x0 = sk_malloc (sizeof(double)*2*n);
 	for (i=0; i<(2*n); i++)
 		x0[i] = 0.0;
 	sk_sch_heun_init(&heund, 2*n);
@@ -78,13 +72,13 @@ int main() {
 	sk_solv_cont(&solv);
 
 	/* clean up */
-	free(w);
-	free(x0);
-	free(d);
-	free(Or);
-	free(Ic);
-	free(sw);
-	free(sd);
+	sk_free(w);
+	sk_free(x0);
+	sk_free(d);
+	sk_free(Or);
+	sk_free(Ic);
+	sk_free(sw);
+	sk_free(sd);
 	sk_out_file_free(&filed);
 	sk_out_tavg_free(&tavgd);
 	sk_out_tee_free(&teed);

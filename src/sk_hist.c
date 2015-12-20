@@ -6,17 +6,17 @@
 
 #include "sk_util.h"
 #include "sk_hist.h"
-
+#include "sk_malloc.h"
 
 static void setup_buffer_structure(sk_hist *h)
 {
 	int i, j, ui;
 	double maxd;
 
-	SK_MALLOCHECK(h->maxd = malloc (sizeof(double) * h->nu));
-	SK_MALLOCHECK(h->lim = malloc (sizeof(double) * (h->nu + 1)));
-	SK_MALLOCHECK(h->len = malloc (sizeof(double) * h->nu));
-	SK_MALLOCHECK(h->pos = malloc (sizeof(double) * h->nu));
+	h->maxd = sk_malloc (sizeof(double) * h->nu);
+	h->lim = sk_malloc (sizeof(double) * (h->nu + 1));
+	h->len = sk_malloc (sizeof(double) * h->nu);
+	h->pos = sk_malloc (sizeof(double) * h->nu);
 
 	/* vi2i requires max(uvi) then filling in vi2i[ui]=i */
 	h->maxvi = 0;
@@ -24,7 +24,7 @@ static void setup_buffer_structure(sk_hist *h)
 		if (h->uvi[i] > h->maxvi)
 			h->maxvi = h->uvi[i];
 
-	SK_MALLOCHECK(h->vi2i = malloc (sizeof(int) * (h->maxvi + 1)));
+	h->vi2i = sk_malloc (sizeof(int) * (h->maxvi + 1));
 
 	for (i=0; i<h->nu; i++)
 	{
@@ -57,31 +57,31 @@ void sk_hist_init(sk_hist * restrict h, int nd, int * restrict vi, double * rest
 	sk_util_uniqi(nd, vi, &(h->nu), &(h->uvi));
 
 	/* alloc & copy the delay values */
-	SK_MALLOCHECK(h->del = malloc (sizeof(double) * nd));
+	h->del = sk_malloc (sizeof(double) * nd);
 	memcpy(h->del, vd, nd * sizeof(double));
 
 	/* and indices */
-	SK_MALLOCHECK(h->vi = malloc (sizeof(int) * nd));
+	h->vi = sk_malloc (sizeof(int) * nd);
 	memcpy(h->vi, vi, nd * sizeof(int));
 
 	/* setup maxd, off, len, pos */
 	setup_buffer_structure(h);
 
 	/* alloc buf */
-	SK_MALLOCHECK(h->buf = malloc (sizeof(double) * h->lim[h->nu]));
+	h->buf = sk_malloc (sizeof(double) * h->lim[h->nu]);
 }
 
 void sk_hist_free(sk_hist *h)
 {
-	free(h->uvi);
-	free(h->del);
-	free(h->vi);
-	free(h->maxd);
-	free(h->lim);
-	free(h->len);
-	free(h->pos);
-	free(h->vi2i);
-	free(h->buf);
+	sk_free(h->uvi);
+	sk_free(h->del);
+	sk_free(h->vi);
+	sk_free(h->maxd);
+	sk_free(h->lim);
+	sk_free(h->len);
+	sk_free(h->pos);
+	sk_free(h->vi2i);
+	sk_free(h->buf);
 }
 
 void sk_hist_fill(sk_hist * restrict h, sk_hist_filler filler, void * restrict fill_data)
@@ -90,8 +90,8 @@ void sk_hist_fill(sk_hist * restrict h, sk_hist_filler filler, void * restrict f
 	double *t;
 
 	n = h->lim[h->nu];
-	SK_MALLOCHECK(t = malloc (sizeof(double) * n));
-	SK_MALLOCHECK(vi = malloc (sizeof(int) * n));
+	t = sk_malloc (sizeof(double) * n);
+	vi = sk_malloc (sizeof(int) * n);
 
 	/* expand indices per buffer element */
 	for (i=0; i<h->nu; i++)
@@ -122,8 +122,8 @@ void sk_hist_fill(sk_hist * restrict h, sk_hist_filler filler, void * restrict f
 
 	filler(fill_data, n, t, vi, h->buf);
 
-	free(t);
-	free(vi);
+	sk_free(t);
+	sk_free(vi);
 }
 
 void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff)

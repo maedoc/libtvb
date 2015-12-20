@@ -6,9 +6,10 @@
 
 #include "sk_config.h"
 #include "sk_util.h"
+#include "sk_malloc.h"
 
 void sk_util_res_name(char *relname, char **absname) {
-	*absname = malloc (1024);
+	*absname = sk_malloc (1024);
 	sprintf(*absname, "%s/%s", sk_res_dir, relname);
 }
 
@@ -41,13 +42,13 @@ int sk_util_uniqi(
 
 	if (n==1) {
 		*nuniq = 1;
-		SK_MALLOCHECK(*uints = malloc (sizeof(int)));
+		*uints = sk_malloc (sizeof(int));
 		(*uints)[0] = ints[0];
 		return 0;
 	}
 
 	/* sort copy of input vector */
-	SK_MALLOCHECK(ints_copy = (int*) malloc(sizeof(int) * n));
+	ints_copy = (int*) sk_malloc(sizeof(int) * n);
 	memcpy(ints_copy, ints, n*sizeof(int));
 
 	qsort(ints_copy, n, sizeof(int), compare_int);
@@ -58,7 +59,7 @@ int sk_util_uniqi(
 		if (ints_copy[i] != ints_copy[i+1])
 			(*nuniq)++;
 
-	SK_MALLOCHECK(*uints = (int*) malloc (sizeof(int) * *nuniq));
+	*uints = (int*) sk_malloc (sizeof(int) * *nuniq);
 
 	/* copy unique into output array */
 	j = 0;
@@ -67,7 +68,7 @@ int sk_util_uniqi(
 		if (ints_copy[i] != ints_copy[i+1])
 			(*uints)[j++] = ints_copy[i+1];
 
-	free(ints_copy);
+	sk_free(ints_copy);
 	
 	return 0;
 }

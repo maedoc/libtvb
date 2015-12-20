@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "sk_solv.h"
-#include "sk_util.h"
+#include "sk_malloc.h"
 
 
 int sk_solv_init(
@@ -30,8 +30,8 @@ int sk_solv_init(
 	s->outd = out_data;
 	s->hf = hf;
 	s->hfd = hfill_data;
-	SK_MALLOCHECK(s->x = malloc (sizeof(double) * nx));
-	SK_MALLOCHECK(s->x0 = malloc (sizeof(double) * nx));
+	s->x = sk_malloc (sizeof(double) * nx);
+	s->x0 = sk_malloc (sizeof(double) * nx);
 	if (nc > 0 && vi!=NULL && vd!=NULL) {
 		int cn;
 		/* TODO allow hist dt to vary */
@@ -41,7 +41,7 @@ int sk_solv_init(
 		/* s->c big enough to accomate aff or eff */
 		if (cn < s->nc)
 			cn = s->nc;
-		SK_MALLOCHECK(s->c = malloc(sizeof(double) * cn));
+		s->c = sk_malloc(sizeof(double) * cn);
 	} else {
 		s->nc = 0;
 		s->c = NULL;
@@ -56,10 +56,10 @@ int sk_solv_init(
 
 void sk_solv_free(sk_solv *s)
 {
-	free(s->x);
-	free(s->x0);
+	sk_free(s->x);
+	sk_free(s->x0);
 	if (s->c != NULL) {
-		free(s->c);
+		sk_free(s->c);
 		sk_hist_free(&s->hist);
 	}
 }
