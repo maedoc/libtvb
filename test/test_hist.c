@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "gtest/gtest.h"
-
 #include "sddekit.h"
 
 static void hist_t_fill(void *data, int n, double *t, int *indices, double *buf) {

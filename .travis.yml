@@ -9,7 +9,6 @@ install:
 - mkdir -p build
 - cd build && cmake .. && make
 script:
-- cd test
-- valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ctest
-- cd ../..
+- valgrind --error-exitcode=1 --track-origins=yes --leak-check=full test/sk_test
+- cd ..
 - cppcheck --error-exitcode=1 -I include/ src

@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 
-#include "gtest/gtest.h"
-
 #include "sddekit.h"
 
 typedef struct {

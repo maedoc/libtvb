@@ -5,7 +5,7 @@ endif()
 
 set(libsk_srcs randomkit.c sk_dat.c sk_hist.c sk_net.c sk_out.c
 	sk_scheme.c sk_solv.c sk_sparse.c sk_sys.c sk_sys_wc.c
-	sk_util.c sk_malloc.c)
+	sk_util.c sk_malloc.c sk_test.c)
 add_library(sk ${libsk_srcs})
 
 if (UNIX)

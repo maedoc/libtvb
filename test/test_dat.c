@@ -1,8 +1,8 @@
+/* Apache 2.0 INS-AMU 2015 */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-
-#include "gtest/gtest.h"
 
 #include "sddekit.h"
 

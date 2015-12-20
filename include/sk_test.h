@@ -3,21 +3,18 @@
 #ifndef SK_TEST_H
 #define SK_TEST_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+void sk_test_true(int cond, char *scond, char *fname, int lineno);
 
-void sk_test_true_(int cond, char *scond, char *fname, int lineno);
+void sk_test_failed(char *scond, char *fname, int lineno);
 
 int sk_test_report();
 
-#define sk_test_true(cond) sk_test_true_(cond, #cond, __FILE__, __LINE__)
+#define EXPECT_TRUE(cond) sk_test_true(cond, #cond, __FILE__, __LINE__)
 
-#define sk_test_tol(l, r, tol)\
-sk_test_true((((l)-(r))*((l)-(r)))<tol)
+#define EXPECT_EQ(l, r) EXPECT_TRUE((l)==(r))
 
-#ifdef __cplusplus
-}; /* extern "C" */
-#endif
+#define ASSERT_NEAR(l, r, tol) EXPECT_TRUE((((l)-(r))*((l)-(r)))<tol)
+
+#define TEST(topic, name) void sk_test__ ## topic ## _ ## name ()
 
 #endif

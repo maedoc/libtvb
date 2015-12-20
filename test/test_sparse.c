@@ -2,8 +2,6 @@
 
 #include <stdlib.h>
 
-#include "gtest/gtest.h"
-
 #include "sddekit.h"
 
 TEST(test_sparse, test_sparse_from_dense) {

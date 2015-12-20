@@ -18,6 +18,7 @@ extern "C" {
 #include "sk_sys.h"
 #include "sk_test.h"
 #include "sk_util.h"
+#include "sk_test.h"
 
 #ifdef __cplusplus
 }; /* extern "C" */

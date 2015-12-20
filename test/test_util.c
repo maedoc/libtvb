@@ -2,8 +2,6 @@
 
 #include <stdlib.h>
 
-#include "gtest/gtest.h"
-
 #include "sddekit.h"
 
 #define N 10
