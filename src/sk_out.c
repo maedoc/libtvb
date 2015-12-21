@@ -160,8 +160,8 @@ SK_DEFOUT(sk_out_tavg) {
 }
 
 void sk_out_tavg_free(sk_out_tavg_data *d) {
-	sk_free(d->x);
-	sk_free(d->c);
+	if (d->x!=NULL) sk_free(d->x);
+	if (d->c!=NULL) sk_free(d->c);
 }
 
 /* spatial filter (bank) 
