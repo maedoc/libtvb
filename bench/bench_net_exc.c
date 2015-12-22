@@ -33,11 +33,16 @@ int main() {
 	sk_sch_heun_data heund;
 	bench_out_ignore_c_data igncd;
 	sk_net_data netd;
+	char *path;
 
 
 	/* connectivity, assuming conduction velocity of 1.0 */
-	sk_dat_read_square_matrix("../../res/conn76/weights.txt", &n, &w);
-	sk_dat_read_square_matrix("../../res/conn76/tract_lengths.txt", &n, &d);
+	sk_util_res_name("res/conn76/weights.txt", &path);
+	sk_dat_read_square_matrix(path, &n, &w);
+	sk_free(path);
+	sk_util_res_name("res/conn76/tract_lengths.txt", &path);
+	sk_dat_read_square_matrix(path, &n, &d);
+	sk_free(path);
 	sk_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &sw, &sd);
 	fprintf(stdout, "[bench_net_exc] nnz=%d\n", nnz);
 

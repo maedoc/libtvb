@@ -33,8 +33,6 @@
  * sparse needs n, row offsets col indices and data
  */
 
-
-
 #include <stdlib.h>
 
 #include "sk_sys.h"
@@ -43,15 +41,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+typedef struct sk_net_data sk_net_data;
 
-typedef struct {
-	int n, m, nnz, *M, *Ms, *Me, ns, ne, *Or, *Ic;
-	double *w, *d, * restrict cn;
-	sk_sys *models;
-	void **models_data;
-	/* flag for init1 use */
-	int _init1;
-} sk_net_data;
+/**
+ * Allocate memory for a network.
+ */
+sk_net_data *sk_net_alloc();
 
 /**
  * Init network for general case of heterogeneous network of nm different models
@@ -101,17 +96,156 @@ int sk_net_init1(sk_net_data *net, int n, sk_sys sys, void * data,
 /**
  * connectivity is ce x ce, but provide api for setting node by node as well
  */
-
 SK_DEFSYS(sk_net_sys);
+
+/**
+ * Get number of nodes in network.
+ *
+ * \param net network instance.
+ */
+int sk_net_get_n(sk_net_data *net);
+
+/**
+ * Get number of models in network.
+ *
+ * \param net network instance.
+ */
+int sk_net_get_m(sk_net_data *net);
+
+/**
+ * Get number of non-zero weights and delays in network.
+ *
+ * \param net network instance.
+ */
+int sk_net_get_nnz(sk_net_data *net);
+
+/**
+ * Get non-zero row offset vector.
+ *
+ * \param net network instance.
+ */
+int *sk_net_get_or(sk_net_data *net);
+
+/**
+ * Get i'th non-zero row offset.
+ *
+ * \param net network instance.
+ * \param i index
+ */
+int sk_net_get_or_i(sk_net_data *net, int i);
+
+/**
+ * Get non-zero column index vector.
+ *
+ * \param net network instance.
+ */
+int *sk_net_get_ic(sk_net_data *net);
+
+/**
+ * Get i'th non-zero column index.
+ *
+ * \param net network instance.
+ * \param i index
+ */
+int sk_net_get_ic_i(sk_net_data *net, int i);
+
+/**
+ * Get non-zero weight vector.
+ *
+ * \param net network instance.
+ */
+double *sk_net_get_w(sk_net_data *net);
+
+/**
+ * Get the i'th non-zero weight.
+ *
+ * \param net network instance.
+ */
+double sk_net_get_w_i(sk_net_data *net, int i);
+
+/**
+ * Get non-zero delay vector.
+ *
+ * \param net network instance.
+ */
+double *sk_net_get_d(sk_net_data *net);
+
+/**
+ * Get the i'th non-zero delay.
+ *
+ * \param net network instance.
+ */
+double sk_net_get_d_i(sk_net_data *net, int i);
+
+/**
+ * Get total number of state variables in network.
+ *
+ * \param net network instance.
+ */
+int sk_net_get_ns(sk_net_data *net);
+
+/**
+ * Get total number of efferent variables in network.
+ *
+ * \param net network instance.
+ */
+int sk_net_get_ne(sk_net_data *net);
+
+/**
+ * Get NULL status of cn
+ * \note provided for unit testing.
+ * \param net network instance.
+ */
+int sk_net_cn_is_null();
+
+/**
+ * Get number of state variables fot the i'th model.
+ *
+ * \param net network instance.
+ * \param i index
+ */
+int sk_net_get_Ms_i(sk_net_data *net, int i);
+
+/**
+ * Get number of efferent variables fot the i'th model.
+ *
+ * \param net network instance.
+ * \param i index
+ */
+int sk_net_get_Me_i(sk_net_data *net, int i);
+
+/**
+ * Get model index for i'th node.
+ *
+ * \param net network instance.
+ * \param i index
+ */
+int sk_net_get_M_i(sk_net_data *net, int i);
+
+/**
+ * Get i'th model's callback (i.e. function pointer).
+ *
+ * \param net network instance.
+ * \param i index
+ */
+sk_sys sk_net_get_models_i(sk_net_data *net, int i);
+
+/**
+ * Get i'th model's user data.
+ *
+ * \param net network instance.
+ * \param i index
+ */
+void *sk_net_get_models_data_i(sk_net_data *net, int i);
+
+int sk_net_get__init1();
 
 /**
  * Handles region mapping in case of surface simulation.
  */
-typedef struct {
-	int i, *n;  /* n=1 for sum instead of averaging */
-} sk_net_regmap_data;
-
 SK_DEFSYS(sk_net_regmap);
+
+typedef struct sk_net_regmap_data sk_net_regmap_data;
 
 #ifdef __cplusplus
 }; /* extern "C" */

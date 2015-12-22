@@ -60,57 +60,111 @@ typedef SK_DEFSCH((*sk_sch));
  *
  * This is useful for difference equations, for example.
  */
-typedef struct {
-	double *f, *g, *z;
-} sk_sch_id_data;
-
-int sk_sch_id_init(sk_sch_id_data *d, int nx);
-
-void sk_sch_id_free(sk_sch_id_data *d);
-
 SK_DEFSCH(sk_sch_id);
 
-/**@{*/
-/* Euler-Maruyama O(1) general purpose */
-typedef struct {
-	double *f, *g, *z;
-} sk_sch_em_data;
+typedef struct sk_sch_id_data sk_sch_id_data;
 
+/**
+ * Allocate memory for identity integration scheme.
+ */
+sk_sch_id_data *sk_sch_id_alloc();
+
+/**
+ * Initialize an identity integration scheme.
+ *
+ * \param d scheme instance
+ * \param nx number of state variables
+ * \return 0 if success, 1 otherwise
+ */
+int sk_sch_id_init(sk_sch_id_data *d, int nx);
+
+/**
+ * Free memory for identity scheme.
+ *
+ * \param d identity scheme instance.
+ */
+void sk_sch_id_free(sk_sch_id_data *d);
+
+/* Euler-Maruyama O(1) general purpose */
+SK_DEFSCH(sk_sch_em);
+
+typedef struct sk_sch_em_data sk_sch_em_data;
+
+/**
+ * Allocate memory for Euler-Maruyama integration scheme.
+ */
+sk_sch_em_data *sk_sch_em_alloc();
+
+/**
+ * Initialize an Euler-Maruyama integration scheme.
+ *
+ * \param d scheme instance
+ * \param nx number of state variables
+ * \return 0 if success, 1 otherwise
+ */
 int sk_sch_em_init(sk_sch_em_data *d, int nx);
 
+/**
+ * Free memory for Euler-Maruyama scheme.
+ *
+ * \param d Euler-Maruyama scheme instance.
+ */
 void sk_sch_em_free(sk_sch_em_data *d);
 
-SK_DEFSCH(sk_sch_em);
-/**@}*/
-
-/**@{*/
 /* E-M for colored noise, derived from Fox 1998, 
  * (no proof of convergence for multiplicate noise!)
  */
-typedef struct { 
-	int first_call;
-	double *f, *g, *z, *eps, lam; 
-} sk_sch_emcolor_data;
+SK_DEFSCH(sk_sch_emcolor);
 
+typedef struct sk_sch_emcolor_data sk_sch_emcolor_data; 
+
+/**
+ * Allocate memory for colored noise Euler-Maruyama integration scheme.
+ */
+sk_sch_emcolor_data *sk_sch_emcolor_alloc();
+
+/**
+ * Initialize a colored noise Euler-Maruyama scheme instance.
+ *
+ * \param d scheme instance
+ * \param nx number of state variables
+ * \param lam damping factor determining color; cf Fox et al 98.
+ * \return 0 9f success, 0 otherwise.
+ */
 int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam);
 
+/**
+ * Free memory for colored noise Euler-Maruyama scheme.
+ *
+ * \param d scheme instance.
+ */
 void sk_sch_emcolor_free(sk_sch_emcolor_data *d);
 
-SK_DEFSCH(sk_sch_emcolor);
-/**@}*/
-
-/**@{*/
 /* c.f. Manella 2002, O(2) in drift term, additive noise only */
-typedef struct {
-	double *fl, *fr, *gl, *gr, *z, *xr;
-} sk_sch_heun_data;
+SK_DEFSCH(sk_sch_heun);
 
+typedef struct sk_sch_heun_data sk_sch_heun_data;
+
+/**
+ * Allocate memory for Heun integration scheme.
+ */
+sk_sch_heun_data *sk_sch_heun_alloc();
+
+/**
+ * Initialize Heun scheme.
+ *
+ * \param d a Heun integration scheme instance.
+ * \param nx number of state variables.
+ * \return 0 if success, 1 otherwise.
+ */
 int sk_sch_heun_init(sk_sch_heun_data *d, int nx);
 
+/**
+ * Free memory for Heun scheme.
+ *
+ * \param d Heun scheme instance.
+ */
 void sk_sch_heun_free(sk_sch_heun_data *d);
-
-SK_DEFSCH(sk_sch_heun);
-/**@}*/
 
 /* TODO http://arxiv.org/pdf/1506.05708v1.pdf LL for mult noise  */
 SK_DEFSCH(sk_sch_llmult);

@@ -2,13 +2,10 @@ addons:
  apt:
   packages:
   - valgrind
-  - cmake
   - cppcheck
 language: c
 install:
-- mkdir -p build
-- cd build && cmake .. && make
+- make sktest
 script:
-- valgrind --error-exitcode=1 --track-origins=yes --leak-check=full test/sk_test
-- cd ..
+- valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./sktest
 - cppcheck --error-exitcode=1 -I include/ src

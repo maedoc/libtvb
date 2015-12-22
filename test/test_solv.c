@@ -70,7 +70,7 @@ TEST(solv, simple) {
 	sys_data sysd;
 	sch_data schd;
 	out_data outd;
-	sk_solv solv;
+	sk_solv *solv;
 	rk_state rng;
 
 	rk_seed(SEED, &rng);
@@ -83,37 +83,38 @@ TEST(solv, simple) {
 	vd[0] = 2.1;
 	vd[1] = 0.42;
 
-	sk_solv_init(&solv, &test_sys, &sysd,
+	solv = sk_solv_alloc();
+	sk_solv_init(solv, &test_sys, &sysd,
 		&test_sch, &schd, &test_out, &outd,
 		&test_hist_filler, NULL, SEED, NX, x, NC, vi, vd,
 		T0, DT);
 
-	EXPECT_EQ(rk_gauss(&solv.rng),rand0);
+	EXPECT_EQ(rk_gauss(sk_solv_get_rng(solv)), rand0);
 
 	outd.tf = T0 + DT;
 
-	sk_solv_cont(&solv);
+	sk_solv_cont(solv);
 
 	EXPECT_EQ(1,schd.n_calls);
 	EXPECT_EQ(DT,schd.dt);
-	EXPECT_EQ(&solv.rng,schd.rng);
+	EXPECT_EQ(sk_solv_get_rng(solv),schd.rng);
 
 	EXPECT_EQ(1,sysd.n_calls);
 	EXPECT_EQ(NX,sysd.nx);
 	EXPECT_EQ(NC,sysd.nc);
 	EXPECT_EQ(T0,sysd.t);
-	EXPECT_EQ(T0+DT,solv.t);
-	EXPECT_EQ(solv.x,sysd.x);
-	EXPECT_EQ(solv.c,sysd.c);
+	EXPECT_EQ(T0+DT,sk_solv_get_t(solv));
+	EXPECT_EQ(sk_solv_get_x(solv),sysd.x);
+	EXPECT_EQ(sk_solv_get_c(solv),sysd.c);
 	EXPECT_EQ(NULL,sysd.f);
 	EXPECT_EQ(NULL,sysd.g);
 	EXPECT_EQ(NULL,sysd.Jf);
 	EXPECT_EQ(NULL,sysd.Jg);
 
 	outd.tf = T0 + 17 * DT;
-	sk_solv_cont(&solv);
+	sk_solv_cont(solv);
 	EXPECT_EQ(17,sysd.n_calls);
 	ASSERT_NEAR(sysd.t+DT, outd.tf, 1e-14);
 
-	sk_solv_free(&solv);
+	sk_solv_free(solv);
 }

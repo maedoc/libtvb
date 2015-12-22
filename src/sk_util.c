@@ -10,7 +10,7 @@
 
 void sk_util_res_name(char *relname, char **absname) {
 	*absname = sk_malloc (1024);
-	sprintf(*absname, "%s/%s", sk_res_dir, relname);
+	sprintf(*absname, "%s/%s", sk_res_dir(), relname);
 }
 
 static int compare_int(const void *a, const void *b)

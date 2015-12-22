@@ -9,6 +9,18 @@
 
 /* write data to file */
 
+struct sk_out_file_data {
+	FILE *fd;
+	int isstd;
+};
+
+sk_out_file_data *sk_out_file_alloc() {
+	return sk_malloc (sizeof(sk_out_file_data));
+}
+
+int sk_out_file_is_std(sk_out_file_data *d) {
+	return d->isstd;
+}
 
 int sk_out_file_from_fname(sk_out_file_data *d, char *fname) {
 	d->fd = fopen(fname, "w");
@@ -36,9 +48,38 @@ SK_DEFOUT(sk_out_file) {
 void sk_out_file_free(sk_out_file_data *d) {
 	if (!(d->isstd))
 		fclose(d->fd);
+	sk_free(d);
 }
 
 /* auto-allocating array */
+struct sk_out_mem_data {
+	int n_sample, capacity, nx, nc;
+	double *xs, *cs;
+};
+
+sk_out_mem_data *sk_out_mem_alloc() {
+	return sk_malloc (sizeof(sk_out_mem_data));
+}
+
+int sk_out_mem_get_n_sample(sk_out_mem_data *d) {
+	return d->n_sample;
+}
+
+int sk_out_mem_get_nx(sk_out_mem_data *d) {
+	return d->nx;
+}
+
+int sk_out_mem_get_nc(sk_out_mem_data *d) {
+	return d->nc;
+}
+
+double *sk_out_mem_get_xs(sk_out_mem_data *d) {
+	return d->xs;
+}
+
+double *sk_out_mem_get_cs(sk_out_mem_data *d) {
+	return d->cs;
+}
 
 int sk_out_mem_init(sk_out_mem_data *d) {
 	d->xs = NULL;
@@ -53,6 +94,8 @@ SK_DEFOUT(sk_out_mem) {
 	(void) t;
 	if (d->capacity==0) {
 		/* first alloc */
+		d->nx = nx;
+		d->nc = nc;
 		d->xs = sk_malloc (sizeof(double)*nx);
 		d->cs = sk_malloc (sizeof(double)*nc);
 		d->capacity = 1;
@@ -81,9 +124,20 @@ void sk_out_mem_free(sk_out_mem_data *d) {
 		sk_free(d->xs);
 	if (d->cs!=NULL)
 		sk_free(d->cs);
+	sk_free(d);
 }
 
 /* split n-ways */
+
+struct sk_out_tee_data {
+	int nout;
+	sk_out *outs;
+	void **outd;
+};
+
+sk_out_tee_data *sk_out_tee_alloc() {
+	return sk_malloc (sizeof(sk_out_tee_data));
+}
 
 int sk_out_tee_init(sk_out_tee_data *d, int nout) {
 	d->nout = nout;
@@ -113,9 +167,21 @@ SK_DEFOUT(sk_out_tee) {
 void sk_out_tee_free(sk_out_tee_data *d) {
 	sk_free(d->outs);
 	sk_free(d->outd);
+	sk_free(d);
 }
 
 /* temporal average / downsample */
+
+struct sk_out_tavg_data {
+	int pos, len;
+	double *x, *c, t;
+	sk_out out;
+	void *outd;
+};
+
+sk_out_tavg_data *sk_out_tavg_alloc() {
+	return sk_malloc (sizeof(sk_out_tavg_data));
+}
 
 int sk_out_tavg_init(sk_out_tavg_data *d, int len, sk_out out, void *outd) {
 	d->len = len;
@@ -162,12 +228,24 @@ SK_DEFOUT(sk_out_tavg) {
 void sk_out_tavg_free(sk_out_tavg_data *d) {
 	if (d->x!=NULL) sk_free(d->x);
 	if (d->c!=NULL) sk_free(d->c);
+	sk_free(d);
 }
 
 /* spatial filter (bank) 
  *
  * xfilts laid out as filter per row, i.e. shape [nfilt nx] & [nfilt nc]
  */
+
+struct sk_out_sfilt_data {
+	int nfilt, filtlen;
+	double *xfilts, *cfilts, *x, *c;
+	sk_out out;
+	void *outd;
+};
+
+sk_out_sfilt_data *sk_out_sfilt_alloc() {
+	return sk_malloc (sizeof(sk_out_sfilt_data));
+}
 
 int sk_out_sfilt_init(sk_out_sfilt_data *d, int nfilt, int filtlen, 
 		double *xfilts, double *cfilts, sk_out out, void *outd) {
@@ -205,5 +283,28 @@ void sk_out_sfilt_free(sk_out_sfilt_data *d) {
 	sk_free(d->cfilts);
 	sk_free(d->x);
 	sk_free(d->c);
+	sk_free(d);
 }
 
+FILE *sk_out_file_get_fd(sk_out_file_data *d) { return d->fd; }
+int sk_out_mem_get_capacity(sk_out_mem_data *d) { return d->capacity; }
+int sk_out_tee_get_nout(sk_out_tee_data *d) { return d->nout; }
+int sk_out_tee_outs_is_null(sk_out_tee_data *d) { return d->outs == NULL; }
+int sk_out_tee_outd_is_null(sk_out_tee_data *d) { return d->outd == NULL; }
+sk_out sk_out_tee_get_out_i(sk_out_tee_data *d, int i) { return d->outs[i]; }
+void *sk_out_tee_get_outd_i(sk_out_tee_data *d, int i) { return d->outd[i]; }
+int sk_out_tavg_get_len(sk_out_tavg_data *d) { return d->len; }
+int sk_out_tavg_get_pos(sk_out_tavg_data *d) { return d->pos; }
+double sk_out_tavg_get_t(sk_out_tavg_data *d) { return d->t; }
+sk_out sk_out_tavg_get_out(sk_out_tavg_data *d) { return d->out; }
+void *sk_out_tavg_get_outd(sk_out_tavg_data *d) { return d->outd; }
+double *sk_out_tavg_get_x(sk_out_tavg_data *d) { return d->x; }
+double *sk_out_tavg_get_c(sk_out_tavg_data *d) { return d->c; }
+int sk_out_sfilt_get_nfilt(sk_out_sfilt_data *d) { return d->nfilt; }
+int sk_out_sfilt_get_filtlen(sk_out_sfilt_data *d) { return d->filtlen; }
+double *sk_out_sfilt_get_xfilts(sk_out_sfilt_data *d) { return d->xfilts; }
+double *sk_out_sfilt_get_cfilts(sk_out_sfilt_data *d) { return d->cfilts; }
+double *sk_out_sfilt_get_x(sk_out_sfilt_data *d) { return d->x; }
+double *sk_out_sfilt_get_c(sk_out_sfilt_data *d) { return d->c; }
+sk_out sk_out_sfilt_get_out(sk_out_sfilt_data *d) { return d->out; }
+void *sk_out_sfilt_get_outd(sk_out_sfilt_data *d) { return d->outd; }

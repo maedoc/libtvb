@@ -54,9 +54,78 @@ extern "C" {
  */
 typedef SK_DEFSYS((*sk_sys));
 
-typedef struct {
-    double a, tau, D, k;
-} sk_sys_exc_dat;
+typedef struct sk_sys_exc_dat sk_sys_exc_dat;
+
+/**
+ * Allocate memory for Excitator system
+ */
+sk_sys_exc_dat *sk_sys_exc_alloc();
+
+/**
+ * Free memory for Excitator instance.
+ */
+void sk_sys_exc_free(sk_sys_exc_dat *d);
+
+
+/**
+ * Get the a parameter value.
+ *
+ * \param d Excitator system instance.
+ */
+double sk_sys_exc_get_a(sk_sys_exc_dat *d);
+
+/**
+ * Set the a parameter value.
+ *
+ * \param d Excitator system instance.
+ * \param new_a new value of a
+ */
+void sk_sys_exc_set_a(sk_sys_exc_dat *d, double new_a);
+
+/**
+ * Get the tau parameter value.
+ *
+ * \param d Excitator system instance.
+ */
+double sk_sys_exc_get_tau(sk_sys_exc_dat *d);
+
+/**
+ * Set the tau parameter value.
+ *
+ * \param d Excitator system instance.
+ * \param new_tau new value of tau
+ */
+void sk_sys_exc_set_tau(sk_sys_exc_dat *d, double new_tau);
+
+/**
+ * Get the D parameter value.
+ *
+ * \param d Excitator system instance.
+ */
+double sk_sys_exc_get_D(sk_sys_exc_dat *d);
+
+/**
+ * Set the D parameter value.
+ *
+ * \param d Excitator system instance.
+ * \param new_D new value of D
+ */
+void sk_sys_exc_set_D(sk_sys_exc_dat *d, double new_D);
+
+/**
+ * Get the k parameter value.
+ *
+ * \param d Excitator system instance.
+ */
+double sk_sys_exc_get_k(sk_sys_exc_dat *d);
+
+/**
+ * Set the k parameter value.
+ *
+ * \param d Excitator system instance.
+ * \param new_k new value of k
+ */
+void sk_sys_exc_set_k(sk_sys_exc_dat *d, double new_k);
 
 SK_DEFSYS(sk_sys_exc);
 

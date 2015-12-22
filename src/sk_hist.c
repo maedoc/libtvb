@@ -8,6 +8,26 @@
 #include "sk_hist.h"
 #include "sk_malloc.h"
 
+struct sk_hist
+{
+	/*           nu+1   nu    nu    nu   nd, maxvi */
+	int nd, nu, *lim, *len, *pos, *uvi, *vi, *vi2i, maxvi;
+	/*   sum(len)  nu     nd 		*/
+	double *buf, *maxd, *del, dt, t;
+};
+
+sk_hist *sk_hist_alloc() {
+	return sk_malloc(sizeof(sk_hist));
+}
+
+int sk_hist_get_maxvi(sk_hist *h) {
+	return h->maxvi;
+}
+
+int sk_hist_get_vi2i(sk_hist *h, int vi) {
+	return h->vi2i[vi];
+}
+
 static void setup_buffer_structure(sk_hist *h)
 {
 	int i, j, ui;
@@ -82,6 +102,7 @@ void sk_hist_free(sk_hist *h)
 	sk_free(h->pos);
 	sk_free(h->vi2i);
 	sk_free(h->buf);
+	sk_free(h);
 }
 
 void sk_hist_fill(sk_hist * restrict h, sk_hist_filler filler, void * restrict fill_data)
@@ -135,7 +156,7 @@ void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff)
 
 	for (i = 0; i < h->nd; i++)
 	{
-		int ui, i0, i1, p, l, o;
+		int ui, i0, i1, i0_, i1_, p, l, o;
 		double dt, y0, y1, m, dx;
 
 		ui = h->vi2i[h->vi[i]];
@@ -146,11 +167,23 @@ void sk_hist_get(sk_hist * restrict h, double t, double * restrict aff)
 		dt = (t - h->del[i]) - (h->t - (l - 2)*h->dt);
 
 		i0 = (int)ceil((l - 2) - dt / h->dt);
+		if (i0 < 0)
+			i0 += l;
 		i1 = i0 ? i0 - 1 : l - 1;
 
+		i0_ = (p + i0) % l + o;
+		i1_ = (p + i1) % l + o;
+
+#ifdef SKDEBUG
+		if ((i0_ < h->lim[ui]) || (i0_ >= h->lim[ui+1]))
+			fprintf(stderr, "[sk_hist_get] oob: i0_=%d not in [%d, %d) at %s:%d\n", i0_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__);
+		if ((i1_ < h->lim[ui]) || (i1_ >= h->lim[ui+1]))
+			fprintf(stderr, "[sk_hist_get] oob: i1_=%d not in [%d, %d) at %s:%d\n", i1_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__);
+#endif
+
 		/* bottleneck */
-		y0 = h->buf[(p + i0) % l + o];
-		y1 = h->buf[(p + i1) % l + o];
+		y0 = h->buf[i0_];
+		y1 = h->buf[i1_];
 
 		m = (y1 - y0) / h->dt;
 
@@ -251,4 +284,60 @@ void sk_hist_zero_filler(void * restrict data, int n, double * restrict t, int *
 	(void) data; (void) n; (void) t; (void) indices;
 	for (i=0; i<n; i++)
 		buf[i] = 0.0;
+}
+
+int sk_hist_get_nu(sk_hist *h) {
+	return h->nu;
+}
+
+double sk_hist_get_buf_lin(sk_hist *h, int index) {
+#ifdef SKDEBUG
+	if ((index < 0) || (index >= h->lim[h->nu]))
+		fprintf(stderr, "[sk_hist_get_buf_lin] oob index=%d not in [0, %d)\n", index, h->lim[h->nu]);
+#endif
+	return h->buf[index];
+}
+
+double sk_hist_get_t(sk_hist *h) {
+	return h->t;
+}
+
+double sk_hist_get_dt(sk_hist *h) {
+	return h->dt;
+}
+
+int sk_hist_get_lim(sk_hist *h, int i) {
+	return h->lim[i];
+}
+
+int sk_hist_get_len(sk_hist *h, int i) {
+	return h->len[i];
+}
+
+int sk_hist_get_nd(sk_hist *h) {
+	return h->nd;
+}
+
+int sk_hist_get_pos(sk_hist *h, int i) {
+	return h->pos[i];
+}
+
+int sk_hist_get_uvi(sk_hist *h, int i) {
+	return h->uvi[i];
+}
+
+int sk_hist_get_vi(sk_hist *h, int i) {
+	return h->vi[i];
+}
+
+double sk_hist_get_maxd(sk_hist *h, int i) {
+	return h->maxd[i];
+}
+
+int sk_hist_buf_is_null(sk_hist *h) {
+	return h->buf == NULL;
+}
+
+double sk_hist_get_vd(sk_hist *h, int i) {
+	return h->del[i];
 }

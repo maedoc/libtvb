@@ -22,19 +22,12 @@
 extern "C" {
 #endif
 
-/* TODO typedef */
-typedef struct
-{
-	int nx, nc, cont;
-        sk_sys sys;
-	sk_sch sch;
-	sk_out out;
-	void *sysd, *schd, *outd, *hfd;
-	sk_hist_filler hf;
-	sk_hist hist; /* nd==nc, ci, cd */
-	rk_state rng; /* TODO mv to scheme? */
-	double t, dt, *x, *c, *x0;
-} sk_solv;
+typedef struct sk_solv sk_solv;
+
+/**
+ * Allocate memory for a solver instance.
+ */
+sk_solv *sk_solv_alloc();
 
 /**
  * Initialize a solver.
@@ -63,8 +56,7 @@ int sk_solv_init(
 	);
 
 /**
- * Frees the internal data structures in *s, but user is 
- * responsible for free the memory at s.
+ * Frees memory occupied by solver instance.
  *
  * \param s solver
  */
@@ -77,6 +69,48 @@ void sk_solv_free(sk_solv *s);
  * \return 0 if successful else 1.
  */
 int sk_solv_cont(sk_solv *s);
+
+/**
+ * Get number of coupling variables.
+ *
+ * \param s solver instance.
+ */
+int sk_solv_get_nc(sk_solv *s);
+
+/**
+ * Get history instance.
+ *
+ * \param s solver instance.
+ */
+sk_hist *sk_solv_get_hist(sk_solv *s);
+
+/**
+ * Get rng instance.
+ *
+ * \param s solver instance.
+ */
+rk_state *sk_solv_get_rng(sk_solv *s);
+
+/**
+ * Get current time in solution.
+ *
+ * \param s solver instance.
+ */
+double sk_solv_get_t(sk_solv *s);
+
+/**
+ * Get current state vector in solution.
+ *
+ * \param s solver instance.
+ */
+double *sk_solv_get_x(sk_solv *s);
+
+/**
+ * Get current coupling vector in solution.
+ *
+ * \param s solver instance.
+ */
+double *sk_solv_get_c(sk_solv *s);
 
 #ifdef __cplusplus
 }; /* extern "C" */

@@ -7,6 +7,14 @@
 #include "sk_scheme.h"
 #include "sk_malloc.h"
 
+struct sk_sch_id_data {
+	double *f, *g, *z;
+};
+
+sk_sch_id_data *sk_sch_id_alloc() {
+	return sk_malloc (sizeof(sk_sch_id_data));
+}
+
 int sk_sch_id_init(sk_sch_id_data *d, int nx)
 {
 	d->f=sk_malloc(sizeof(double)*nx);
@@ -20,6 +28,7 @@ void sk_sch_id_free(sk_sch_id_data *d)
 	sk_free(d->f);
 	sk_free(d->g);
 	sk_free(d->z);
+	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_id) {
@@ -36,6 +45,14 @@ SK_DEFSCH(sk_sch_id) {
 	return 0;
 }
 
+struct sk_sch_em_data {
+	double *f, *g, *z;
+};
+
+sk_sch_em_data *sk_sch_em_alloc() {
+	return sk_malloc (sizeof(sk_sch_em_data));
+}
+
 int sk_sch_em_init(sk_sch_em_data *d, int nx)
 {
 	d->f=sk_malloc(sizeof(double)*nx);
@@ -49,6 +66,7 @@ void sk_sch_em_free(sk_sch_em_data *d)
 	sk_free(d->f);
 	sk_free(d->g);
 	sk_free(d->z);
+	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_em)
@@ -64,6 +82,15 @@ SK_DEFSCH(sk_sch_em)
 		x[i] += dt * d->f[i] + sqrt_dt * d->g[i] * d->z[i];
 	sk_hist_set(hist, t, c);
 	return 0;
+}
+
+struct sk_sch_emcolor_data { 
+	int first_call;
+	double *f, *g, *z, *eps, lam; 
+};
+
+sk_sch_emcolor_data *sk_sch_emcolor_alloc() {
+	return sk_malloc (sizeof(sk_sch_emcolor_data));
 }
 
 int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam)
@@ -83,6 +110,7 @@ void sk_sch_emcolor_free(sk_sch_emcolor_data *d)
 	sk_free(d->g);
 	sk_free(d->z);
 	sk_free(d->eps);
+	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_emcolor)
@@ -111,6 +139,14 @@ SK_DEFSCH(sk_sch_emcolor)
 }
 
 
+struct sk_sch_heun_data {
+	double *fl, *fr, *gl, *gr, *z, *xr;
+};
+
+sk_sch_heun_data *sk_sch_heun_alloc() {
+	return sk_malloc (sizeof(sk_sch_heun_data));
+}
+
 int sk_sch_heun_init(sk_sch_heun_data *d, int nx)
 {
 	d->fl=sk_malloc(sizeof(double)*nx);
@@ -130,6 +166,7 @@ void sk_sch_heun_free(sk_sch_heun_data *d)
 	sk_free(d->gr);
 	sk_free(d->z);
 	sk_free(d->xr);
+	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_heun)

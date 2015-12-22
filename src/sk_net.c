@@ -5,6 +5,19 @@
 #include "sk_net.h"
 #include "sk_malloc.h"
 
+struct sk_net_data {
+	int n, m, nnz, *M, *Ms, *Me, ns, ne, *Or, *Ic;
+	double *w, *d, * restrict cn;
+	sk_sys *models;
+	void **models_data;
+	/* flag for init1 use */
+	int _init1;
+};
+
+sk_net_data *sk_net_alloc() {
+	return sk_malloc (sizeof(sk_net_data));
+}
+
 SK_DEFSYS(sk_net_sys)
 {
 	int l, j, mi;
@@ -21,7 +34,7 @@ SK_DEFSYS(sk_net_sys)
 	for (l=0; l<d->ne; l++) 
 		for (d->cn[l]=0.0, j=d->Or[l]; j<d->Or[l+1]; j++)
 			/* c is len(ui), not ne! Ic[j] can't index it directly */
-			d->cn[l] += c[hist->vi2i[d->Ic[j]]] * d->w[j];
+			d->cn[l] += c[sk_hist_get_vi2i(hist, d->Ic[j])] * d->w[j];
 
 	/* evaluate system(s) */
 	if (Jf==NULL) {
@@ -58,6 +71,10 @@ SK_DEFSYS(sk_net_sys)
 		c[l] = d->cn[d->Ic[l]];
 	return 0;
 }
+
+struct sk_net_regmap_data {
+	int i, *n;  /* n=1 for sum instead of averaging */
+};
 
 SK_DEFSYS(sk_net_regmap)
 {
@@ -106,6 +123,7 @@ void sk_net_free(sk_net_data *net)
 		sk_free((void*) net->models_data);
 		sk_free(net->cn);
 	}
+	sk_free(net);
 }
 
 
@@ -137,3 +155,84 @@ int sk_net_initn(sk_net_data *net, int n, int m,
 	net->_init1 = 0;
 	return 0;
 }
+
+int sk_net_get_n(sk_net_data *net) {
+	return net->n;
+}
+
+int sk_net_get_m(sk_net_data *net) {
+	return net->m;
+}
+
+int sk_net_get_nnz(sk_net_data *net) {
+	return net->nnz;
+}
+
+int *sk_net_get_or(sk_net_data *net) {
+	return net->Or;
+}
+
+int sk_net_get_or_i(sk_net_data *net, int i) {
+	return net->Or[i];
+}
+
+int *sk_net_get_ic(sk_net_data *net) {
+	return net->Ic;
+}
+
+int sk_net_get_ic_i(sk_net_data *net, int i) {
+	return net->Ic[i];
+}
+
+double *sk_net_get_w(sk_net_data *net) {
+	return net->w;
+}
+
+double sk_net_get_w_i(sk_net_data *net, int i) {
+	return net->w[i];
+}
+
+double *sk_net_get_d(sk_net_data *net) {
+	return net->d;
+}
+
+double sk_net_get_d_i(sk_net_data *net, int i) {
+	return net->d[i];
+}
+
+int sk_net_get_ns(sk_net_data *net) {
+	return net->ns;
+}
+
+int sk_net_get_ne(sk_net_data *net) {
+	return net->ne;
+}
+
+int sk_net_cn_is_null(sk_net_data *net) {
+	return net->cn == NULL;
+}
+
+int sk_net_get_Ms_i(sk_net_data *net, int i) {
+	return net->Ms[i];
+}
+
+int sk_net_get_Me_i(sk_net_data *net, int i) {
+	return net->Me[i];
+}
+
+int sk_net_get_M_i(sk_net_data *net, int i) {
+	return net->M[i];
+}
+
+sk_sys sk_net_get_models_i(sk_net_data *net, int i) {
+	return net->models[i];
+}
+
+void *sk_net_get_models_data_i(sk_net_data *net, int i) {
+	return net->models_data[i];
+}
+
+int sk_net_get__init1(sk_net_data *net) {
+	return net->_init1;
+}
+

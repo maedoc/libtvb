@@ -7,6 +7,22 @@
 #include "sk_malloc.h"
 
 
+struct sk_solv {
+	int nx, nc, cont;
+        sk_sys sys;
+	sk_sch sch;
+	sk_out out;
+	void *sysd, *schd, *outd, *hfd;
+	sk_hist_filler hf;
+	sk_hist *hist; /* nd==nc, ci, cd */
+	rk_state rng; /* TODO mv to scheme? */
+	double t, dt, *x, *c, *x0;
+};
+
+sk_solv *sk_solv_alloc() {
+	return sk_malloc (sizeof(sk_solv));
+}
+
 int sk_solv_init(
 	sk_solv * restrict s,
 	sk_sys sys, void * restrict sys_data,
@@ -35,9 +51,10 @@ int sk_solv_init(
 	if (nc > 0 && vi!=NULL && vd!=NULL) {
 		int cn;
 		/* TODO allow hist dt to vary */
-		sk_hist_init(&s->hist, nc, vi, vd, t0, dt);
-		sk_hist_fill(&s->hist, hf, hfill_data);
-		cn = s->hist.maxvi;
+		s->hist = sk_hist_alloc();
+		sk_hist_init(s->hist, nc, vi, vd, t0, dt);
+		sk_hist_fill(s->hist, hf, hfill_data);
+		cn = sk_hist_get_maxvi(s->hist);
 		/* s->c big enough to accomate aff or eff */
 		if (cn < s->nc)
 			cn = s->nc;
@@ -60,15 +77,16 @@ void sk_solv_free(sk_solv *s)
 	sk_free(s->x0);
 	if (s->c != NULL) {
 		sk_free(s->c);
-		sk_hist_free(&s->hist);
+		sk_hist_free(s->hist);
 	}
+	sk_free(s);
 }
 
 int sk_solv_cont(sk_solv *s)
 {
 	sk_hist *h;
 
-	h = s->nc ? &s->hist : NULL;
+	h = s->nc ? s->hist : NULL;
 	s->cont = 1;
 
 	do {
@@ -79,4 +97,28 @@ int sk_solv_cont(sk_solv *s)
 	} while (s->cont);
 
 	return 0;
+}
+
+int sk_solv_get_nc(sk_solv *s) {
+	return s->nc;
+}
+
+sk_hist *sk_solv_get_hist(sk_solv *s) {
+	return s->hist;
+}
+
+rk_state *sk_solv_get_rng(sk_solv *s) {
+	return &s->rng;
+}
+
+double *sk_solv_get_c(sk_solv *s) {
+	return s->c;
+}
+
+double *sk_solv_get_x(sk_solv *s) {
+	return s->x;
+}
+
+double sk_solv_get_t(sk_solv *s) {
+	return s->t;
 }
