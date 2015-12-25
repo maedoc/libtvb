@@ -94,8 +94,8 @@ static void hist_fill_ones(void *data, int n, double *t, int *indices, double *b
 }
 
 static SK_DEFSYS(hist_exact_sys) {
-	(void) data; (void) nx; (void) nc; (void) t; (void) Jf; (void) Jg; 
-	(void) Jce; (void) hist; (void) i;
+	(void) data; (void) nx; (void) nc; (void) t; (void) F; (void) G; 
+	(void) Cf; (void) Cg; (void) hist; (void) i;
 	f[0] = x[0] + c[0];
 	g[0] = 0.0;
 	c[0] = x[0];

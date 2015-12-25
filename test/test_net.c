@@ -78,7 +78,7 @@ TEST(net, simple) {
 	c[0] = x[0] = 1.0;
 	c[1] = x[2] = 2.0;
 	c[2] = x[4] = 3.0;
-	sk_net_sys(net, hist, 0.0, 0, n*ns, x, f, g, NULL, NULL, n*ne, c, NULL);
+	sk_net_sys(net, hist, 0.0, 0, n*ns, x, f, g, NULL, NULL, n*ne, c, NULL, NULL);
 	EXPECT_EQ((sk_sys_exc_get_a(sysd) - x[0] + sk_sys_exc_get_k(sysd)*w[0]*x[2])/sk_sys_exc_get_tau(sysd),f[1]);
 	EXPECT_EQ((sk_sys_exc_get_a(sysd) - x[2] + sk_sys_exc_get_k(sysd)*w[1]*x[4])/sk_sys_exc_get_tau(sysd),f[3]);
 	EXPECT_EQ((sk_sys_exc_get_a(sysd) - x[4])/sk_sys_exc_get_tau(sysd),f[5]);

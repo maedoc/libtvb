@@ -52,7 +52,8 @@ SK_DEFSYS(sk_sys_exc)
 {
 	sk_sys_exc_dat *d = data;
 	/* avoid unused parameter warnings from compiler */
-	(void) t; (void) nx; (void) Jf; (void) Jg; (void) nc; (void) Jce; (void) hist;
+	(void) t; (void) nx; (void) nc; (void) hist;
+	(void) F; (void) G; (void) Cf; (void) Cg;
 	(void) i;
 	/* evaluate system */
 	f[0] = (x[0] - x[0]*x[0]*x[0]/3.0 + x[1]) * d->tau;

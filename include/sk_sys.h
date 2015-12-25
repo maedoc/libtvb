@@ -23,8 +23,9 @@ extern "C" {
 		double t, int i,\
 		int nx, double * restrict x, \
 		double * restrict f, double * restrict g,\
-		double * restrict Jf, double * restrict Jg,\
-		int nc, double * restrict c, double * restrict Jce)
+		double * restrict F, double * restrict G,\
+		int nc, double * restrict c, \
+		double * restrict Cf, double * restrict Cg)
 
 /**
  * Callback signature expected by solver framework for system definitions.
@@ -37,6 +38,11 @@ extern "C" {
  * values to be used/stored for delayed coupling. The array vi determines
  * the mapping from efferent coupling terms to afferent terms.
  *
+ * \note The partial derivative terms F, G, Cf, Cg should only be set if
+ * the scheme requires them; they will be NULL otherwise. F & G have a dense
+ * nx x nx row-major matrix layout whereas Cf & Cg have the same sparse layout
+ * as provided to the solver.
+ *
  * \param data user data passed to system for defining e.g. parameters of the system.
  * \param hist history of system.
  * \param t current time in solution.
@@ -45,11 +51,12 @@ extern "C" {
  * \param x vector of current state variable values.
  * \param f vector of drift terms per state variable.
  * \param f vector of diffusion terms per state variable.
- * \param Jf Jacobian of drift terms wrt x & aff c. If not required, NULL.
- * \param Jg Jacobian of diffusion terms wrt x & aff c. If not required, NULL.
+ * \param F partial derivatives of drift terms with respect to x.
+ * \param G partial derivatives of diffusion terms with respect to x.
  * \param nc number of coupling terms.
  * \param c vector of coupling terms.
- * \param Jce Jacbobian of efferent coupling terms. If not required, NULL.
+ * \param Cf partial derivatives of drift terms with respect to c.
+ * \param Cg partial derivatives of diffusion terms with respect to c.
  * \return 0 to indicate success.
  */
 typedef SK_DEFSYS((*sk_sys));

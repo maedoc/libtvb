@@ -37,8 +37,8 @@ sk_sys_wc_data sk_sys_wc_sl14 = {
  */
 SK_DEFSYS(sk_sys_wc) {
 	sk_sys_wc_data *d = data;
+	(void) F; (void) G; (void) Cf; (void) Cg;
 	(void) hist; (void) t; (void) nx; (void) nc; (void) i;
-	(void) Jf; (void) Jg; (void) Jce;
 	f[0] = d->alpha_e * (d->c_ee * x[0] - d->c_ei * x[1] + d->P
 		- d->theta_e + d->k*(c[0] + c[1]));
 	f[1] = d->alpha_i * (d->c_ie * x[0] - d->c_ii * x[1] + d->Q
@@ -47,8 +47,10 @@ SK_DEFSYS(sk_sys_wc) {
 	f[1] = d->c_i / (1.0 + exp(-d->a_i * (f[1] - d->b_i)));
 	f[0] = (-x[0] + (d->k_e - d->r_e * x[0]) * f[0]) / d->tau_e;
 	f[1] = (-x[1] + (d->k_i - d->r_i * x[1]) * f[1]) / d->tau_i;
-	g[0] = d->D;
-	g[1] = d->D;
+	if (g!=NULL) {
+		g[0] = d->D;
+		g[1] = d->D;
+	}
 	c[0] = x[0];
 	c[1] = x[1];
 	return 0;

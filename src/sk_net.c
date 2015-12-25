@@ -25,7 +25,7 @@ SK_DEFSYS(sk_net_sys)
 	sk_net_data *d = data;
 
 	/* unused arguments */
-	(void) nx; (void) Jf; (void) Jg; (void) Jce; (void) nc;
+	(void) nx; (void) F; (void) G; (void) Cf; (void) Cg; (void) nc;
 
 	/* compute coupling 
 	 *
@@ -37,14 +37,14 @@ SK_DEFSYS(sk_net_sys)
 			d->cn[l] += c[sk_hist_get_vi2i(hist, d->Ic[j])] * d->w[j];
 
 	/* evaluate system(s) */
-	if (Jf==NULL) {
+	if (F==NULL) {
 		for  (l=0, xi=x, fi=f, gi=g, ci=d->cn; l<d->n; l++, 
 		      xi+=d->Ms[mi], fi+=d->Ms[mi], gi+=d->Ms[mi], ci+=d->Me[mi]) 
 		{
 			mi = d->M[l];
 			(*(d->models[mi]))(d->models_data[mi], hist, t, i,
 				d->Ms[mi], xi, fi, gi, NULL, NULL,
-				d->Me[mi], ci, NULL);
+				d->Me[mi], ci, NULL, NULL);
 		}
 	} else {
 		/* TODO evaluate & compute Jf/Jg/Jc 
@@ -81,7 +81,7 @@ SK_DEFSYS(sk_net_regmap)
 	int l;
 	sk_net_regmap_data *d = data;
 	/* unused arguments */
-	(void) nx;(void) t; (void) Jf; (void) Jg; (void) Jce; (void) hist; (void) i;
+	(void) nx;(void) t; (void) F; (void) G; (void) Cf; (void) Cg; (void) hist; (void) i;
 	f[0] = 0.0;
 	g[0] = 0.0;
 	x[0] = 0.0;
