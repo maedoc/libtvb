@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "sk_test.h"
+#include "sk_log.h"
 
 static int ntest=0, nfail=0;
 
@@ -22,9 +23,10 @@ void sk_test_true(int cond, char *scond, char *fname, int lineno)
 
 int sk_test_report()
 {
-	if (nfail > 0)
-		fprintf(stderr, "[sk_test] %d/%d tests failed\n", nfail, ntest);
-	else
-		fprintf(stderr, "[sk_test] all %d tests passed\n", ntest);
+	if (nfail > 0) {
+		sk_log_info( "[sk_test] %d/%d tests failed", nfail, ntest );
+	} else {
+		sk_log_info( "[sk_test] all %d tests passed", ntest );
+	}
 	return nfail;
 }

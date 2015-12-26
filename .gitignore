@@ -9,3 +9,5 @@ sktest
 include/test_list.h
 sk_config.c
 *.png
+*.gch
+tags

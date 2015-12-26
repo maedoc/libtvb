@@ -33,8 +33,6 @@
  * sparse needs n, row offsets col indices and data
  */
 
-#include <stdlib.h>
-
 #include "sk_sys.h"
 #include "sk_util.h"
 
@@ -44,7 +42,7 @@ extern "C" {
 typedef struct sk_net_data sk_net_data;
 
 /**
- * Allocate memory for a network.
+ * Allocate memory for a network or NULL if no memory available.
  */
 sk_net_data *sk_net_alloc();
 
@@ -58,8 +56,8 @@ sk_net_data *sk_net_alloc();
  * \param m number of models used in network.
  * \param nnz number of non-zero elements in weights matrix.
  * \param w array of non-zero elements of weights matrix.
- * \param d array of delays per non-zero weight
- * \return 0 on success, 1 otherwise
+ * \param d array of delays per non-zero weight.
+ * \return 0 on success, 1 if error occurred.
  */
 int sk_net_initn(sk_net_data * restrict net, int n, int m, 
 		 int *M, int *Ms, int *Me, sk_sys *models, void **models_data,
@@ -70,7 +68,7 @@ int sk_net_initn(sk_net_data * restrict net, int n, int m,
  *
  * \note assumes each of the node data themselves have been freed.
  *
- * \param d network data
+ * \param d network data.
  */
 void sk_net_free(sk_net_data *d);
 
@@ -87,7 +85,7 @@ void sk_net_free(sk_net_data *d);
  * \param Or array of row offsets in non-zero arrays.
  * \param Ic array of column indices in non-zero arrays.
  * \param w array of non-zero elements of weights matrix.
- * \param d array of delays per non-zero weight
+ * \param d array of delays per non-zero weight.
  * \return 0 on success, 1 otherwise
  */
 int sk_net_init1(sk_net_data *net, int n, sk_sys sys, void * data, 
@@ -130,7 +128,7 @@ int *sk_net_get_or(sk_net_data *net);
  * Get i'th non-zero row offset.
  *
  * \param net network instance.
- * \param i index
+ * \param i index.
  */
 int sk_net_get_or_i(sk_net_data *net, int i);
 
@@ -145,7 +143,7 @@ int *sk_net_get_ic(sk_net_data *net);
  * Get i'th non-zero column index.
  *
  * \param net network instance.
- * \param i index
+ * \param i index.
  */
 int sk_net_get_ic_i(sk_net_data *net, int i);
 
@@ -202,7 +200,7 @@ int sk_net_cn_is_null();
  * Get number of state variables fot the i'th model.
  *
  * \param net network instance.
- * \param i index
+ * \param i index.
  */
 int sk_net_get_Ms_i(sk_net_data *net, int i);
 
@@ -210,7 +208,7 @@ int sk_net_get_Ms_i(sk_net_data *net, int i);
  * Get number of efferent variables fot the i'th model.
  *
  * \param net network instance.
- * \param i index
+ * \param i index.
  */
 int sk_net_get_Me_i(sk_net_data *net, int i);
 
@@ -218,7 +216,7 @@ int sk_net_get_Me_i(sk_net_data *net, int i);
  * Get model index for i'th node.
  *
  * \param net network instance.
- * \param i index
+ * \param i index.
  */
 int sk_net_get_M_i(sk_net_data *net, int i);
 
@@ -226,7 +224,7 @@ int sk_net_get_M_i(sk_net_data *net, int i);
  * Get i'th model's callback (i.e. function pointer).
  *
  * \param net network instance.
- * \param i index
+ * \param i index.
  */
 sk_sys sk_net_get_models_i(sk_net_data *net, int i);
 
@@ -234,7 +232,7 @@ sk_sys sk_net_get_models_i(sk_net_data *net, int i);
  * Get i'th model's user data.
  *
  * \param net network instance.
- * \param i index
+ * \param i index.
  */
 void *sk_net_get_models_data_i(sk_net_data *net, int i);
 

@@ -3,8 +3,6 @@
 #ifndef SK_MALLOC_H
 #define SK_MALLOC_H
 
-#include <stdlib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,10 +22,20 @@ void sk_malloc_set_allocators(sk_malloc_t malloc, sk_realloc_t realloc, sk_free_
  */
 void sk_malloc_set_stdlib_allocators();
 
+/**
+ * Allocate memory using current allocator.
+ */
 void *sk_malloc(size_t size);
-void *sk_realloc(void *ptr, size_t size);
-void sk_free(void *ptr);
 
+/**
+ * Allocate memory using current allocator.
+ */
+void *sk_realloc(void *ptr, size_t size);
+
+/**
+ * Free memory using current allocator.
+ */
+void sk_free(void *ptr);
 
 #ifdef __cplusplus
 }; /* extern "C" */

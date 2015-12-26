@@ -72,10 +72,10 @@ typedef struct rk_state_
 
     /* The rk_state structure has been extended to store the following
      * information for the binomial generator. If the input values of n or p
-     * are different than nsave and psave, then the other parameters will be
+     * are different than nsave and psave, then the other parameters will be.
      * recomputed. RTK 2005-09-02 */
 
-    int has_binomial; /* !=0: following parameters initialized for
+    int has_binomial; /* !=0: following parameters initialized for.
                               binomial */
     double psave;
     long nsave;
@@ -171,7 +171,7 @@ extern rk_error rk_devfill(void *buffer, size_t size, int strong);
 /*
  * fill the buffer using rk_devfill if the random device is available and using
  * rk_fill if is is not
- * parameters have the same meaning as rk_fill and rk_devfill
+ * parameters have the same meaning as rk_fill and rk_devfill.
  * Returns RK_ENODEV if the device is unavailable, or RK_NOERR if it is
  */
 extern rk_error rk_altfill(void *buffer, size_t size, int strong,

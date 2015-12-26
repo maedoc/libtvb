@@ -26,18 +26,39 @@ extern "C" {
 
 /**
  * Build string of resource file name relative to compile time resource path.
- * Caller should free resulting string when done.
- * \param[in] relname relative name of resource file
- * \param[out] absname absolute name of resource file
+ *
+ * \note Caller must sk_free resulting string when done.
+ *
+ * \param[in] relname relative name of resource file.
+ * \param[out] absname absolute name of resource file.
  */
 void sk_util_res_name(char *relname, char **absname);
 
+/**
+ * Obtain unique sorted integers.
+ *
+ * \note Caller must free uints when done.
+ *
+ * \param n number of elements
+ * \param ints array of at least n integers.
+ * \param[out] nuniq address of number of unique integers.
+ * \param[out] uints address of array of unique integers.
+ * \return Returns 0 if call succeeds, 1 if error occurs.
+ */
 int sk_util_uniqi(const int n,
 		  const int * restrict ints, 
 		  int * restrict nuniq, 
 		  int ** restrict uints);
 
-int sk_util_fill_gauss(rk_state *rng, int nx, double *x);
+/**
+ * Fill buffer with random values from a normal distibution of zero mean and
+ * unit standard deviation.
+ *
+ * \param rng random number generator state.
+ * \param nx number of elements in x to fill.
+ * \param x array with at least nx elements to write numbers to.
+ */
+void sk_util_fill_gauss(rk_state *rng, int nx, double *x);
 
 #ifdef __cplusplus
 }; /* extern "C" */

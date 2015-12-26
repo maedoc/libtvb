@@ -1,9 +1,8 @@
 /* Apache 2.0 INS-AMU 2015 */
 
-#include <string.h> /* memcpy */
-
 #include "sk_net.h"
 #include "sk_malloc.h"
+#include "sk_err.h"
 
 struct sk_net_data {
 	int n, m, nnz, *M, *Ms, *Me, ns, ne, *Or, *Ic;
@@ -15,12 +14,15 @@ struct sk_net_data {
 };
 
 sk_net_data *sk_net_alloc() {
-	return sk_malloc (sizeof(sk_net_data));
+	sk_net_data *new, zero = {0};
+	new = sk_malloc (sizeof(sk_net_data));
+	*new = zero;
+	return new;
 }
 
 SK_DEFSYS(sk_net_sys)
 {
-	int l, j, mi;
+	int l, j, mi, err;
 	double *xi, *fi, *gi, *ci;
 	sk_net_data *d = data;
 
@@ -42,9 +44,11 @@ SK_DEFSYS(sk_net_sys)
 		      xi+=d->Ms[mi], fi+=d->Ms[mi], gi+=d->Ms[mi], ci+=d->Me[mi]) 
 		{
 			mi = d->M[l];
-			(*(d->models[mi]))(d->models_data[mi], hist, t, i,
+			err = (*(d->models[mi]))(d->models_data[mi], hist, t, i,
 				d->Ms[mi], xi, fi, gi, NULL, NULL,
 				d->Me[mi], ci, NULL, NULL);
+			if (err)
+				return err;
 		}
 	} else {
 		/* TODO evaluate & compute Jf/Jg/Jc 
@@ -94,23 +98,39 @@ SK_DEFSYS(sk_net_regmap)
 int sk_net_init1(sk_net_data *net, int n, sk_sys sys, void *data, 
 		int ns, int ne, int nnz, int *Or, int *Ic, double *w, double *d)
 {
-	int i, *M, *Ms, *Me;
+	int err, i, *M, *Ms, *Me;
 	sk_sys *models;
 	void **model_data;
-	M = sk_malloc (sizeof(int) * n);
-	Ms = sk_malloc (sizeof(int));
-	Me = sk_malloc (sizeof(int));
-	models = sk_malloc (sizeof(sk_sys));
-	model_data = sk_malloc (sizeof(void*));
+	char *errmsg;
+	err = (M = sk_malloc (sizeof(int) * n))==NULL;
+	err |= (Ms = sk_malloc (sizeof(int)))==NULL;
+	err |= (Me = sk_malloc (sizeof(int)))==NULL;
+	err |= (models = sk_malloc (sizeof(sk_sys)))==NULL;
+	err |= (model_data = sk_malloc (sizeof(void*)))==NULL;
+	if (err) {
+		errmsg = "failed to allocate net init1 storage.";
+		goto fail;
+	}
 	Ms[0] = ns;
 	Me[0] = ne;
 	for(i=0; i<n; i++)
 		M[i] = 0;
 	models[0] = sys;
 	model_data[0] = data;
-	sk_net_initn(net, n, 1, M, Ms, Me, models, model_data, nnz, Or, Ic, w, d);
+	if (sk_net_initn(net, n, 1, M, Ms, Me, models, model_data, nnz, Or, Ic, w, d)) {
+		errmsg = "net initn failed.";
+		goto fail;
+	}
 	net->_init1 = 1;
 	return 0;
+fail:
+	if (M!=NULL) sk_free(M);
+	if (Ms!=NULL) sk_free(Ms);
+	if (Me!=NULL) sk_free(Me);
+	if (models!=NULL) sk_free(models);
+	if (model_data!=NULL) sk_free(model_data);
+	sk_err(errmsg);
+	return 1;
 }
 
 void sk_net_free(sk_net_data *net)
@@ -131,7 +151,7 @@ int sk_net_initn(sk_net_data *net, int n, int m,
 		 int *M, int *Ms, int *Me, sk_sys *models, void **models_data,
 		 int nnz, int *Or, int *Ic, double *w, double *d)
 {
-	int i;
+	int i, err;
 	net->n = n;
 	net->m = m;
 	net->nnz = nnz;
@@ -151,9 +171,12 @@ int sk_net_initn(sk_net_data *net, int n, int m,
 		net->ns += net->Ms[net->M[i]];
 		net->ne += net->Me[net->M[i]];
 	}
-	net->cn = sk_malloc (sizeof(double) * net->ne);
+	err = (net->cn = sk_malloc (sizeof(double) * net->ne))==NULL;
+	if (err) {
+		sk_err("failed to allocate memory for network.");
+	}
 	net->_init1 = 0;
-	return 0;
+	return err;
 }
 
 int sk_net_get_n(sk_net_data *net) {

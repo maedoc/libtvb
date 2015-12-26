@@ -5,11 +5,12 @@
 
 #include "sddekit.h"
 
-static void hist_t_fill(void *data, int n, double *t, int *indices, double *buf) {
+static int hist_t_fill(void *data, int n, double *t, int *indices, double *buf) {
 	/* suppress unused arguments */
 	(void) data; (void) indices;
 	/* fill buffer from times */
 	memcpy(buf, t, n*sizeof(double));
+	return 0;
 }
 
 #define ND 4
@@ -84,13 +85,14 @@ TEST(hist, basic) {
 }
 
 /* port of TVB's history test */
-static void hist_fill_ones(void *data, int n, double *t, int *indices, double *buf) {
+static int hist_fill_ones(void *data, int n, double *t, int *indices, double *buf) {
 	int i;
 	/* suppress unused arguments */
 	(void) data; (void) indices; (void) t;
 	/* fill buffer from times */
 	for (i=0; i<n; i++)
 		buf[i] = 1.0;
+	return 0;
 }
 
 static SK_DEFSYS(hist_exact_sys) {

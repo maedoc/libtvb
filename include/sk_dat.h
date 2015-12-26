@@ -13,7 +13,7 @@ extern "C" {
  * \param[in] fname string containing filename to readable file.
  * \param[out] n number of rows & cols.
  * \param[out] w matrix of weights.
- * \return 0 if succeeds, 1 otherwise.
+ * \return 0 if succeeds, 1 if error occurs..
  */
 int sk_dat_read_square_matrix(char *fname, int *n, double **w);
 

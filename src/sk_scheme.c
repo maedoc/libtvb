@@ -6,38 +6,58 @@
 
 #include "sk_scheme.h"
 #include "sk_malloc.h"
+#include "sk_err.h"
 
 struct sk_sch_id_data {
 	double *f, *g, *z;
 };
 
 sk_sch_id_data *sk_sch_id_alloc() {
-	return sk_malloc (sizeof(sk_sch_id_data));
+	sk_sch_id_data *new, zero = {0};
+	new = sk_malloc (sizeof(sk_sch_id_data));
+	*new = zero;
+	return new;
 }
 
 int sk_sch_id_init(sk_sch_id_data *d, int nx)
 {
-	d->f=sk_malloc(sizeof(double)*nx);
-	d->g=sk_malloc(sizeof(double)*nx);
-	d->z=sk_malloc(sizeof(double)*nx);
+	int err;
+	err = 0;
+	err |= (d->f=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->g=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->z=sk_malloc(sizeof(double)*nx))==NULL;
+	if (err) {
+		if (d->f==NULL) sk_free(d->f);
+		if (d->g==NULL) sk_free(d->g);
+		if (d->z==NULL) sk_free(d->z);
+		sk_err("memory alloc durong sch id init failed.");
+		return 1;
+	}
 	return 0;
 }
 
 void sk_sch_id_free(sk_sch_id_data *d)
 {
-	sk_free(d->f);
-	sk_free(d->g);
-	sk_free(d->z);
+	if (d==NULL) {
+		sk_err("returning early due to NULL instance pointer");
+		return;
+	}
+	if (d->f!=NULL) sk_free(d->f);
+	if (d->g!=NULL) sk_free(d->g);
+	if (d->z!=NULL) sk_free(d->z);
 	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_id) {
-	int i;
+	int i, err;
 	sk_sch_id_data *d;
 	/* unused */ (void) dt;
+	err = 0;
 	d = data;
 	sk_hist_get(hist, t, c);	      /*  Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+	err = (*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+	if (err)
+		return err;
 	sk_util_fill_gauss(rng, nx, d->z);
 	for (i=0; i<nx; i++)
 		x[i] = d->f[i] + d->g[i] * d->z[i];
@@ -50,32 +70,51 @@ struct sk_sch_em_data {
 };
 
 sk_sch_em_data *sk_sch_em_alloc() {
-	return sk_malloc (sizeof(sk_sch_em_data));
+	sk_sch_em_data *new, zero = {0};
+	new = sk_malloc (sizeof(sk_sch_em_data));
+	*new = zero;
+	return new;
 }
 
 int sk_sch_em_init(sk_sch_em_data *d, int nx)
 {
-	d->f=sk_malloc(sizeof(double)*nx);
-	d->g=sk_malloc(sizeof(double)*nx);
-	d->z=sk_malloc(sizeof(double)*nx);
+	int err;
+	err = 0;
+	err |= (d->f=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->g=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->z=sk_malloc(sizeof(double)*nx))==NULL;
+	if (err) {
+		if (d->f!=NULL) sk_free(d->f);
+		if (d->g!=NULL) sk_free(d->g);
+		if (d->z!=NULL) sk_free(d->z);
+		sk_err("memory alloc durong sch em init failed.");
+		return 1;
+	}
 	return 0;
 }
 
 void sk_sch_em_free(sk_sch_em_data *d)
 {
-	sk_free(d->f);
-	sk_free(d->g);
-	sk_free(d->z);
+	if (d==NULL) {
+		sk_err("returning early due to NULL instance pointer");
+		return;
+	}
+	if (d->f!=NULL) sk_free(d->f);
+	if (d->g!=NULL) sk_free(d->g);
+	if (d->z!=NULL) sk_free(d->z);
 	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_em)
 {
-	int i;
+	int i, err;
 	double sqrt_dt;
 	sk_sch_em_data *d = data;
+	err = 0;
 	sk_hist_get(hist, t, c);	     /*  Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+	err = (*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+	if (err)
+		return 0;
 	sk_util_fill_gauss(rng, nx, d->z);
 	sqrt_dt = sqrt(dt);
 	for (i=0; i<nx; i++)
@@ -90,15 +129,28 @@ struct sk_sch_emcolor_data {
 };
 
 sk_sch_emcolor_data *sk_sch_emcolor_alloc() {
-	return sk_malloc (sizeof(sk_sch_emcolor_data));
+	sk_sch_emcolor_data *new, zero = {0};
+	new = sk_malloc (sizeof(sk_sch_emcolor_data));
+	*new = zero;
+	return new;
 }
 
 int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam)
 {
-	d->f=sk_malloc(sizeof(double)*nx);
-	d->g=sk_malloc(sizeof(double)*nx);
-	d->z=sk_malloc(sizeof(double)*nx);
-	d->eps=sk_malloc(sizeof(double)*nx);
+	int err;
+	err = 0;
+	err |= (d->f=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->g=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->z=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->eps=sk_malloc(sizeof(double)*nx))==NULL;
+	if (err) {
+		if (d->f!=NULL) sk_free(d->f);
+		if (d->g!=NULL) sk_free(d->g);
+		if (d->z!=NULL) sk_free(d->z);
+		if (d->eps!=NULL) sk_free(d->eps);
+		sk_err("memory alloc durong sch em color init failed.");
+		return 1;
+	}
 	d->first_call = 1;
 	d->lam = lam;
 	return 0;
@@ -106,21 +158,28 @@ int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam)
 
 void sk_sch_emcolor_free(sk_sch_emcolor_data *d)
 {
-	sk_free(d->f);
-	sk_free(d->g);
-	sk_free(d->z);
-	sk_free(d->eps);
+	if (d==NULL) {
+		sk_err("returning early due to NULL instance pointer");
+		return;
+	}
+	if (d->f!=NULL) sk_free(d->f);
+	if (d->g!=NULL) sk_free(d->g);
+	if (d->z!=NULL) sk_free(d->z);
+	if (d->eps!=NULL) sk_free(d->eps);
 	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_emcolor)
 {
-	int i;
+	int i, err;
 	double E; /* not stored so can be chaned while running */
 	sk_sch_emcolor_data *d = data;
+	err = 0;
 	if (d->first_call) {
 		sk_util_fill_gauss(rng, nx, d->z);      /*  Jf    Jg           Jc */
-		(*sys)(sysd, hist, t-dt, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+		err = (*sys)(sysd, hist, t-dt, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+		if (err)
+			return err;
 		for (i=0; i<nx; i++)
 			d->eps[i] = sqrt(d->g[i] * d->lam) * d->z[i];
 		d->first_call = 0;
@@ -128,7 +187,9 @@ SK_DEFSCH(sk_sch_emcolor)
 	E = exp(-d->lam * dt);
 	sk_util_fill_gauss(rng, nx, d->z);
 	sk_hist_get(hist, t, c);	     /*  Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+	err = (*sys)(sysd, hist, t, 0, nx, x, d->f, d->g, NULL, NULL, nc, c, NULL, NULL);
+	if (err)
+		return err;
 	for (i=0; i<nx; i++) {
 		x[i] += dt * (d->f[i] + d->eps[i]);
 		d->eps[i] *= E;
@@ -144,45 +205,64 @@ struct sk_sch_heun_data {
 };
 
 sk_sch_heun_data *sk_sch_heun_alloc() {
-	return sk_malloc (sizeof(sk_sch_heun_data));
+	sk_sch_heun_data *new, zero = {0};
+	new = sk_malloc (sizeof(sk_sch_heun_data));
+	*new = zero;
+	return new;
 }
 
 int sk_sch_heun_init(sk_sch_heun_data *d, int nx)
 {
-	d->fl=sk_malloc(sizeof(double)*nx);
-	d->fr=sk_malloc(sizeof(double)*nx);
-	d->gl=sk_malloc(sizeof(double)*nx);
-	d->gr=sk_malloc(sizeof(double)*nx);
-	d->z=sk_malloc(sizeof(double)*nx);
-	d->xr=sk_malloc(sizeof(double)*nx);
+	int err;
+	err = 0;
+	err |= (d->fl=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->fr=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->gl=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->gr=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->z=sk_malloc(sizeof(double)*nx))==NULL;
+	err |= (d->xr=sk_malloc(sizeof(double)*nx))==NULL;
+	if (err) {
+		if (d->fl!=NULL) sk_free(d->fl);;
+		if (d->fr!=NULL) sk_free(d->fr);;
+		if (d->gl!=NULL) sk_free(d->gl);;
+		if (d->gr!=NULL) sk_free(d->gr);;
+		if (d->z!=NULL) sk_free(d->z);;
+		if (d->xr!=NULL) sk_free(d->xr);;
+		sk_err("memory alloc durong sch em init failed.");
+		return 1;
+	}
 	return 0;
 }
 
 void sk_sch_heun_free(sk_sch_heun_data *d)
 {
-	sk_free(d->fl);
-	sk_free(d->fr);
-	sk_free(d->gl);
-	sk_free(d->gr);
-	sk_free(d->z);
-	sk_free(d->xr);
+	if (d->fl!=NULL) sk_free(d->fl);;
+	if (d->fr!=NULL) sk_free(d->fr);;
+	if (d->gl!=NULL) sk_free(d->gl);;
+	if (d->gr!=NULL) sk_free(d->gr);;
+	if (d->z!=NULL) sk_free(d->z);;
+	if (d->xr!=NULL) sk_free(d->xr);;
 	sk_free(d);
 }
 
 SK_DEFSCH(sk_sch_heun)
 {
-	int i;
+	int i, err;
 	double sqrt_dt;
 	sk_sch_heun_data *d = data;
 	/* predictor */
 	sk_hist_get(hist, t, c);	     /*    Jf    Jg           Jc */
-	(*sys)(sysd, hist, t, 0, nx, x, d->fl, d->gl, NULL, NULL, nc, c, NULL, NULL);
+	err = (*sys)(sysd, hist, t, 0, nx, x, d->fl, d->gl, NULL, NULL, nc, c, NULL, NULL);
+	if (err)
+		return err;
 	for (i=0; i<nx; i++)
 		d->xr[i] = x[i] + dt * d->fl[i];
 	sk_hist_set(hist, t, c);
 	/* corrector */
 	sk_hist_get(hist, t+dt, c);	            /*    Jf    Jg           Jc */
-	(*sys)(sysd, hist, t+dt, 0, nx, d->xr, d->fr, d->gr, NULL, NULL, nc, c, NULL, NULL);
+	err = (*sys)(sysd, hist, t+dt, 0, nx, d->xr, d->fr, d->gr, NULL, NULL, nc, c, NULL, NULL);
+	if (err)
+		return err;
 	sk_util_fill_gauss(rng, nx, d->z);
 	sqrt_dt = sqrt(dt);
 	for (i=0; i<nx; i++)

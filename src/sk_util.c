@@ -7,6 +7,7 @@
 #include "sk_config.h"
 #include "sk_util.h"
 #include "sk_malloc.h"
+#include "sk_err.h"
 
 void sk_util_res_name(char *relname, char **absname) {
 	*absname = sk_malloc (1024);
@@ -20,14 +21,12 @@ static int compare_int(const void *a, const void *b)
 	else /* a > b */ return  1;
 }
 
-int sk_util_fill_gauss(rk_state *rng, int nx, double *x)
+void sk_util_fill_gauss(rk_state *rng, int nx, double *x)
 {
 	int i;
 
 	for (i=0; i<nx; i++)
 		x[i] = rk_gauss(rng);
-
-	return 0;
 }
 
 int sk_util_uniqi(
@@ -42,13 +41,19 @@ int sk_util_uniqi(
 
 	if (n==1) {
 		*nuniq = 1;
-		*uints = sk_malloc (sizeof(int));
+		if ((*uints = sk_malloc (sizeof(int)))==NULL) {
+			sk_err("failed to allocate memory for unique integers");
+			return 1;
+		}
 		(*uints)[0] = ints[0];
 		return 0;
 	}
 
 	/* sort copy of input vector */
-	ints_copy = (int*) sk_malloc(sizeof(int) * n);
+	if ((ints_copy = (int*) sk_malloc(sizeof(int) * n))==NULL) {
+		sk_err("failed to allocate memory for ints copy.");
+		return 1;
+	}
 	memcpy(ints_copy, ints, n*sizeof(int));
 
 	qsort(ints_copy, n, sizeof(int), compare_int);
@@ -59,7 +64,11 @@ int sk_util_uniqi(
 		if (ints_copy[i] != ints_copy[i+1])
 			(*nuniq)++;
 
-	*uints = (int*) sk_malloc (sizeof(int) * *nuniq);
+	if ((*uints = (int*) sk_malloc (sizeof(int) * *nuniq))==NULL) {
+		sk_err("failed to allocate memory for unique integers.");
+		sk_free(ints_copy);
+		return 1;
+	}
 
 	/* copy unique into output array */
 	j = 0;

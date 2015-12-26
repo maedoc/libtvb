@@ -6,14 +6,20 @@
 #include "sk_sparse.h"
 #include "sk_util.h"
 #include "sk_malloc.h"
+#include "sk_err.h"
 
 int sk_sparse_from_dense(int m, int n, double *dA, double *dB, double eps,
 		int *nnz, int **Or, int **Ic, double **sA, double **sB)
 {
 	int i, j, ci, nm;
+	char *errmsg;
 	nm = n * m;
 	/* count non-zeros*/
 	*nnz = 0;
+	if (nnz==NULL) {
+		sk_err("null nnz pointer.");
+		return 1;
+	}
 #define DO_IF(cond) for (i=0; i<nm; i++) if (cond) *nnz += 1
 	if (eps==0.0) {
 		DO_IF(dA[i]!=0.0);
@@ -27,6 +33,10 @@ int sk_sparse_from_dense(int m, int n, double *dA, double *dB, double eps,
 	*sA = sk_malloc (sizeof(double)**nnz);
 	if (dB!=NULL)
 		*sB = sk_malloc (sizeof(double)**nnz);
+	if (Or==NULL || Ic==NULL || sA==NULL || (dB!=NULL && sB==NULL)) {
+		errmsg = "failed to allocate memory for sparse storage.";
+		goto fail;
+	}
 	/* copy elements */
 #define DO_IF(cond)\
 		ci = 0;\
@@ -50,4 +60,12 @@ int sk_sparse_from_dense(int m, int n, double *dA, double *dB, double eps,
 	}
 #undef DO_IF
 	return 0;
+fail:
+	if (*Or!=NULL) sk_free(*Or);
+	if (*Ic!=NULL) sk_free(*Ic);
+	if (*sA!=NULL) sk_free(*sA);
+	if (dB!=NULL)
+		if (*sB!=NULL) sk_free(*sB);
+	sk_err(errmsg);
+	return 1;
 }

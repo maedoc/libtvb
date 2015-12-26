@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Iinclude -Wall -Wextra -Werror
+CFLAGS=-Iinclude -Wall -Wextra -fexceptions
 ifeq ($(BUILD),fast)
 CFLAGS+=-Ofast
 else
@@ -36,6 +36,9 @@ rj: # rebuild and test quickly
 
 sktest: include/test_list.h $(skobj) $(testobj) alltests.o main.o
 	$(CC) $(CFLAGS) $(skobj) $(testobj) alltests.o $(LDFLAGS) main.o -o sktest
+
+include/sddekit.gch: include/sddekit.h $(wildcard include/sk_*.h)
+	$(CC) $(CFLAGS) -x c $< -o include/sddekit.h.gch
 
 bench_%: bench/bench_%.c $(skobj)
 	$(CC) $(CFLAGS) $(skobj) $< -o bench_$* $(LDFLAGS)

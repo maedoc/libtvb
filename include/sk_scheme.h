@@ -36,18 +36,18 @@ extern "C" {
  * Callback signature expected by solver framework for scheme definitions.
  * Use #SK_DEFSCH to declare or define a new scheme.
  *
- * \param data user data for scheme such as storage for intermediate steps
- * \param hist history instance
- * \param rng random number generator state
- * \param sys system being solved
- * \param sysd user data for system
- * \param t current time
- * \param dt current time step to use
- * \param nx number of state variables
- * \param x state variable vector
- * \param nc number of coupling variables
- * \param c coupling variable vector
- * \return 0 in case of success
+ * \param data user data for scheme such as storage for intermediate steps.
+ * \param hist history instance.
+ * \param rng random number generator state.
+ * \param sys system being solved.
+ * \param sysd user data for system.
+ * \param t current time.
+ * \param dt current time step to use.
+ * \param nx number of state variables.
+ * \param x state variable vector.
+ * \param nc number of coupling variables.
+ * \param c coupling variable vector.
+ * \return 0 when step succeeds, 1 if error occurs.
  */
 typedef SK_DEFSCH((*sk_sch));
 
@@ -65,16 +65,17 @@ SK_DEFSCH(sk_sch_id);
 typedef struct sk_sch_id_data sk_sch_id_data;
 
 /**
- * Allocate memory for identity integration scheme.
+ * Allocate memory for identity integration scheme, or return NULL if no memory 
+ * available.
  */
 sk_sch_id_data *sk_sch_id_alloc();
 
 /**
  * Initialize an identity integration scheme.
  *
- * \param d scheme instance
- * \param nx number of state variables
- * \return 0 if success, 1 otherwise
+ * \param d allocated scheme instance.
+ * \param nx number of state variables.
+ * \return 0 if init succeeds, 1 if error occurs.
  */
 int sk_sch_id_init(sk_sch_id_data *d, int nx);
 
@@ -91,16 +92,17 @@ SK_DEFSCH(sk_sch_em);
 typedef struct sk_sch_em_data sk_sch_em_data;
 
 /**
- * Allocate memory for Euler-Maruyama integration scheme.
+ * Allocate memory for Euler-Maruyama integration scheme, or return NULL if no memory 
+ * available.
  */
 sk_sch_em_data *sk_sch_em_alloc();
 
 /**
  * Initialize an Euler-Maruyama integration scheme.
  *
- * \param d scheme instance
- * \param nx number of state variables
- * \return 0 if success, 1 otherwise
+ * \param d scheme instance.
+ * \param nx number of state variables.
+ * \return 0 if init succeeds, 1 if error occurs.
  */
 int sk_sch_em_init(sk_sch_em_data *d, int nx);
 
@@ -112,7 +114,7 @@ int sk_sch_em_init(sk_sch_em_data *d, int nx);
 void sk_sch_em_free(sk_sch_em_data *d);
 
 /* E-M for colored noise, derived from Fox 1998, 
- * (no proof of convergence for multiplicate noise!)
+ * for additive noise.
  */
 SK_DEFSCH(sk_sch_emcolor);
 
@@ -126,10 +128,10 @@ sk_sch_emcolor_data *sk_sch_emcolor_alloc();
 /**
  * Initialize a colored noise Euler-Maruyama scheme instance.
  *
- * \param d scheme instance
- * \param nx number of state variables
+ * \param d scheme instance.
+ * \param nx number of state variables.
  * \param lam damping factor determining color; cf Fox et al 98.
- * \return 0 9f success, 0 otherwise.
+ * \return 0 if init succeeds; 1 if error occurs.
  */
 int sk_sch_emcolor_init(sk_sch_emcolor_data *d, int nx, double lam);
 
@@ -153,9 +155,9 @@ sk_sch_heun_data *sk_sch_heun_alloc();
 /**
  * Initialize Heun scheme.
  *
- * \param d a Heun integration scheme instance.
+ * \param d allocated Heun scheme instance.
  * \param nx number of state variables.
- * \return 0 if success, 1 otherwise.
+ * \return 0 if init succeeds, 0 if error occurs.
  */
 int sk_sch_heun_init(sk_sch_heun_data *d, int nx);
 
@@ -168,6 +170,9 @@ void sk_sch_heun_free(sk_sch_heun_data *d);
 
 /* TODO http://arxiv.org/pdf/1506.05708v1.pdf LL for mult noise  */
 SK_DEFSCH(sk_sch_llmult);
+
+/* TODO Küchler & Platen semi-implicit Milstein for SDDEs */
+SK_DEFSCH(sk_sch_kpsimp);
 
 #ifdef __cplusplus
 }; /* extern "C" */

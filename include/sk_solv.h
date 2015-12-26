@@ -1,9 +1,7 @@
 /* Apache 2.0 INS-AMU 2015 */
 
 /**
- * \file sk_solv.h
- *
- * \brief sk_solv.h defines sddekit's solver framework in terms of a system, 
+ * sddekit's solver drives time evolution given a system, 
  * a time-stepping scheme and an output handling callback.
  */
 
@@ -22,26 +20,30 @@
 extern "C" {
 #endif
 
+/**
+ * Opaque type representing a solver instance.
+ */
 typedef struct sk_solv sk_solv;
 
 /**
- * Allocate memory for a solver instance.
+ * Allocate memory for a solver instance, or return NULL if allocation fails.
  */
 sk_solv *sk_solv_alloc();
 
 /**
  * Initialize a solver.
  *
- * \note references are maintained to all parameters, thus must remain
+ * \note References are maintained to all parameters, thus must remain
  * valid for the lifetime of the solver instance.
  *
- * \param solv solver to initialize.
- * \param sys system to be integrated
- * \param sys_data user data passed to sys
- * \param scheme time-stepping scheme to use for solution
- * \param scheme_data user data passed to scheme
- * \param out output handler
- * \param out_data 
+ * \param solv allocated solver instance to initialize.
+ * \param sys system to be integrated.
+ * \param sys_data user data passed to sys.
+ * \param scheme time-stepping scheme to use for solution.
+ * \param scheme_data user data passed to scheme.
+ * \param out output handler.
+ * \param out_data.
+ * \return 0 if init succeeded, 1 if error occurred.
  */
 int sk_solv_init(
 	sk_solv * restrict solv,
@@ -58,15 +60,18 @@ int sk_solv_init(
 /**
  * Frees memory occupied by solver instance.
  *
- * \param s solver
+ * \param s allocated solver instance.
  */
 void sk_solv_free(sk_solv *s);
 
 /**
- * Continue solution described in *s
+ * Continue stepping in time until one or more outputs returns 0 to stop.
  *
- * \param s solver.
- * \return 0 if successful else 1.
+ * \note An error during execution of output callback is not currently distinct
+ * from an indication by the output callback to stop the solution.
+ *
+ * \param s initialized solver instance.
+ * \return 0 if continuation succeeds, 1 if error occurs.
  */
 int sk_solv_cont(sk_solv *s);
 
@@ -78,7 +83,7 @@ int sk_solv_cont(sk_solv *s);
 int sk_solv_get_nc(sk_solv *s);
 
 /**
- * Get history instance.
+ * Get history instance or NULL if no delayed terms in solution.
  *
  * \param s solver instance.
  */

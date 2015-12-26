@@ -54,8 +54,9 @@ static SK_DEFOUT(test_out)
 	return t < d->tf;
 }
 
-static void test_hist_filler()
+static int test_hist_filler()
 {
+	return 0;
 }
 
 #define SEED 42
@@ -86,7 +87,7 @@ TEST(solv, simple) {
 	solv = sk_solv_alloc();
 	sk_solv_init(solv, &test_sys, &sysd,
 		&test_sch, &schd, &test_out, &outd,
-		&test_hist_filler, NULL, SEED, NX, x, NC, vi, vd,
+		(sk_hist_filler) &test_hist_filler, NULL, SEED, NX, x, NC, vi, vd,
 		T0, DT);
 
 	EXPECT_EQ(rk_gauss(sk_solv_get_rng(solv)), rand0);

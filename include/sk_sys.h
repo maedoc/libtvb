@@ -57,7 +57,7 @@ extern "C" {
  * \param c vector of coupling terms.
  * \param Cf partial derivatives of drift terms with respect to c.
  * \param Cg partial derivatives of diffusion terms with respect to c.
- * \return 0 to indicate success.
+ * \return 0 if system evaluation succeeded, 1 if error occurred.
  */
 typedef SK_DEFSYS((*sk_sys));
 
@@ -85,7 +85,7 @@ double sk_sys_exc_get_a(sk_sys_exc_dat *d);
  * Set the a parameter value.
  *
  * \param d Excitator system instance.
- * \param new_a new value of a
+ * \param new_a new value of a.
  */
 void sk_sys_exc_set_a(sk_sys_exc_dat *d, double new_a);
 
@@ -100,7 +100,7 @@ double sk_sys_exc_get_tau(sk_sys_exc_dat *d);
  * Set the tau parameter value.
  *
  * \param d Excitator system instance.
- * \param new_tau new value of tau
+ * \param new_tau new value of tau.
  */
 void sk_sys_exc_set_tau(sk_sys_exc_dat *d, double new_tau);
 
@@ -115,7 +115,7 @@ double sk_sys_exc_get_D(sk_sys_exc_dat *d);
  * Set the D parameter value.
  *
  * \param d Excitator system instance.
- * \param new_D new value of D
+ * \param new_D new value of D.
  */
 void sk_sys_exc_set_D(sk_sys_exc_dat *d, double new_D);
 
@@ -130,7 +130,7 @@ double sk_sys_exc_get_k(sk_sys_exc_dat *d);
  * Set the k parameter value.
  *
  * \param d Excitator system instance.
- * \param new_k new value of k
+ * \param new_k new value of k.
  */
 void sk_sys_exc_set_k(sk_sys_exc_dat *d, double new_k);
 
