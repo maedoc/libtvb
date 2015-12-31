@@ -1,4 +1,4 @@
-# Apache 2.0 INS-AMU 2015
+# copyright 2016 Apache 2 sddekit authors
 
 import os
 import glob
@@ -21,7 +21,7 @@ def file_test_def_lines(file_name):
 			if 'TEST' in line:
 				yield line
 
-all_source = """/* Apache 2.0 INS-AMU 2015 */
+all_source = """/* copyright 2016 Apache 2 sddekit authors */
 
 #include "sddekit.h"
 

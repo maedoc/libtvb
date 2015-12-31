@@ -1,4 +1,4 @@
-/* Apache 2.0 INS-AMU 2015 */
+/* copyright 2016 Apache 2 sddekit authors */
 
 int sk_test_run_all();
 
