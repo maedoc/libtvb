@@ -4,23 +4,21 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "randomkit.h"
-#include "sk_malloc.h"
+#include "sddekit.h"
 
 int main()
 {
 	int i, j, n, m;
 	double *g, *z;
 	time_t tic, toc;
-	rk_state rng;
-
+	sd_rng *rng = sd_rng_new_default();
 
 	n = 10000;
 	m = 10;
-	rk_seed(42, &rng);
+	rng->seed(rng, 42);
 
-	g = sk_malloc (sizeof(double) * n);
-	z = sk_malloc (sizeof(double) * n);
+	g = sd_malloc (sizeof(double) * n);
+	z = sd_malloc (sizeof(double) * n);
 	for (i=1; i<n; i+=100)
 	{
 		for (j=0; j<n; j++) g[i] = 0.0;
@@ -31,7 +29,7 @@ int main()
 		tic = clock();
 		for (j=0; j<n; j++)
 			if (g[j]!=0.0)
-				g[j] *= rk_gauss(&rng);
+				g[j] *= rng->norm(rng);
 		toc = clock();
 
 		printf("i=%03d %.3fs\n", i, (double) (toc - tic) / CLOCKS_PER_SEC);
@@ -39,7 +37,7 @@ int main()
 	}
 
 	tic = clock();
-	rk_gauss_fill(&rng, n, z);
+	rng->fill_norm(rng, n, z);
 	for (j=0; j<n; j++)
 		g[j] *= z[j];
 	toc = clock();

@@ -1,25 +1,26 @@
 /* copyright 2016 Apache 2 sddekit authors */
 
-#include <stdlib.h>
-
 #include "sddekit.h"
+#include "test.h"
 
 TEST(net, simple) {
 
-	int n, ns, ne, nnz, *Ic, *Or, *vi;
-	double *w, *d, *x, *f, *g, *c, *vd;
-	sk_net_data *net;
-	sk_sys_exc_dat *sysd;
-	sk_hist *hist;
+	uint32_t n, ns, na, ne, nnz, *Ic, *Or, *vi;
+	double *w, *d, *vd;
+	sd_net *net;
+	sd_sys_exc *exc;
+	sd_sys *sys;
+	sd_hist *hist;
 
 	n = 3;
 	ns = 2;
+	na = 1;
 	ne = 1;
 	nnz = 2;
-	Or = sk_malloc (sizeof(int)*(n+1));
-	Ic = sk_malloc (sizeof(int)*nnz);
-	w = sk_malloc (sizeof(double)*nnz);
-	d = sk_malloc (sizeof(double)*nnz);
+	Or = sd_malloc (sizeof(uint32_t)*(n+1));
+	Ic = sd_malloc (sizeof(uint32_t)*nnz);
+	w = sd_malloc (sizeof(double)*nnz);
+	d = sd_malloc (sizeof(double)*nnz);
 	Or[0] = 0;
 	Or[1] = 1;
 	Or[2] = 2;
@@ -30,71 +31,82 @@ TEST(net, simple) {
 	w[1] = 2.0;
 	d[0] = 10.0;
 	d[1] = 20.0;
-	sysd = sk_sys_exc_alloc();
-	sk_sys_exc_set_a(sysd, 1.0);
-	sk_sys_exc_set_k(sysd, 0.5);
-	sk_sys_exc_set_tau(sysd, 3.0);
-	vi = sk_malloc (sizeof(int)*n);
-	vd = sk_malloc (sizeof(double)*n);
+	exc = sd_sys_exc_new();
+	sys = exc->sys(exc);
+	exc->set_a(exc, 1.0);
+	exc->set_k(exc, 0.5);
+	exc->set_tau(exc, 3.0);
+	vi = sd_malloc (sizeof(uint32_t)*n);
+	vd = sd_malloc (sizeof(double)*n);
 	vi[0] = 0;
 	vi[1] = 1;
 	vi[2] = 2;
 	vd[0] = 0.0;
 	vd[1] = 0.0;
 	vd[2] = 0.0;
-	hist = sk_hist_alloc();
-	sk_hist_init(hist, n, vi, vd, 0, 1);
+	hist = sd_hist_new_default(n, vi, vd, 0.0, 1.0);
 
-	net = sk_net_alloc();
-	sk_net_init1(net, n, sk_sys_exc, sysd, ns, ne, nnz, Or, Ic, w, d);
+	net = sd_net_new_hom(n, sys, ns, na, ne, nnz, Or, Ic, w, d);
 
 	/* initn */
-	EXPECT_EQ(n,sk_net_get_n(net));
-	EXPECT_EQ(1,sk_net_get_m(net));
-	EXPECT_EQ(nnz,sk_net_get_nnz(net));
-	EXPECT_EQ(Or,sk_net_get_or(net));
-	EXPECT_EQ(Ic,sk_net_get_ic(net));
-	EXPECT_EQ(w,sk_net_get_w(net));
-	EXPECT_EQ(d,sk_net_get_d(net));
-	EXPECT_EQ(ns*n,sk_net_get_ns(net));
-	EXPECT_EQ(ne*n,sk_net_get_ne(net));
-	EXPECT_TRUE(!sk_net_cn_is_null(net));
+	EXPECT_EQ(n,net->get_n(net));
+	EXPECT_EQ(1,net->get_m(net));
+	EXPECT_EQ(nnz,net->get_nnz(net));
+	EXPECT_EQ(Or,net->get_or(net));
+	EXPECT_EQ(Ic,net->get_ic(net));
+	EXPECT_EQ(w,net->get_w(net));
+	EXPECT_EQ(d,net->get_d(net));
+	EXPECT_EQ(ns*n,net->get_ns(net));
+	EXPECT_EQ(ne*n,net->get_ne(net));
+	EXPECT_TRUE(!net->cn_is_null(net));
 
 	/* init1 */
-	EXPECT_EQ(ns, sk_net_get_Ms_i(net, 0));
-	EXPECT_EQ(ne, sk_net_get_Me_i(net, 0));
-	EXPECT_EQ(0, sk_net_get_M_i(net, 0));
-	EXPECT_EQ(0, sk_net_get_M_i(net, 1));
-	EXPECT_EQ(0, sk_net_get_M_i(net, 1));
-	EXPECT_EQ(&sk_sys_exc, sk_net_get_models_i(net, 0));
-	EXPECT_EQ(sysd, sk_net_get_models_data_i(net, 0));
-	EXPECT_EQ(1, sk_net_get__init1(net));
+	EXPECT_EQ(ns, net->get_Ms_i(net, 0));
+	EXPECT_EQ(ne, net->get_Me_i(net, 0));
+	EXPECT_EQ(0, net->get_M_i(net, 0));
+	EXPECT_EQ(0, net->get_M_i(net, 1));
+	EXPECT_EQ(0, net->get_M_i(net, 1));
+	EXPECT_EQ(sys, net->get_models_i(net, 0));
+	EXPECT_EQ(1, net->get__init1(net));
 
 	/* evaluate */
-	x = sk_malloc (sizeof(double) * n*ns);
-	f = sk_malloc (sizeof(double) * n*ns);
-	g = sk_malloc (sizeof(double) * n*ns);
-	c = sk_malloc (sizeof(double) * n*ne);
-	c[0] = x[0] = 1.0;
-	c[1] = x[2] = 2.0;
-	c[2] = x[4] = 3.0;
-	sk_net_sys(net, hist, 0.0, 0, n*ns, x, f, g, NULL, NULL, n*ne, c, NULL, NULL);
-	EXPECT_EQ((sk_sys_exc_get_a(sysd) - x[0] + sk_sys_exc_get_k(sysd)*w[0]*x[2])/sk_sys_exc_get_tau(sysd),f[1]);
-	EXPECT_EQ((sk_sys_exc_get_a(sysd) - x[2] + sk_sys_exc_get_k(sysd)*w[1]*x[4])/sk_sys_exc_get_tau(sysd),f[3]);
-	EXPECT_EQ((sk_sys_exc_get_a(sysd) - x[4])/sk_sys_exc_get_tau(sysd),f[5]);
+	sd_sys_in in;
+	sd_sys_out out;
+	in.nx = n*ns;
+	in.nc = n*ne;
+	in.id = 0;
+	in.t = 0.0;
+	in.x = sd_malloc (sizeof(double) * n*ns);
+	in.hist = hist;
+	in.rng = NULL;
+	out.f = sd_malloc (sizeof(double) * n*ns);
+	out.g = sd_malloc (sizeof(double) * n*ns);
+	{
+		uint32_t i;
+		for (i=0; i<(n*ns); i++)
+			out.f[i] = out.g[i] = 1.0/0.0;
+	}
+	in.i = out.o = sd_malloc (sizeof(double) * n*ne);
+	in.i[0] = in.x[0] = 1.0;
+	in.i[1] = in.x[2] = 2.0;
+	in.i[2] = in.x[4] = 3.0;
+	SD_CALL_AS(net, sys, apply, &in, &out);
+	EXPECT_EQ((exc->get_a(exc) - in.x[0] + exc->get_k(exc)*w[0]*in.x[2])/exc->get_tau(exc), out.f[1]);
+	EXPECT_EQ((exc->get_a(exc) - in.x[2] + exc->get_k(exc)*w[1]*in.x[4])/exc->get_tau(exc), out.f[3]);
+	EXPECT_EQ((exc->get_a(exc) - in.x[4])/exc->get_tau(exc), out.f[5]);
 
 	/* clean up */
-	sk_sys_exc_free(sysd);
-	sk_net_free(net);
-	sk_hist_free(hist);
-	sk_free(Or);
-	sk_free(Ic);
-	sk_free(w);
-	sk_free(d);
-	sk_free(x);
-	sk_free(f);
-	sk_free(g);
-	sk_free(c);
-	sk_free(vi);
-	sk_free(vd);
+	sys->free(sys);
+	net->free(net);
+	hist->free(hist);
+	sd_free(Or);
+	sd_free(Ic);
+	sd_free(w);
+	sd_free(d);
+	sd_free(in.x);
+	sd_free(out.f);
+	sd_free(out.g);
+	sd_free(out.o);
+	sd_free(vi);
+	sd_free(vd);
 }

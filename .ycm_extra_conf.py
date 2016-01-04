@@ -25,11 +25,19 @@ import ycm_core
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
 flags = [
 	'-Wall', '-Wextra', '-Wpedantic', '-fexceptions', '-fstrict-aliasing',
-	'-std=ansi', '-x', 'c',
 	'-I', './include', '-isystem', '/usr/include', '-isystem', '/usr/local/include',
 	'-DSKDEBUG',
 ]
 
+cflags = flags + [ '-std=ansi', '-x', 'c', ]
+cxxflags = flags + [ '-std=c++11', '-x', 'c++' ] 
+
+mex_flags = []
+if 'MATLAB' in os.environ:
+    mex_flags.append('-I%s/extern/include' % (
+        os.path.abspath(os.environ['MATLAB'])))
+
+print mex_flags
 
 # Set this to the absolute path to the folder (NOT the file!) containing the
 # compile_commands.json file to use that instead of 'flags'. See here for
@@ -118,6 +126,9 @@ def FlagsForFile( filename, **kwargs ):
   else:
     relative_to = DirectoryOfThisScript()
     final_flags = MakeRelativePathsInFlagsAbsolute( flags, relative_to )
+
+  if 'matlab' in filename:
+    final_flags += mex_flags
 
   return {
     'flags': final_flags,

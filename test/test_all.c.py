@@ -7,7 +7,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 def get_test_name(line):
 	topic, name = line.split('(')[1].split(')')[0].split(',')
-	test_name = 'sk_test__%s_%s' % (topic.strip(), name.strip())
+	test_name = 'sd_test__%s_%s' % (topic.strip(), name.strip())
 	return test_name
 
 def test_files():
@@ -27,9 +27,9 @@ all_source = """/* copyright 2016 Apache 2 sddekit authors */
 
 {decls}
 
-int sk_test_run_all() {{
+int sd_test_run_all() {{
 {calls}
-	return sk_test_report();
+	return sd_test_report();
 }}
 """
 

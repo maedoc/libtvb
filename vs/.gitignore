@@ -1,0 +1,6 @@
+vs.sdf
+.vs
+Debug
+x64
+*.opendb
+*.vcxproj.user

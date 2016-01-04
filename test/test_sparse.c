@@ -3,9 +3,10 @@
 #include <stdlib.h>
 
 #include "sddekit.h"
+#include "test.h"
 
 TEST(test_sparse, test_sparse_from_dense) {
-	int n, nnz, *Or, *Ic;
+	uint32_t n, nnz, *Or, *Ic;
 	double A[4], B[4], *sA, *sB; 
 
 	n = 2;
@@ -19,7 +20,7 @@ TEST(test_sparse, test_sparse_from_dense) {
 	B[3] = 4;
 
 	/* no cutoff, eps=0 */
-	sk_sparse_from_dense(n, n, A, NULL, 0.0, &nnz, &Or, &Ic, &sA, NULL);
+	sd_sparse_from_dense(n, n, A, NULL, 0.0, &nnz, &Or, &Ic, &sA, NULL);
 
 	EXPECT_EQ(3,nnz);
 	EXPECT_EQ(0,Or[0]);
@@ -32,25 +33,25 @@ TEST(test_sparse, test_sparse_from_dense) {
 	EXPECT_EQ(A[1],sA[1]);
 	EXPECT_EQ(A[3],sA[2]);
 
-	sk_free(Or);
-	sk_free(Ic);
-	sk_free(sA);
+	sd_free(Or);
+	sd_free(Ic);
+	sd_free(sA);
 
 	/* with auxiliary matrix */
-	sk_sparse_from_dense(n, n, A, B, 0.0, &nnz, &Or, &Ic, &sA, &sB);
+	sd_sparse_from_dense(n, n, A, B, 0.0, &nnz, &Or, &Ic, &sA, &sB);
 
 	EXPECT_EQ(3,nnz);
 	EXPECT_EQ(B[0],sB[0]);
 	EXPECT_EQ(B[1],sB[1]);
 	EXPECT_EQ(B[3],sB[2]);
 
-	sk_free(Or);
-	sk_free(Ic);
-	sk_free(sA);
-	sk_free(sB);
+	sd_free(Or);
+	sd_free(Ic);
+	sd_free(sA);
+	sd_free(sB);
 
 	/* apply cutoff */
-	sk_sparse_from_dense(n, n, A, NULL, 1e-5, &nnz, &Or, &Ic, &sA, NULL);
+	sd_sparse_from_dense(n, n, A, NULL, 1e-5, &nnz, &Or, &Ic, &sA, NULL);
 
 	EXPECT_EQ(2,nnz);
 	EXPECT_EQ(0,Or[0]);
@@ -61,26 +62,26 @@ TEST(test_sparse, test_sparse_from_dense) {
 	EXPECT_EQ(A[0],sA[0]);
 	EXPECT_EQ(A[3],sA[1]);
 
-	sk_free(Or);
-	sk_free(Ic);
-	sk_free(sA);
+	sd_free(Or);
+	sd_free(Ic);
+	sd_free(sA);
 
 	/* with auxiliary matrix */
-	sk_sparse_from_dense(n, n, A, B, 1e-5, &nnz, &Or, &Ic, &sA, &sB);
+	sd_sparse_from_dense(n, n, A, B, 1e-5, &nnz, &Or, &Ic, &sA, &sB);
 
 	EXPECT_EQ(2,nnz);
 	EXPECT_EQ(B[0],sB[0]);
 	EXPECT_EQ(B[3],sB[1]);
 
-	sk_free(Or);
-	sk_free(Ic);
-	sk_free(sA);
-	sk_free(sB);
+	sd_free(Or);
+	sd_free(Ic);
+	sd_free(sA);
+	sd_free(sB);
 }
 
 /*
 int main() {
 	test_sparse_from_dense();
-	return sk_test_report();
+	return sd_test_report();
 }
 */
