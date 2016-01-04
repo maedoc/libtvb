@@ -4,90 +4,69 @@
 
 #include "sddekit.h"
 
-typedef struct { sk_out out; void *outd; } bench_out_ignore_c_data;
+typedef struct { sd_out *out; } outd;
 
-SK_DEFOUT(bench_out_ignore_c) {
-	bench_out_ignore_c_data *d = data;
-	(void) nx; (void) nc; (void) c; /* unused */
-	return (*(d->out))(d->outd, t, nx, x, 0, NULL);
-}
-
-typedef struct { double tf; } bench_out_stop_data;
-
-SK_DEFOUT(bench_out_stop)
+static sd_stat out_igc(void *data, double t, 
+			     uint32_t nx, double * restrict x,
+			     uint32_t nc, double * restrict c)
 {
-	bench_out_stop_data *d = data;
-	(void) x; (void) nx; (void) nc; (void) c; /* unused */
-	return t < d->tf;
+	(void) nc; (void) c;
+	outd *d = data;
+	return (d->out)->apply(d->out, t, nx, x, 0, NULL);
 }
 
 int main() {
-	int i, n, nnz, *Or, *Ic;
+	uint32_t i, n, nnz, *Or, *Ic;
 	double *w, *d, *sw, *sd, *x0;
-	sk_out_tavg_data tavgd;
-	sk_out_file_data filed;
-	bench_out_stop_data stopd;
-	sk_out_tee_data teed;
-	sk_sys_exc_dat excd;
-	sk_solv solv;
-	sk_sch_heun_data heund;
-	bench_out_ignore_c_data igncd;
-	sk_net_data netd;
-	char *path;
 
+	/* set up outputs
+	 *
+	 * sol -> igc -> tee -> tavg -> out file
+	 *                   \> until t = 1e3
+	 */
+	sd_out_file *of = sd_out_file_new_from_name("bench_net_exc.dat");
+	sd_out_tavg *tavg = sd_out_tavg_new(20, SD_AS(of, out));
+	sd_out *until = sd_out_new_until(1e3);
+	sd_out_tee *tee = sd_out_tee_new(2);
+	tee->set_out(tee, 0, until);
+	tee->set_out(tee, 1, SD_AS(tavg, out));
+	outd igcd = { .out = SD_AS(tee, out) };
+	sd_out *out = sd_out_new_cb(&igcd, &out_igc);
 
 	/* connectivity, assuming conduction velocity of 1.0 */
-	sk_util_res_name("res/conn76/weights.txt", &path);
-	sk_dat_read_square_matrix(path, &n, &w);
-	sk_free(path);
-	sk_util_res_name("res/conn76/tract_lengths.txt", &path);
-	sk_dat_read_square_matrix(path, &n, &d);
-	sk_free(path);
-	sk_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &sw, &sd);
+	sd_util_read_square_matrix("res/conn76/weights.txt", &n, &w);
+	sd_util_read_square_matrix("res/conn76/tract_lengths.txt", &n, &d);
+	sd_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &sw, &sd);
 	fprintf(stdout, "[bench_net_exc] nnz=%d\n", nnz);
 
-
-	/* monitor to file */
-	stopd.tf = 1e3;
-	sk_out_file_from_fname(&filed, "bench_net_exc.dat");
-	sk_out_tavg_init(&tavgd, 20, sk_out_file, &filed);
-	sk_out_tee_init(&teed, 2);
-	sk_out_tee_set_out(&teed, 0, bench_out_stop, &stopd);
-	sk_out_tee_set_out(&teed, 1, sk_out_tavg, &tavgd);
-	igncd.out = sk_out_tee;
-	igncd.outd = &teed;
-
 	/* setup model */
-	excd.a = 1.01;
-	excd.tau = 3.0;
-	excd.D = 0.01;
-	excd.k = 0.001;
-	sk_net_init1(&netd, n, sk_sys_exc, &excd, 2, 1, nnz, Or, Ic, w, d);
+	sd_sys_exc *exc = sd_sys_exc_new();
+	exc->set_a(exc, 1.01);
+	exc->set_tau(exc, 3.0);
+	exc->set_D(exc, 0.01);
+	exc->set_k(exc, 0.001);
+	sd_net *net = sd_net_new_hom(n, SD_AS(exc, sys), 2, 1, 1, nnz, Or, Ic, w, d);
 
 	/* setup scheme & solver */
-	x0 = sk_malloc (sizeof(double)*2*n);
+	x0 = sd_malloc(sizeof(double)*2*n);
 	for (i=0; i<(2*n); i++)
 		x0[i] = 0.0;
-	sk_sch_heun_init(&heund, 2*n);
-	sk_solv_init(&solv, &sk_net_sys, &netd, sk_sch_heun, &heund,
-			bench_out_ignore_c, &igncd, sk_hist_zero_filler, NULL,
-			42, 2*n, x0, nnz, Ic, sd, 0.0, 0.01);
+	sd_sch *heun = sd_sch_new_heun(2*n);
+	sd_hfill *hf = sd_hfill_new_val(0.0);
+	sd_sol *sol = sd_sol_new_default(SD_AS(net, sys), heun, out, hf,
+			42, 2*n, x0, n, nnz, Ic, sd, 0.0, 0.01);
 
 	/* solve */
-	sk_solv_cont(&solv);
+	sol->cont(sol);
 
 	/* clean up */
-	sk_free(w);
-	sk_free(x0);
-	sk_free(d);
-	sk_free(Or);
-	sk_free(Ic);
-	sk_free(sw);
-	sk_free(sd);
-	sk_out_file_free(&filed);
-	sk_out_tavg_free(&tavgd);
-	sk_out_tee_free(&teed);
-	sk_solv_free(&solv);
+	sd_free(w);
+	sd_free(x0);
+	sd_free(d);
+	sd_free(Or);
+	sd_free(Ic);
+	sd_free(sw);
+	sd_free(sd);
 
-	return 0.0;
+	return 0;
 }

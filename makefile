@@ -1,75 +1,46 @@
 CC=gcc
-CFLAGS=-Iinclude -Wall -Wextra -fexceptions
-ifeq ($(BUILD),fast)
-CFLAGS+=-Ofast
-else
-CFLAGS+=-DSKDEBUG -g -O0
-endif
+CFLAGS=-g -std=c99 -Isrc -Wall -Wextra -DSDDEBUG 
 LDFLAGS=-lm
-LIBCFLAGS=$(CFLAGS)
-LIBLDFLAGS=$(LDFLAGS)
-sk_ver_major = 0
-sk_ver_minor = 0
+#
+# e.g. -pg -fprofile-arcs -ftest-coverage
+CFLAGS += $(EXTRA_CFLAGS)
 
-ifeq ($(BUILD),prof)
-LIBCFLAGS+=-pg -fprofile-arcs -ftest-coverage
-LIBLDFLAGS+=-lgcov
-LDFLAGS+=-lgcov -pg
-else
-endif
+# TODO provide alternatives for Windows
+test_list_maker=./make_test_list.sh
 
-skobj=$(patsubst src/%.c,%.o,$(wildcard src/*.c)) sk_config.o
-testobj=$(patsubst test/%.c,%.o,$(wildcard test/test_*.c))
-figs=$(patsubst fig/%.gpi,%.png,$(wildcard fig/*.gpi))
-benchs=$(patsubst bench/%.c,%,$(wildcard bench/bench_*.c))
+test: libobjects run_tests
+	./run_tests
 
-all: sktest test $(figs)
-	cp *.png ../storage/
+memtest: libobjects run_tests
+	valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./run_tests
 
-test: sktest
-	./sktest
+bench: libobjects $(patsubst bench/%.c,%,$(wildcard bench/*.c))
 
-rj: # rebuild and test quickly
-	make -B -j include/test_list.h
-	make -B -j sktest
-	./sktest
+libobjects: $(patsubst src/%.c,%.o,$(wildcard src/*.c))
 
-sktest: include/test_list.h $(skobj) $(testobj) alltests.o main.o
-	$(CC) $(CFLAGS) $(skobj) $(testobj) alltests.o $(LDFLAGS) main.o -o sktest
+run_tests: libobjects $(patsubst test/%.c,%.o,$(wildcard test/test_*.c))
+	$(CC) $(CFLAGS) -I./ test/main.c *.o -o run_tests $(LDFLAGS)
 
-include/sddekit.gch: include/sddekit.h $(wildcard include/sk_*.h)
-	$(CC) $(CFLAGS) -x c $< -o include/sddekit.h.gch
+valgrind: run_tests
+	valgrind --leak-check=full --track-origins=yes ./run_tests &> val.out ; vim val.out
 
-bench_%: bench/bench_%.c $(skobj)
-	$(CC) $(CFLAGS) $(skobj) $< -o bench_$* $(LDFLAGS)
+gdb: run_tests
+	gdb run_tests
 
-sk_config.o: sk_config.c
+gdbtest: run_tests
+	gdb run_tests -ex 'b sd_test_failed' -ex 'r'
+
+%.o: src/%.c
 	$(CC) $(CFLAGS) -c $< $(LDFLAGS)
-
-%.o: src/%.c sk_config.o
-	$(CC) $(LIBCFLAGS) -c $< $(LIBLDFLAGS)
 
 %.o: test/%.c
 	$(CC) $(CFLAGS) -c $< $(LDFLAGS)
 
-sk_config.c: src/sk_config.c.in
-	cp $< $@
-	sed -i s,@sk_ver_major@,$(sk_ver_major), $@
-	sed -i s,@sk_ver_minor@,$(sk_ver_minor), $@
-	sed -i s,@sk_res_dir@,$(shell pwd), $@
-	sed -i s,@sk_git_rev@,$(shell git rev-parse HEAD), $@
+%: bench/%.c
+	$(CC) $(CFLAGS) $< *.o $(LDFLAGS)
 
-include/test_list.h: $(testobj)
-	rm -f include/test_list.h
-	for t in $(shell nm *.o | grep sk_test__ | cut -f 3 -d ' '); do \
-		echo "TEST_FOUND($$t)" >> include/test_list.h ; \
-	done
+bench_%: bench/bench_%.c
+	$(CC) $(CFLAGS) $< *.o -o bench_$* $(LDFLAGS)
 
 clean:
-	rm -f *.o *.so include/test_list.h *.dat sktest *.png bench_* sk_config.c
-
-gdb: sktest
-	gdb sktest -ex 'b sk_test_failed' -ex 'b src/sk_malloc.c:52'
-
-%.png: fig/%.gpi
-	gnuplot -e "set terminal png; set output '$@'" $<
+	rm -f *.o test_list.h sddekit.h.gch *.gcda *.gcno gmon.out *.c.gcov val.out run_tests *.dat

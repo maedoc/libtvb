@@ -2,10 +2,12 @@ addons:
  apt:
   packages:
   - valgrind
-  - cppcheck
+  - python-numpy
+before_install:
+  - pip install --user cpp-coveralls cython
 language: c
-install:
-- make sktest
 script:
-- valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./sktest
-- cppcheck --error-exitcode=1 -I include/ src
+- make memtest && make clean && make -B EXTRA_CFLAGS="-pg -fprofile-arcs -ftest-coverage" test
+- cd python && make test && cd ..
+after_success:
+- coveralls --gcov-options '-o ./ src/*.c'
