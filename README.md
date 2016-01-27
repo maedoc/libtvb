@@ -1,6 +1,6 @@
 # SDDEKit
 
-[![Build Status](https://travis-ci.org/maedoc/sddekit.svg)](https://travis-ci.org/maedoc/sddekit) [![Coverage Status](https://coveralls.io/repos/github/maedoc/sddekit/badge.svg?branch=master)](https://coveralls.io/github/maedoc/sddekit?branch=master)
+[![Build Status](https://travis-ci.org/maedoc/sddekit.svg?branch=master)](https://travis-ci.org/maedoc/sddekit) [![Coverage Status](https://coveralls.io/repos/github/maedoc/sddekit/badge.svg?branch=master)](https://coveralls.io/github/maedoc/sddekit?branch=master)
 
 ## What is SDDEKit?
 
