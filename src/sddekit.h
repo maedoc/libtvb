@@ -573,6 +573,21 @@ struct sd_sys_exc {
 SD_API sd_sys_exc *
 sd_sys_exc_new();
 
+/* Experimental support for expressions */
+typedef struct sd_sys_ex sd_sys_ex;
+
+struct sd_sys_ex
+{
+	void *ptr;
+	sd_sys *(*sys)(sd_sys_ex*);
+	sd_stat (*add_state_var)(char *name, char *f_ex, char *g_ex);
+	sd_stat (*add_input_var)(char *name, char *ex);
+	sd_stat (*add_output_var)(uint32_t index, char *ex);
+};
+
+SD_API sd_sys_ex *
+sd_sys_new_ex();
+
 /* network
  * \brief sd_net provides a sd_sys which adapts another sd_sys into a network.
  *
