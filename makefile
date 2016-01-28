@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -std=c99 -Isrc -Wall -Wextra -DSDDEBUG 
+CFLAGS=-std=c99 -Isrc -Wall -Wextra -Ofast
 LDFLAGS=-lm
 #
 # e.g. -pg -fprofile-arcs -ftest-coverage

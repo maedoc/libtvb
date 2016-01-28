@@ -2,11 +2,12 @@
 
 from libc.stdlib cimport malloc, free
 from libc.stdint cimport uint32_t
-from cpython cimport PyObject, Py_INCREF
+from cpython cimport PyObject, Py_INCREF, Py_DECREF
 cimport numpy as np
 import numpy as np
 np.import_array()
 
+# gc-friendly c array wrapper
 # based on https://gist.github.com/GaelVaroquaux/1249305 BSD-licensed.
 cdef class CArrayWrapper:
     "Python wrapper for C array."
@@ -44,7 +45,7 @@ cdef np.ndarray np_of_ptr(int size, void *ptr, int typenum, int free_on_gc):
     Py_INCREF(wrapper)
     return ndarray
 
-
+# hist
 cdef extern from "sddekit.h":
 
     ctypedef enum sd_stat:
@@ -57,8 +58,6 @@ cdef extern from "sddekit.h":
         void *ptr
         sd_stat (*apply)(sd_hfill*, uint32_t n, double * t, uint32_t *indices, double * buf)
         void (*free)(sd_hfill*)
-
-    sd_hist * sd_hist_new_default(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
 
     ctypedef struct sd_hist:
         uint32_t(*get_maxvi)(sd_hist*)
@@ -81,6 +80,10 @@ cdef extern from "sddekit.h":
         uint32_t (*get_vi)(sd_hist *h, uint32_t i)
         double (*get_vd)(sd_hist *h, uint32_t i)
 
+    sd_hist * sd_hist_new_default(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
+
+
+# hfill
 ctypedef struct hfill_py:
     sd_hfill hf
     void *fn
@@ -162,3 +165,162 @@ cdef class Hist(object):
         return self.h.get_vi(self.h, i)
     def vd(self, i):
         return self.h.get_vd(self.h, i)
+
+# rng
+cdef extern from "sddekit.h":
+    ctypedef struct sd_rng:
+        void *ptr
+        void (*seed)(sd_rng*, uint32_t seed)
+        double (*norm)(sd_rng*)
+        void (*fill_norm)(sd_rng*, uint32_t n, double *x)
+        uint32_t (*nbytes)(sd_rng*)
+        void (*free)(sd_rng*)
+    sd_rng * sd_rng_new_default()
+
+cdef class Rng(object):
+    cdef sd_rng *r
+
+cdef object rng_of_ptr(sd_rng *r):
+    rng = Rng()
+    rng.r = r
+    return rng
+
+# sys
+cdef extern from "sddekit.h":
+    ctypedef struct sd_sys:
+	uint32_t (*ndim)(sd_sys*)
+	uint32_t (*ndc)(sd_sys*)
+	uint32_t (*nobs)(sd_sys*)
+	uint32_t (*nrpar)(sd_sys*)
+	uint32_t (*nipar)(sd_sys*)
+	sd_stat (*apply)(sd_sys*, sd_sys_in*, sd_sys_out*)
+	void (*free)(sd_sys*)
+	void *ptr
+    ctypedef struct sd_sys_in:
+        uint32_t nx, nc, id
+        double t, *x, *i 
+        sd_hist *hist
+        sd_rng *rng
+    ctypedef struct sd_sys_out:
+        double *f, *g, *o
+
+cdef uint32_t sys_py_ndim(sd_sys*s):
+    cdef object sys = <object> s.ptr
+    cdef uint32_t i = sys.ndim
+    return i
+
+cdef uint32_t sys_py_ndc(sd_sys*s):
+    cdef object sys = <object> s.ptr
+    cdef uint32_t i = sys.ndc
+    return i
+
+cdef uint32_t sys_py_nobs(sd_sys*s):
+    cdef object sys = <object> s.ptr
+    cdef uint32_t i = sys.nobs
+    return i
+
+cdef uint32_t sys_py_nrpar(sd_sys*s):
+    cdef object sys = <object> s.ptr
+    cdef uint32_t i = sys.nrpar
+    return i
+
+cdef uint32_t sys_py_nipar(sd_sys*s):
+    cdef object sys = <object> s.ptr
+    cdef uint32_t i = sys.nipar
+    return i
+
+cdef sd_stat sys_py_apply(sd_sys *s, sd_sys_in *i, sd_sys_out *o):
+    cdef object sys = <object> s.ptr
+    # TODO conversions
+    f, g, o = sys.apply(i.hist, i.rng, i.id, i.t, i.x, i.i)
+    # TODO conversions
+    o.f = f
+    o.g = g
+    o.o = o
+    return SD_OK
+
+cdef void sys_py_free(sd_sys *s):
+    Py_DECREF(<object> s.ptr)
+    free(s)
+
+cdef class Sys(object):
+    "Base class for system defintions, may be defined in C."
+    cdef sd_sys *s
+
+    @property
+    def ndim(self):
+        return self.s.ndim(self.s)
+
+    @property
+    def ndc(self):
+        return self.s.ndc(self.s)
+
+    @property
+    def nobs(self):
+        return self.s.nobs(self.s)
+
+    @property
+    def nrpar(self):
+        return self.s.nrpar(self.s)
+
+    @property
+    def nipar(self):
+        return self.s.nipar(self.s)
+
+    def apply(self, hist, rng, id, t, x, i):
+        cdef:
+            sd_sys_in in_
+            sd_sys_out out_
+        raise NotImplementedError
+
+    def __del__(self):
+        self.s.free(self.s)
+
+cdef class PySys(Sys):
+    "Base class for systems defined in Python."
+
+    def __init__(self):
+        "Construct system defined by Python subclass."
+        if self.__class__.__name__ == 'PySys':
+            raise TypeError('PySys must be subclassed.')
+        self.s = <sd_sys *> malloc(sizeof(sd_sys))
+        Py_INCREF(self)
+        self.s.ptr = <void*> self
+	self.s.ndim = &sys_py_ndim
+	self.s.ndc = &sys_py_ndc
+	self.s.nobs = &sys_py_nobs
+	self.s.nrpar = &sys_py_nrpar
+	self.s.nipar = &sys_py_nipar
+	self.s.apply = &sys_py_apply
+	self.s.free = &sys_py_free
+
+    @property
+    def ndim(self):
+        raise NotImplementedError
+
+    @property
+    def ndc(self):
+        raise NotImplementedError
+
+    @property
+    def nobs(self):
+        raise NotImplementedError
+
+    @property
+    def nrpar(self):
+        raise NotImplementedError
+
+    @property
+    def nipar(self):
+        raise NotImplementedError
+
+    def apply(self, hist, rng, id, t, x, i):
+        raise NotImplementedError
+
+cdef object sys_of_ptr(sd_sys *s):
+    sys = Sys()
+    sys.s = s
+    return sys
+
+
+# vim: sw=4 et

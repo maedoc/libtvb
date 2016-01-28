@@ -34,8 +34,8 @@ int main() {
 	sd_out *out = sd_out_new_cb(&igcd, &out_igc);
 
 	/* connectivity, assuming conduction velocity of 1.0 */
-	sd_util_read_square_matrix("res/conn76/weights.txt", &n, &w);
-	sd_util_read_square_matrix("res/conn76/tract_lengths.txt", &n, &d);
+	sd_util_read_square_matrix("bench/conn76/weights.txt", &n, &w);
+	sd_util_read_square_matrix("bench/conn76/tract_lengths.txt", &n, &d);
 	sd_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &sw, &sd);
 	fprintf(stdout, "[bench_net_exc] nnz=%d\n", nnz);
 

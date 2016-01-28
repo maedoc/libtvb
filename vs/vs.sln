@@ -5,12 +5,14 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libsd", "libsd\libsd.vcxproj", "{E3918461-6814-4004-B4E4-548778149035}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mex files", "mexfiles\mexfiles.vcxproj", "{38C5244D-05C3-402B-94E0-C528F45DBECE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mexfiles", "mexfiles\mexfiles.vcxproj", "{38C5244D-05C3-402B-94E0-C528F45DBECE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E3918461-6814-4004-B4E4-548778149035} = {E3918461-6814-4004-B4E4-548778149035}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tests", "run_tests\run_tests.vcxproj", "{A2526CFE-5106-48BA-840E-5BA66F91536C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bench_net_exc", "bench_net_exc\bench_net_exc.vcxproj", "{CE002AAC-EA3F-4B63-BB79-F233FBD34658}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,6 +42,14 @@ Global
 		{A2526CFE-5106-48BA-840E-5BA66F91536C}.Release|x64.Build.0 = Release|x64
 		{A2526CFE-5106-48BA-840E-5BA66F91536C}.Release|x86.ActiveCfg = Release|Win32
 		{A2526CFE-5106-48BA-840E-5BA66F91536C}.Release|x86.Build.0 = Release|Win32
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Debug|x64.ActiveCfg = Debug|x64
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Debug|x64.Build.0 = Debug|x64
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Debug|x86.ActiveCfg = Debug|Win32
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Debug|x86.Build.0 = Debug|Win32
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Release|x64.ActiveCfg = Release|x64
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Release|x64.Build.0 = Release|x64
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Release|x86.ActiveCfg = Release|Win32
+		{CE002AAC-EA3F-4B63-BB79-F233FBD34658}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
