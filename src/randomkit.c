@@ -71,6 +71,9 @@
 #include <limits.h>
 #include <math.h>
 
+/* mw: avoid unresolved symbols */
+#define RK_NO_WINCRYPT
+
 #ifdef _WIN32
 /*
  * Windows
