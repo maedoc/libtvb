@@ -11,7 +11,7 @@ ifeq ($(BUILD),fast)
 else ifeq ($(BUILD),cov)
 	CFLAGS += -pg -fprofile-arcs -ftest-coverage
 else
-	CFLAGS += -Wall -Wextra -Og -g
+	CFLAGS += -Wall -Wextra -O0 -g
 endif
 # }}}
 
@@ -26,9 +26,11 @@ o_test=$(patsubst test/%.c,%.o,$(c_test))
 ifeq ($(OS),Windows_NT)
 	DLLEXT=dll
 	RM=del /f
+	EXE=.exe
 else
 	DLLEXT=so
 	RM=rm -f
+	EXE=
 endif
 # except mac
 ifeq ($(OS),Darwin)
@@ -41,8 +43,8 @@ endif
 
 # artifacts {{{
 
-test: $(o_lib) $(o_test)
-	$(CC) $(CFLAGS) test/main.c $^ -o test$(BUILD) $(LDFLAGS)
+test$(EXE): $(o_lib) $(o_test)
+	$(CC) $(CFLAGS) test/main.c $^ -o test$(BUILD)$(EXE) $(LDFLAGS)
 
 libSDDEKit.$(DLLEXT): $(o_lib)
 	$(CC) -shared $^ -o libSDDEKit.$(DLLEXT) $(LDFLAGS)
