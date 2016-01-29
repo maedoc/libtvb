@@ -188,14 +188,14 @@ cdef object rng_of_ptr(sd_rng *r):
 # sys
 cdef extern from "sddekit.h":
     ctypedef struct sd_sys:
-	uint32_t (*ndim)(sd_sys*)
-	uint32_t (*ndc)(sd_sys*)
-	uint32_t (*nobs)(sd_sys*)
-	uint32_t (*nrpar)(sd_sys*)
-	uint32_t (*nipar)(sd_sys*)
-	sd_stat (*apply)(sd_sys*, sd_sys_in*, sd_sys_out*)
-	void (*free)(sd_sys*)
-	void *ptr
+        uint32_t (*ndim)(sd_sys*)
+        uint32_t (*ndc)(sd_sys*)
+        uint32_t (*nobs)(sd_sys*)
+        uint32_t (*nrpar)(sd_sys*)
+        uint32_t (*nipar)(sd_sys*)
+        sd_stat (*apply)(sd_sys*, sd_sys_in*, sd_sys_out*)
+        void (*free)(sd_sys*)
+        void *ptr
     ctypedef struct sd_sys_in:
         uint32_t nx, nc, id
         double t, *x, *i 
@@ -232,11 +232,13 @@ cdef uint32_t sys_py_nipar(sd_sys*s):
 cdef sd_stat sys_py_apply(sd_sys *s, sd_sys_in *i, sd_sys_out *o):
     cdef object sys = <object> s.ptr
     # TODO conversions
-    f, g, o = sys.apply(i.hist, i.rng, i.id, i.t, i.x, i.i)
+    #f, g, o = sys.apply(i.hist, i.rng, i.id, i.t, i.x, i.i)
     # TODO conversions
+    """
     o.f = f
     o.g = g
     o.o = o
+    """
     return SD_OK
 
 cdef void sys_py_free(sd_sys *s):
@@ -286,13 +288,13 @@ cdef class PySys(Sys):
         self.s = <sd_sys *> malloc(sizeof(sd_sys))
         Py_INCREF(self)
         self.s.ptr = <void*> self
-	self.s.ndim = &sys_py_ndim
-	self.s.ndc = &sys_py_ndc
-	self.s.nobs = &sys_py_nobs
-	self.s.nrpar = &sys_py_nrpar
-	self.s.nipar = &sys_py_nipar
-	self.s.apply = &sys_py_apply
-	self.s.free = &sys_py_free
+        self.s.ndim = &sys_py_ndim
+        self.s.ndc = &sys_py_ndc
+        self.s.nobs = &sys_py_nobs
+        self.s.nrpar = &sys_py_nrpar
+        self.s.nipar = &sys_py_nipar
+        self.s.apply = &sys_py_apply
+        self.s.free = &sys_py_free
 
     @property
     def ndim(self):
