@@ -6,11 +6,12 @@ addons:
 before_install:
   - pip install --user cpp-coveralls cython
 language: c
-- make test
-- make -B BUILD=cov test
+install:
+  - make test
+  - make -B BUILD=cov test
 script:
-- valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./test
-- ./testcov
-- cd python && make test && cd ..
+  - valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./test
+  - ./testcov
+  - cd python && make test && cd ..
 after_success:
-- coveralls --gcov-options '-o ./ src/*.c'
+  - coveralls --gcov-options '-o ./ src/*.c'
