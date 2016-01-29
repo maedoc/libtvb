@@ -9,12 +9,20 @@ import numpy as np
 
 here = os.path.dirname(os.path.abspath(__file__))
 up = os.path.dirname(here)
-sources = glob.glob(os.path.join(here, '*.pyx')) + glob.glob(os.path.join(up, 'src/*.c'))
-incpath = os.path.join(up, 'src')
+
+sources = []
+for d, p in ((here, '*.pyx'), (up, 'src/*.c')):
+    sources += glob.glob(os.path.join(d, p))
+
+ext = Extension('sddekit',
+        sources=sources,
+        include_dirs=[
+            os.path.join(up, 'src'),
+            np.get_include()
+            ]
+        )
 
 setup(
     name="sddekit",
-    ext_modules=cythonize([
-            Extension("sddekit", sources=sources, include_dirs=[incpath, np.get_include()])
-        ]),
+    ext_modules=cythonize([ext]),
 )

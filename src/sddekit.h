@@ -10,13 +10,16 @@
 extern "C" {
 #endif
 
+/* standard C includes {{{ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <math.h>
+/* }}} */
 
+/* -DSD_API_EXPORT dllexport {{{ */
 #ifdef SD_API_EXPORT
 #define SD_API __declspec(dllexport)
 #else
@@ -26,8 +29,9 @@ extern "C" {
 #define SD_API
 #endif
 #endif
+/* }}} */
 
-/* ignore restrict if compiler doesn't support it */
+/* ignore restrict if compiler doesn't support it {{{ */
 #if defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 #   define restrict __restrict
 #elif defined(_MSC_VER) && _MSC_VER >= 1400
@@ -35,8 +39,9 @@ extern "C" {
 #else
 #   define restrict
 #endif
+/* }}} */
 
-/* cf. https://gist.github.com/maedoc/f22f691c1ee22fe1961d#prelude */
+/* cf. https://gist.github.com/maedoc/f22f691c1ee22fe1961d#prelude {{{ */
 #define SD_AS(obj, type) (((obj)->type)(obj))
 
 #define SD_CALL_AS(obj, type, meth, ...) \
@@ -44,6 +49,7 @@ extern "C" {
 
 #define SD_CALL_AS_(obj, type, meth) \
 	SD_AS(obj, type)->meth(SD_AS(obj, type))
+/* }}} */
 
 /* sddekit verion numbers */
 uint32_t sd_ver_major();
@@ -62,7 +68,8 @@ typedef enum sd_stat {
 	/*! Returned by output object to indicate solver should stop */
 	SD_STOP
 } sd_stat;
-/* utilities */
+
+/* utilities {{{ */
 
 /**
  * Read a square matrix from file in ascii format into w.
@@ -90,7 +97,9 @@ sd_util_uniqi(uint32_t n,
 	      uint32_t * restrict nuniq, 
 	      uint32_t **uints);
 
-/* rng */
+/* util }}} */
+
+/* rng {{{ */
 
 /* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_rng sd_rng;
@@ -130,7 +139,9 @@ struct sd_rng {
 SD_API sd_rng *
 sd_rng_new_default();
 
-/* history */
+/* rng }}} */
+
+/* hfill {{{ */
 
 /* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_hfill sd_hfill;
@@ -164,6 +175,10 @@ struct sd_hfill {
  */
 SD_API sd_hfill *
 sd_hfill_new_val(double val);
+
+/* hfill }}} */
+
+/* history {{{ */
 
 /* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_hist sd_hist;
@@ -349,7 +364,9 @@ SD_API sd_hist *
 sd_hist_new_default(uint32_t nd, uint32_t *vi, 
 		    double *vd, double t0, double dt);
 
-/* memory allocators */
+/* history }}} */
+
+/* memory allocators {{{ */
 
 typedef void*(*sd_malloc_t)(size_t size);
 typedef void*(*sd_realloc_t)(void *ptr, size_t size);
@@ -386,7 +403,9 @@ sd_realloc(void *ptr, size_t size);
 SD_API void
 sd_free(void *ptr);
 
-/* system */
+/* mem }}} */
+
+/* system {{{ */
 
 /* Structs used to simplify system interface
  *
@@ -490,6 +509,10 @@ sd_sys_new_cb(uint32_t ndim, uint32_t ndc, uint32_t nobs,
 	sd_stat (*user_apply)(void *, sd_sys_in*, sd_sys_out*));
 
 
+/* system }}} */
+
+/* exc {{{ */
+
 /* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_sys_exc sd_sys_exc;
 
@@ -572,6 +595,10 @@ struct sd_sys_exc {
  */
 SD_API sd_sys_exc *
 sd_sys_exc_new();
+
+/* exc }}} */
+
+/* net {{{ */
 
 /* network
  * \brief sd_net provides a sd_sys which adapts another sd_sys into a network.
@@ -815,13 +842,15 @@ sd_net_new_hom(uint32_t n, sd_sys *sys,
 	double * restrict w,
 	double * restrict d);
 
+/* net }}} */
+
 /**
  * Create new instance of default region mapping / regions of interest.
  */
 SD_API sd_sys *
 sd_roi_new_default(uint32_t n, uint32_t *map);
 
-/* output */
+/* output {{{ */
 
 /* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_out sd_out;
@@ -1181,6 +1210,10 @@ sd_out_new_until(double time);
 SD_API sd_out *
 sd_out_ignore(bool ignore_x, bool ignore_c);
 
+/* out }}} */
+
+/* sch {{{ */
+
 /* Forward declare sd_sch so signatures may reference the type explicitly. */
 typedef struct sd_sch sd_sch;
 
@@ -1292,6 +1325,10 @@ sd_sch_new_heun(uint32_t nx);
 
 /* TODO Kuechler & Platen semi-implicit Milstein for SDDEs */
 
+/* sch }}} */
+
+/* sol {{{ */
+
 /* Forward declare sd_sol so signatures may reference the type explicitly. */
 typedef struct sd_sol sd_sol;
 
@@ -1400,6 +1437,10 @@ sd_sol_new_default(
 	uint32_t seed, uint32_t nx, double * restrict x0, uint32_t nce,
 	uint32_t nca, uint32_t * restrict vi, double * restrict vd, double t0, double dt);
 
+/* sol }}} */
+
+/* sparse {{{ */
+
 /* sparse
  *
  * Provides utilities for sparse structures, such as matrices which are 
@@ -1431,7 +1472,9 @@ sd_sparse_from_dense(
 	uint32_t *nnz, uint32_t **Or, uint32_t **Ic, 
 	double **sA, double **sB);
 
-/* logging 
+/* sparse }}} */
+
+/* logging  {{{
  *
  * \file sd_log.h implements handlers for information, debugging output
  * and error messages. Messages may be redirected to custom handlers.
@@ -1496,7 +1539,9 @@ SD_API void sd_log_set_verbose(bool flag);
 	sd_log_msg("[DEBUG] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
 #endif
 
-/* error handling */
+/* log }}} */
+
+/* error handling {{{ */
 
 /**
  * Typedef for error handler callback.
@@ -1537,8 +1582,13 @@ void sd_err_handler(int err, char *file, int line, char *func, char *reason);
  */
 #define sd_err(reason) sd_err_handler(SD_ERR, __FILE__, __LINE__, (char *) __func__, reason);
 
+/* err }}} */
+
 #ifdef __cplusplus
 }; /* extern "C" */
 #endif
 
 #endif
+
+/* vim: foldmethod=marker
+ */
