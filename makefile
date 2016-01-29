@@ -52,11 +52,6 @@ libSDDEKit.$(DLLEXT): $(o_lib)
 clean:
 	$(RM) $(o_lib) $(o_test) tests* *.dat *.exe *.$(DLLEXT)
 
-pyext:
-	python setup.py build_ext --inplace
-	del sddekit.pyd
-	ren sddekit*.pyd sddekit.pyd
-
 # }}}
 
 # generic rules {{{
