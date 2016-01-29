@@ -1,6 +1,7 @@
 # copyright 2016 Apache 2 sddekit authors
 
 from sddekit_h cimport *
+from sddekit cimport *
 
 ctypedef struct hfill_py:
     sd_hfill hf
@@ -25,6 +26,8 @@ cdef void hfill_py_free(sd_hfill *h):
 
 cdef sd_hfill * hfill_py_new(object fn):
     cdef hfill_py *h = <hfill_py *> malloc(sizeof(hfill_py))
+    if not hasattr(fn, '__call__'):
+        raise TypeError('arg fn must be callable')
     if h==NULL:
         raise Exception('alloc hfill_py failed.')
     h.fn = <void*> fn
@@ -32,3 +35,5 @@ cdef sd_hfill * hfill_py_new(object fn):
     h.hf.apply = &hfill_py_apply
     h.hf.free = &hfill_py_free
     return &(h.hf)
+
+# vim: sw=4 et

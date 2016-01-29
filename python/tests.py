@@ -7,7 +7,7 @@ import numpy as np
 
 sys.path.append(glob.glob('./build/lib*')[0])
 print ("added %r to path for built sddekit module" % (sys.path[-1], ))
-import sddekit as sk
+import hist as sk
 
 class TestHist(unittest.TestCase):
     def test_basic(self):

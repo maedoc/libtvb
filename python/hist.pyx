@@ -1,6 +1,8 @@
 # copyright 2016 Apache 2 sddekit authors
 
 from sddekit_h cimport *
+from sddekit cimport *
+import numpy as np
 
 cdef class Hist(object):
     cdef sd_hist *h

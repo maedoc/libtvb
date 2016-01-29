@@ -14,7 +14,7 @@ sources = []
 for d, p in ((here, '*.pyx'), (up, 'src/*.c')):
     sources += glob.glob(os.path.join(d, p))
 
-ext = Extension('sddekit',
+ext = Extension('hist',
         sources=sources,
         include_dirs=[
             os.path.join(up, 'src'),

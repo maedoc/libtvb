@@ -12,6 +12,6 @@ install:
 script:
   - valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./tests
   - ./testscov
-  - cd python && make test && cd ..
+#  - cd python && make test && cd ..
 after_success:
   - coveralls --gcov-options '-o ./ src/*.c'

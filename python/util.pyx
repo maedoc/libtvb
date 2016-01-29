@@ -1,7 +1,8 @@
 # copyright 2016 Apache 2 sddekit authors
 
-from util cimport *
+from sddekit cimport *
 import numpy as np
+cimport numpy as np
 
 # TODO only need once per extension module, right?
 np.import_array()

@@ -4,6 +4,11 @@
 # defined in the C header. If you want to use the Cython types
 # from Cython code, see sddekit.pxd.
 
+from libc.stdlib cimport malloc, free
+from cpython cimport PyObject, Py_INCREF, Py_DECREF
+from libc.stdint cimport uint32_t
+from libcpp cimport bool
+
 cdef extern from "sddekit.h":
 
     # stat enum {{{
@@ -18,8 +23,8 @@ cdef extern from "sddekit.h":
     sd_stat sd_util_read_square_matrix(char *fname, uint32_t *n, double **w)
 
     sd_stat sd_util_uniqi(uint32_t n,
-                  uint32_t * restrict ints, 
-                  uint32_t * restrict nuniq, 
+                  uint32_t * ints, 
+                  uint32_t * nuniq, 
                   uint32_t **uints)
     # }}}
 
@@ -90,7 +95,7 @@ cdef extern from "sddekit.h":
 
     # net {{{
     ctypedef struct sd_net:
-	sd_sys * ( * sys)(sd_net *d)
+        sd_sys * ( * sys)(sd_net *d)
         void (*free)(sd_net *d)
         uint32_t (*get_n)(sd_net *net)
         uint32_t (*get_m)(sd_net *net)
@@ -111,12 +116,11 @@ cdef extern from "sddekit.h":
         uint32_t (*get_Me_i)(sd_net *net, uint32_t i)
         uint32_t (*get_M_i)(sd_net *net, uint32_t i)
         sd_sys * (*get_models_i)(sd_net *net, uint32_t i)
-	bool (*get__init1)(sd_net *net)
-        sd_net*
-        sd_net_new_het(uint32_t n, uint32_t m, uint32_t * M, uint32_t * Ms, 
-	       uint32_t * Ma, uint32_t * Me, 
-	       sd_sys **models,
-	       uint32_t nnz, uint32_t * Or, uint32_t * Ic, 
+        bool (*get__init1)(sd_net *net)
+        sd_net* sd_net_new_het(uint32_t n, uint32_t m, uint32_t * M, uint32_t * Ms, 
+           uint32_t * Ma, uint32_t * Me, 
+           sd_sys **models,
+           uint32_t nnz, uint32_t * Or, uint32_t * Ic, 
                double * w, double * d)
         sd_net * sd_net_new_hom(uint32_t n, sd_sys *sys,
                 uint32_t ns, uint32_t na, uint32_t ne, uint32_t nnz, 
