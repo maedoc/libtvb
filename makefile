@@ -43,14 +43,14 @@ endif
 
 # artifacts {{{
 
-test$(EXE): $(o_lib) $(o_test)
-	$(CC) $(CFLAGS) test/main.c $^ -o test$(BUILD)$(EXE) $(LDFLAGS)
+tests$(EXE): $(o_lib) $(o_test)
+	$(CC) $(CFLAGS) test/main.c $^ -o tests$(BUILD)$(EXE) $(LDFLAGS)
 
 libSDDEKit.$(DLLEXT): $(o_lib)
 	$(CC) -shared $^ -o libSDDEKit.$(DLLEXT) $(LDFLAGS)
 
 clean:
-	$(RM) $(o_lib) $(o_test) test* *.dat *.exe *.$(DLLEXT)
+	$(RM) $(o_lib) $(o_test) tests* *.dat *.exe *.$(DLLEXT)
 
 # }}}
 
