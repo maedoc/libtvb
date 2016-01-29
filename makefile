@@ -1,34 +1,58 @@
+# copyright 2016 Apache 2 sddekit authors
+
 CC=gcc
-CFLAGS=-std=c99 -Isrc -Wall -Wextra -Ofast
-LDFLAGS=-lm
-#
-# e.g. -pg -fprofile-arcs -ftest-coverage
-CFLAGS += $(EXTRA_CFLAGS)
+LDFLAGS = -lm
+VALFLAGS = --error-exitcode=1 --track-origins=yes --leak-check=full 
+CFLAGS = -std=c99 -Isrc
 
-# TODO provide alternatives for Windows
-test_list_maker=./make_test_list.sh
+# various build types {{{
+ifeq ($(BUILD),fast)
+	CFLAGS += -Ofast
+else ifeq ($(BUILD),cov)
+	CFLAGS += -pg -fprofile-arcs -ftest-coverage
+else
+	CFLAGS += -Wall -Wextra -Og -g
+endif
+# }}}
 
-test: libobjects run_tests
-	./run_tests
+# file lists {{{
+c_lib=$(wildcard src/*.c)
+c_test=$(wildcard test/test_*.c)
+o_lib=$(patsubst src/%.c,%.o,$(c_lib))
+o_test=$(patsubst test/%.c,%.o,$(c_test))
+# }}}
 
-memtest: libobjects run_tests
-	valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./run_tests
+# platform specific stuff (http://stackoverflow.com/q/19928965) {{{
+ifeq ($(OS),Windows_NT)
+	DLLEXT=dll
+	RM=del /f
+else
+	DLLEXT=so
+	RM=rm -f
+endif
+# except mac
+ifeq ($(OS),Darwin)
+	DLLEXT=dylib
+endif
+ifdef COMSPEC
+	SHELL := $(COMSPEC)
+endif
+# }}}
 
-bench: libobjects $(patsubst bench/%.c,%,$(wildcard bench/*.c))
+# artifacts {{{
 
-libobjects: $(patsubst src/%.c,%.o,$(wildcard src/*.c))
+test: $(o_lib) $(o_test)
+	$(CC) $(CFLAGS) test/main.c $^ -o test$(BUILD) $(LDFLAGS)
 
-run_tests: libobjects $(patsubst test/%.c,%.o,$(wildcard test/test_*.c))
-	$(CC) $(CFLAGS) -I./ test/main.c *.o -o run_tests $(LDFLAGS)
+libSDDEKit.$(DLLEXT): $(o_lib)
+	$(CC) -shared $^ -o libSDDEKit.$(DLLEXT) $(LDFLAGS)
 
-valgrind: run_tests
-	valgrind --leak-check=full --track-origins=yes ./run_tests &> val.out ; vim val.out
+clean:
+	$(RM) $(o_lib) $(o_test) test* *.dat *.exe *.$(DLLEXT)
 
-gdb: run_tests
-	gdb run_tests
+# }}}
 
-gdbtest: run_tests
-	gdb run_tests -ex 'b sd_test_failed' -ex 'r'
+# generic rules {{{
 
 %.o: src/%.c
 	$(CC) $(CFLAGS) -c $< $(LDFLAGS)
@@ -36,11 +60,9 @@ gdbtest: run_tests
 %.o: test/%.c
 	$(CC) $(CFLAGS) -c $< $(LDFLAGS)
 
-%: bench/%.c
-	$(CC) $(CFLAGS) $< *.o $(LDFLAGS)
+%: bench/%.c $(o_lib)
+	$(CC) $(CFLAGS) $< $(o_lib) $(LDFLAGS)
 
-bench_%: bench/bench_%.c
-	$(CC) $(CFLAGS) $< *.o -o bench_$* $(LDFLAGS)
+# }}}
 
-clean:
-	rm -f *.o test_list.h sddekit.h.gch *.gcda *.gcno gmon.out *.c.gcov val.out run_tests *.dat
+# vim: foldmethod=marker

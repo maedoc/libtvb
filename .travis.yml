@@ -6,8 +6,11 @@ addons:
 before_install:
   - pip install --user cpp-coveralls cython
 language: c
+- make test
+- make -B BUILD=cov test
 script:
-- make memtest && make clean && make -B EXTRA_CFLAGS="-pg -fprofile-arcs -ftest-coverage" test
+- valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./test
+- ./testcov
 - cd python && make test && cd ..
 after_success:
 - coveralls --gcov-options '-o ./ src/*.c'
