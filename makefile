@@ -3,7 +3,7 @@
 CC=gcc
 LDFLAGS = -lm
 VALFLAGS = --error-exitcode=1 --track-origins=yes --leak-check=full 
-CFLAGS = -std=c99 -Isrc
+CFLAGS = -fPIC -std=c99 -Isrc
 
 # various build types {{{
 ifeq ($(BUILD),fast)
@@ -42,6 +42,9 @@ endif
 # }}}
 
 # artifacts {{{
+
+help:
+	echo "make tests$(EXE) | libSDDEKit.$(DLLEXT) | clean"
 
 tests$(EXE): $(o_lib) $(o_test)
 	$(CC) $(CFLAGS) test/main.c $^ -o tests$(BUILD)$(EXE) $(LDFLAGS)
