@@ -55,6 +55,15 @@ libSDDEKit.$(DLLEXT): $(o_lib)
 clean:
 	$(RM) $(o_lib) $(o_test) tests* *.dat *.exe *.$(DLLEXT)
 
+gh-pages:
+	git branch -D gh-pages
+	git init docs
+	doxygen
+	cd docs && git add html/* && git mv html/* ./ && git commit -m "add doxygen html"
+	git fetch docs master:gh-pages
+	rm -rf docs
+
+
 # }}}
 
 # generic rules {{{
