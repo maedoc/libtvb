@@ -29,7 +29,7 @@ ifeq ($(OS),Windows_NT)
 	EXE=.exe
 else
 	DLLEXT=so
-	RM=rm -f
+	RM=rm -fr
 	EXE=
 endif
 # except mac
