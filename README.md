@@ -17,7 +17,14 @@ optimization and inversion techniques.
 
 ## Example
 
-*TODO*
+Currently the C [header](src/sddekit.h), [tests](tests) and [benchmark](bench/bench_net_exc.c) are the best places to look.
+
+You can build the tests and benchmark if you have GCC (or a C99 compiler) and Make:
+
+```
+make tests
+make bench_net_exc 
+```
 
 ## References
 
