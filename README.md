@@ -16,9 +16,11 @@ optimization and inversion techniques.
 
 *This is project is currently under heavy development; not for use pending v0.1 release*.
 
-## Example
+## Using
 
-Currently the C [header](src/sddekit.h), [tests](tests) and [benchmark](bench/bench_net_exc.c) are the best places to look.
+Currently the [documentation](https://maedoc.github.io/sddekit),
+[tests](tests) and [benchmark](bench/bench_net_exc.c) are the best places 
+to look to understand what you can do with SDDEKit.
 
 You can build the tests and benchmark if you have GCC (or a C99 compiler) and Make:
 
@@ -26,6 +28,15 @@ You can build the tests and benchmark if you have GCC (or a C99 compiler) and Ma
 make tests
 make bench_net_exc 
 ```
+
+Python, MATLAB bindings and C++ header are in the works, on separate 
+(`ctype`/`cython`/`py-c-api`, `matlab`, `cpp` respectively) branches of
+this repo.
+
+## Contributing
+
+Fork the code, try it out. See our documented [issues](issues) or
+add your own.
 
 ## References
 
