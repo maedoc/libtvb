@@ -22,16 +22,16 @@ Currently the [documentation](https://maedoc.github.io/sddekit),
 [tests](tests) and [benchmark](bench/bench_net_exc.c) are the best places 
 to look to understand what you can do with SDDEKit.
 
+Python, MATLAB bindings and C++ header are in the works, on separate 
+(`ctype`/`cython`/`py-c-api`, `matlab`, `cpp` respectively) branches of
+this repo.
+
 You can build the tests and benchmark if you have GCC (or a C99 compiler) and Make:
 
 ```
 make tests
 make bench_net_exc 
 ```
-
-Python, MATLAB bindings and C++ header are in the works, on separate 
-(`ctype`/`cython`/`py-c-api`, `matlab`, `cpp` respectively) branches of
-this repo.
 
 Running the tests will generate some data files from [one of the tests](test/test_exc.c), which
 tests different integration schemes on the same system. These can be compared with
@@ -44,6 +44,14 @@ gnuplot fig/exc_em_emcolor_heun.gpi
 which produces 
 
 ![this](fig/exc_em_emcolor_heun.png)
+
+Running the benchmark will produce a trace `bench_net_exc.dat` which can be visualized
+with `fig/bench_net_exc.py`, producing
+
+![this](fig/bench_net_exc.png)
+
+As stated, these are in place to help build up the library at this point. In the
+future extensive examples for different kinds of systems & networks will be provided.
 
 ## Develop
 

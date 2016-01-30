@@ -7,7 +7,6 @@ build
 *.o
 sktest
 sk_config.c
-*.png
 *.gch
 tags
 *.asv
