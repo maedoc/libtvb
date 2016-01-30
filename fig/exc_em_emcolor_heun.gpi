@@ -1,5 +1,8 @@
 #!/usr/bin/env gnuplot
 
+set terminal png
+set output 'fig/exc_em_emcolor_heun.png'
+
 plot 'test_exc_em.dat' u 1:2 w lines, \
      'test_exc_heun.dat' u 1:2 w lines,\
-     'test_exc_emcolor.dat' u 1:2 w lines
+     'test_exc_emc.dat' u 1:2 w lines
