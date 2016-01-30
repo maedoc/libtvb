@@ -22,7 +22,7 @@ class Base(object):
     def __init__(self, ptr):
         self._ptr = ptr
 
-    def __getattr__(self, key):
+    def __getattr__(self, key):#{{{
         try:
             attr = object.__getattribute__(self, key)
             return attr
@@ -35,9 +35,9 @@ class Base(object):
                     return f(self._ptr, *args)
                 return wrap
             else:
-                raise exc
+                raise exc#}}}
 
-    def __del__(self):
+    def __del__(self):#{{{
         p = self._ptr
         if p is not None:
             try:
@@ -47,9 +47,14 @@ class Base(object):
                 free = None
             if free is not None:
                 free(p)
-            self._ptr = None
+            self._ptr = None#}}}
 
-class Hist(Base):
+    def _cast(self, meth, ctype, pytype):
+        vp = getattr(self, meth)()
+        ct = ctypes.POINTER(ctype)
+        return pytype(from_ptr=ctypes.cast(vp, ct))
+
+class Hist(Base):#{{{
     "Provides a history buffer for storing delayed state data."
 
     def __init__(self, vi, vd, t, dt):
@@ -64,7 +69,23 @@ class Hist(Base):
 
         new = _sddekit.sd_hist_new_default
         super(Hist, self).__init__(
-            new(len(vi), _pu(vi), _pd(vd), t, dt))
+            new(len(vi), _pu(vi), _pd(vd), t, dt))#}}}
 
+class _NotAPointer:
+    pass
+
+class Sys(Base):
+    def __init__(self, from_ptr=_NotAPointer):
+        if from_ptr is _NotAPointer:
+            msg = "No default type for Sys"
+            raise ValueError(msg)
+        super(Sys, self).__init__(from_ptr)
+
+class Exc(Base):
+    def __init__(self):
+        super(Exc, self).__init__(
+            _sddekit.sd_sys_exc_new())
+    def to_sys(self):
+        return self._cast('sys', _sddekit.sd_sys, Sys)
 
 # vim: sw=4 et foldmethod=marker
