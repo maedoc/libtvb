@@ -66,7 +66,7 @@ clean:
 	$(CC) $(CFLAGS) -c $< $(LDFLAGS)
 
 %: bench/%.c $(o_lib)
-	$(CC) $(CFLAGS) $< $(o_lib) $(LDFLAGS)
+	$(CC) $(CFLAGS) $< $(o_lib) $(LDFLAGS) -o $@
 
 # }}}
 
