@@ -1,0 +1,3 @@
+[submodule "python/ctypesgen"]
+	path = python/ctypesgen
+	url = git@github.com:maedoc/ctypesgen
