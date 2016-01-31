@@ -10,7 +10,7 @@ numerical schemes, utilities for constructing network models and handling
 simulation results, as well as bindings for MATLAB, Python.  Our intent is
 to make it possible to use and benchmark available schemes on your favorite
 model, not invent new numerical schemes, so we have attempted to follow
-published results, documenting caveats, assumptions etc. Care will be taken to
+[published results](#references), documenting caveats, assumptions etc. Care will be taken to
 handle calculation of partial erivatives, to enable higher order schemes,
 optimization and inversion techniques.
 
