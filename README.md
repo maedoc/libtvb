@@ -78,7 +78,8 @@ $ make CC=emcc BUILD=js OBJEXT=bc EXE=.html -B -j bench_net_exc.html
 ...
 ```
 
-Open `bench_net_exc.html` with your browser. On this same machine, Safari
+Open [`bench_net_exc.html`](http://rawgit.com/maedoc/sddekit/js-bench-html/bench_net_exc.html)
+ with your browser. On this same machine, Safari
 runs the benchmark in 74 s, Firefox 55 s.
 
 Obviously for high-performance computing & science JS isn't ideal, but it could
