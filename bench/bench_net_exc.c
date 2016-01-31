@@ -1,6 +1,10 @@
 /* copyright 2016 Apache 2 sddekit authors */
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+
+#include "weights.c"
+#include "tract_lengths.c"
 
 #include "sddekit.h"
 
@@ -16,8 +20,8 @@ static sd_stat out_igc(void *data, double t,
 }
 
 int main() {
-	uint32_t i, n, nnz, *Or, *Ic;
-	double *w, *d, *sw, *sd, *x0;
+	uint32_t i, n=76, nnz, *Or, *Ic;
+	double *w=weights, *d=tract_lengths, *sw, *sd, *x0;
 
 	/* set up outputs
 	 *
@@ -34,9 +38,11 @@ int main() {
 	sd_out *out = sd_out_new_cb(&igcd, &out_igc);
 
 	/* connectivity, assuming conduction velocity of 1.0 */
+	/*
 	sd_util_read_square_matrix("bench/conn76/weights.txt", &n, &w);
 	sd_util_read_square_matrix("bench/conn76/tract_lengths.txt", &n, &d);
-	sd_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &sw, &sd);
+	*/
+	sd_sparse_from_dense(n, n, weights, tract_lengths, 0.0, &nnz, &Or, &Ic, &sw, &sd);
 	fprintf(stdout, "[bench_net_exc] nnz=%d\n", nnz);
 
 	/* setup model */
@@ -57,12 +63,19 @@ int main() {
 			42, 2*n, x0, n, nnz, Ic, sd, 0.0, 0.01);
 
 	/* solve */
+	clock_t tic, toc;
+	tic = clock();
 	sol->cont(sol);
+	toc = clock();
+	double reft = (double) (toc - tic) / CLOCKS_PER_SEC;
+	sd_log_info("continuation required %.3f s\n", reft);
 
 	/* clean up */
-	sd_free(w);
 	sd_free(x0);
+	/* 
+	sd_free(w);
 	sd_free(d);
+	*/
 	sd_free(Or);
 	sd_free(Ic);
 	sd_free(sw);

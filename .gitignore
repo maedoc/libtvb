@@ -24,3 +24,12 @@ val.out
 python/sddekit.c
 run_tests
 junit.xml
+*.bc
+*.html.map
+*.js.map
+*.js
+*.html
+*.so
+*.bc.
+*.dSYM
+.DS_Store

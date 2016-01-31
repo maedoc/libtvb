@@ -4,12 +4,15 @@ CC=gcc
 LDFLAGS = -lm
 VALFLAGS = --error-exitcode=1 --track-origins=yes --leak-check=full 
 CFLAGS = -fPIC -std=c99 -Isrc
+OBJEXT=o
 
 # various build types {{{
 ifeq ($(BUILD),fast)
 	CFLAGS += -Ofast
 else ifeq ($(BUILD),cov)
 	CFLAGS += -pg -fprofile-arcs -ftest-coverage
+else ifeq ($(BUILD),js)
+	CFLAGS += -s ALLOW_MEMORY_GROWTH=1 -O2
 else
 	CFLAGS += -Wall -Wextra -O0 -g
 endif
@@ -18,8 +21,8 @@ endif
 # file lists {{{
 c_lib=$(wildcard src/*.c)
 c_test=$(wildcard test/test_*.c)
-o_lib=$(patsubst src/%.c,%.o,$(c_lib))
-o_test=$(patsubst test/%.c,%.o,$(c_test))
+o_lib=$(patsubst src/%.c,%.$(OBJEXT),$(c_lib))
+o_test=$(patsubst test/%.c,%.$(OBJEXT),$(c_test))
 # }}}
 
 # platform specific stuff (http://stackoverflow.com/q/19928965) {{{
@@ -39,6 +42,9 @@ endif
 ifdef COMSPEC
 	SHELL := $(COMSPEC)
 endif
+
+SO=$(DLLEXT)
+
 # }}}
 
 # artifacts {{{
@@ -49,8 +55,8 @@ help:
 tests$(EXE): $(o_lib) $(o_test)
 	$(CC) $(CFLAGS) test/main.c $^ -o tests$(BUILD)$(EXE) $(LDFLAGS)
 
-libSDDEKit.$(DLLEXT): $(o_lib)
-	$(CC) -shared $^ -o libSDDEKit.$(DLLEXT) $(LDFLAGS)
+libSDDEKit.$(SOEXT): $(o_lib)
+	$(CC) -shared $^ -o libSDDEKit.$(SOEXT) $(LDFLAGS)
 
 clean:
 	$(RM) $(o_lib) $(o_test) tests* *.dat *.exe *.$(DLLEXT)
@@ -68,13 +74,13 @@ gh-pages:
 
 # generic rules {{{
 
-%.o: src/%.c
-	$(CC) $(CFLAGS) -c $< $(LDFLAGS)
+%.$(OBJEXT): src/%.c
+	$(CC) $(CFLAGS) -c $< $(LDFLAGS) -o $@
 
-%.o: test/%.c
-	$(CC) $(CFLAGS) -c $< $(LDFLAGS)
+%.$(OBJEXT): test/%.c
+	$(CC) $(CFLAGS) -c $< $(LDFLAGS) -o $@
 
-%: bench/%.c $(o_lib)
+%$(EXE): bench/%.c $(o_lib)
 	$(CC) $(CFLAGS) $< $(o_lib) $(LDFLAGS) -o $@
 
 # }}}
