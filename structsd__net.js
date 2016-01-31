@@ -1,0 +1,26 @@
+var structsd__net =
+[
+    [ "cn_is_null", "structsd__net.html#a2e7bc41a24b6061a92eb10acb9734b72", null ],
+    [ "free", "structsd__net.html#a4d5886268b8498bfe2f74c5b841289a7", null ],
+    [ "get__init1", "structsd__net.html#af6f8f292de2b9ba394e3ee539ce2bf23", null ],
+    [ "get_d", "structsd__net.html#a0fae28927aaed556ab4d4eab95e96662", null ],
+    [ "get_d_i", "structsd__net.html#a2e3da66d62e196426f4f2ac39bfa40f4", null ],
+    [ "get_ic", "structsd__net.html#a50474257219899d5effd6cc075fb62aa", null ],
+    [ "get_ic_i", "structsd__net.html#a25cec75c036d612bb0ff0e2c67e7e0bf", null ],
+    [ "get_m", "structsd__net.html#a97b97d046a9d47d2ff52e996fefe6f9b", null ],
+    [ "get_M_i", "structsd__net.html#a4b54bacbd8bdf190d7451c462ab319c4", null ],
+    [ "get_Ma_i", "structsd__net.html#aad3d0b4cc457bbfa88c86a26e95f330a", null ],
+    [ "get_Me_i", "structsd__net.html#aa2f445fdae2f2c70ebbfe9e1fb0a9ae2", null ],
+    [ "get_models_i", "structsd__net.html#aa595379bf6ca29ac218b11b70d83e7b0", null ],
+    [ "get_Ms_i", "structsd__net.html#af0753fd4c66ac576f0d9e37ad40f66f5", null ],
+    [ "get_n", "structsd__net.html#ae5143b55c77ba39d998e405c5bdbc8c3", null ],
+    [ "get_ne", "structsd__net.html#ace89ab3a1e4f1613c81b72500d7af501", null ],
+    [ "get_nnz", "structsd__net.html#a3c07c1b9655956fa64afa4f95a875e2f", null ],
+    [ "get_ns", "structsd__net.html#aeea41625c134b5f084b711fc7757184e", null ],
+    [ "get_or", "structsd__net.html#a07d32d9a97d9720838f644b3e2c0a3c8", null ],
+    [ "get_or_i", "structsd__net.html#ac56ac95680a5c36f7a4a95078286ce75", null ],
+    [ "get_w", "structsd__net.html#a57267b86e08a04b3b23772f04472069f", null ],
+    [ "get_w_i", "structsd__net.html#a0fe296f4a20ad0cf3209e6da20c25c3c", null ],
+    [ "ptr", "structsd__net.html#a881c560eded9141fd2203f6a594d1f4e", null ],
+    [ "sys", "structsd__net.html#aec8f2032e23ec4557f588b3090e5795b", null ]
+];
