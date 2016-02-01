@@ -59,7 +59,7 @@ libSDDEKit.$(SOEXT): $(o_lib)
 	$(CC) -shared $^ -o libSDDEKit.$(SOEXT) $(LDFLAGS)
 
 clean:
-	$(RM) $(o_lib) $(o_test) bench_* tests* *.dat *.exe *.$(DLLEXT)
+	$(RM) $(o_lib) $(o_test) bench_* tests* *.dat *.exe *.$(DLLEXT) *.ilk *.pdb
 
 gh-pages:
 	git branch -D gh-pages
