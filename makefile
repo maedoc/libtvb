@@ -43,8 +43,6 @@ ifdef COMSPEC
 	SHELL := $(COMSPEC)
 endif
 
-SO=$(DLLEXT)
-
 # }}}
 
 # artifacts {{{
@@ -55,8 +53,8 @@ help:
 tests$(EXE): $(o_lib) $(o_test)
 	$(CC) $(CFLAGS) test/main.c $^ -o tests$(BUILD)$(EXE) $(LDFLAGS)
 
-libSDDEKit.$(SOEXT): $(o_lib)
-	$(CC) -shared $^ -o libSDDEKit.$(SOEXT) $(LDFLAGS)
+libSDDEKit.$(DLLEXT): $(o_lib)
+	$(CC) -shared $^ -o libSDDEKit.$(DLLEXT) $(LDFLAGS)
 
 clean:
 	$(RM) $(o_lib) $(o_test) bench_* tests* *.dat *.exe *.$(DLLEXT) *.ilk *.pdb
@@ -68,7 +66,6 @@ gh-pages:
 	cd docs && git add html/* && git mv html/* ./ && git commit -m "add doxygen html"
 	git fetch docs master:gh-pages
 	rm -rf docs
-
 
 # }}}
 
