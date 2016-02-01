@@ -90,6 +90,19 @@ be useful for creating interactive graphics exploring dynamical systems.
 Fork the code, try it out. See our documented [issues](issues) or
 add your own.
 
+### Contributing
+
+Please follow the generic GitHub workflow:
+
+- fork the repo
+- create a topic branch, e.g add-foo-implementation
+- make modifications
+- git commit -m 'useful comments'
+- push branch to your fork on GitHub
+- open pull request
+
+[Here's way more detail w/ pictures](https://guides.github.com/introduction/flow/index.html)
+
 ### Python wrapper
 
 The current work on Python wrapper in the `ctype` branch follows the naming conventions
