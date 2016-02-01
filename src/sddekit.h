@@ -133,6 +133,13 @@ struct sd_rng {
 	void (*free)(sd_rng*);
 };
 
+/* regular functions provided for use by bindings */
+SD_API void sd_rng_seed(sd_rng*, uint32_t seed);
+SD_API double sd_rng_norm(sd_rng*);
+SD_API void sd_rng_fill_norm(sd_rng*, uint32_t n, double *x);
+SD_API uint32_t sd_rng_nbytes(sd_rng*);
+SD_API void sd_rng_free(sd_rng*);
+
 /**
  * Construct a new RNG from default implementation.
  */
@@ -169,6 +176,10 @@ struct sd_hfill {
 	void (*free)(sd_hfill*);
 };
 
+/* regular function for use with bindings */
+SD_API sd_stat sd_hfill_apply(sd_hfill*, uint32_t n, double * restrict t, uint32_t *indices,
+		double * restrict buf);
+void sd_hfill_free(sd_hfill*);
 /**
  * An sd_hfill instance which sets all elements of the history buffer
  * to a given value.
