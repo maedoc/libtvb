@@ -55,6 +55,9 @@ help:
 tests$(EXE): $(o_lib) $(o_test)
 	$(CC) $(CFLAGS) test/main.c $^ -o tests$(BUILD)$(EXE) $(LDFLAGS)
 
+bench_net_exc$(EXE): $(o_lib) 
+		$(CC) $(CFLAGS) bench/bench_net_exc.c $^ -o bench_net_exc$(BUILD)$(EXE) $(LDFLAGS)
+
 libSDDEKit.$(SOEXT): $(o_lib)
 	$(CC) -shared $^ -o libSDDEKit.$(SOEXT) $(LDFLAGS)
 
