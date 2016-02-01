@@ -35,5 +35,6 @@ log.info (cmd)
 proc = subprocess.Popen(cmd, cwd=here)
 proc.wait()
 
-log.info('done!')
+log.info('ctypes helpers generated')
+log.info('running 2to3 to make Python3 compatible version')
 

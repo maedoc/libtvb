@@ -1,8 +1,12 @@
 # copyright 2016 Apache 2 sddekit authors
 
+import sys
 import ctypes
 import logging
-import _sddekit
+if sys.version[0] == 2: 
+    import _sddekit
+else:
+    import _sddekit3 as _sddekit
 
 logger = logging.getLogger(__name__)
 
