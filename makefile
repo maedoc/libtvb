@@ -12,6 +12,8 @@ ifeq ($(BUILD),fast)
 else ifeq ($(BUILD),cov)
 	CFLAGS += -pg -fprofile-arcs -ftest-coverage
 else ifeq ($(BUILD),js)
+	CC=emcc
+	OBJEXT=bc
 	CFLAGS += -s ALLOW_MEMORY_GROWTH=1 -O2
 else
 	CFLAGS += -Wall -Wextra -O0 -g
