@@ -15,6 +15,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__file__)
 
+json = 'json' in sys.argv
+
 # python ctypesgen/ctypesgen.py -L ../ -lSDDEKit ../src/sddekit.h -o _sddekit.py
 here = op.dirname(op.abspath(__file__))
 if not op.exists(op.join(here, 'ctypesgen')):
@@ -28,7 +30,12 @@ if len(lib) == 0:
 else:
 		cmd += ['-L', up, '-lSDDEKit']
 
-cmd += [op.join(up, 'src', 'sddekit.h'), '-o', op.join(here, '_sddekit.py')]
+if json:
+    cmd += ('--output-language=json --all-headers --builtin-symbols --no-stddef-types '
+            '--no-gnu-types --no-python-types'.split())
+
+cmd += [op.join(up, 'src', 'sddekit.h'), '-o', op.join(here, '_sddekit.')]
+cmd[-1] += 'js' if json else 'py'
 
 log.info (cmd)
 
@@ -36,5 +43,3 @@ proc = subprocess.Popen(cmd, cwd=here)
 proc.wait()
 
 log.info('ctypes helpers generated')
-log.info('running 2to3 to make Python3 compatible version')
-

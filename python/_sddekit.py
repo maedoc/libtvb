@@ -1,7 +1,7 @@
 '''Wrapper for sddekit.h
 
 Generated with:
-ctypesgen/ctypesgen.py -L /home/mw/dev/sddekit -lSDDEKit /home/mw/dev/sddekit/src/sddekit.h -o /home/mw/dev/sddekit/python/_sddekit.py
+ctypesgen/ctypesgen.py -L C:\Users\mw\Desktop\sddekit -lSDDEKit C:\Users\mw\Desktop\sddekit\src\sddekit.h -o C:\Users\mw\Desktop\sddekit\python\_sddekit.py
 
 Do not modify this file.
 '''
@@ -303,7 +303,7 @@ class _variadic_function(object):
 # End preamble
 
 _libs = {}
-_libdirs = ['/home/mw/dev/sddekit']
+_libdirs = ['C:\\Users\\mw\\Desktop\\sddekit']
 
 # Begin loader
 
@@ -600,7 +600,7 @@ del loaderclass
 
 # End loader
 
-add_library_search_dirs(['/home/mw/dev/sddekit'])
+add_library_search_dirs(['C:\\Users\\mw\\Desktop\\sddekit'])
 
 # Begin libraries
 
@@ -611,137 +611,74 @@ _libs["SDDEKit"] = load_library("SDDEKit")
 
 # No modules
 
-__off_t = c_long # /usr/include/bits/types.h: 131
-
-__off64_t = c_long # /usr/include/bits/types.h: 132
-
-# /usr/include/libio.h: 245
-class struct__IO_FILE(Structure):
+# C:/TDM-GCC-64/x86_64-w64-mingw32/include/stdio.h: 26
+class struct__iobuf(Structure):
     pass
 
-FILE = struct__IO_FILE # /usr/include/stdio.h: 48
-
-_IO_lock_t = None # /usr/include/libio.h: 154
-
-# /usr/include/libio.h: 160
-class struct__IO_marker(Structure):
-    pass
-
-struct__IO_marker.__slots__ = [
-    '_next',
-    '_sbuf',
-    '_pos',
+struct__iobuf.__slots__ = [
+    '_ptr',
+    '_cnt',
+    '_base',
+    '_flag',
+    '_file',
+    '_charbuf',
+    '_bufsiz',
+    '_tmpfname',
 ]
-struct__IO_marker._fields_ = [
-    ('_next', POINTER(struct__IO_marker)),
-    ('_sbuf', POINTER(struct__IO_FILE)),
-    ('_pos', c_int),
-]
-
-struct__IO_FILE.__slots__ = [
-    '_flags',
-    '_IO_read_ptr',
-    '_IO_read_end',
-    '_IO_read_base',
-    '_IO_write_base',
-    '_IO_write_ptr',
-    '_IO_write_end',
-    '_IO_buf_base',
-    '_IO_buf_end',
-    '_IO_save_base',
-    '_IO_backup_base',
-    '_IO_save_end',
-    '_markers',
-    '_chain',
-    '_fileno',
-    '_flags2',
-    '_old_offset',
-    '_cur_column',
-    '_vtable_offset',
-    '_shortbuf',
-    '_lock',
-    '_offset',
-    '__pad1',
-    '__pad2',
-    '__pad3',
-    '__pad4',
-    '__pad5',
-    '_mode',
-    '_unused2',
-]
-struct__IO_FILE._fields_ = [
-    ('_flags', c_int),
-    ('_IO_read_ptr', String),
-    ('_IO_read_end', String),
-    ('_IO_read_base', String),
-    ('_IO_write_base', String),
-    ('_IO_write_ptr', String),
-    ('_IO_write_end', String),
-    ('_IO_buf_base', String),
-    ('_IO_buf_end', String),
-    ('_IO_save_base', String),
-    ('_IO_backup_base', String),
-    ('_IO_save_end', String),
-    ('_markers', POINTER(struct__IO_marker)),
-    ('_chain', POINTER(struct__IO_FILE)),
-    ('_fileno', c_int),
-    ('_flags2', c_int),
-    ('_old_offset', __off_t),
-    ('_cur_column', c_ushort),
-    ('_vtable_offset', c_char),
-    ('_shortbuf', c_char * 1),
-    ('_lock', POINTER(_IO_lock_t)),
-    ('_offset', __off64_t),
-    ('__pad1', POINTER(None)),
-    ('__pad2', POINTER(None)),
-    ('__pad3', POINTER(None)),
-    ('__pad4', POINTER(None)),
-    ('__pad5', c_size_t),
-    ('_mode', c_int),
-    ('_unused2', c_char * (((15 * sizeof(c_int)) - (4 * sizeof(POINTER(None)))) - sizeof(c_size_t))),
+struct__iobuf._fields_ = [
+    ('_ptr', String),
+    ('_cnt', c_int),
+    ('_base', String),
+    ('_flag', c_int),
+    ('_file', c_int),
+    ('_charbuf', c_int),
+    ('_bufsiz', c_int),
+    ('_tmpfname', String),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 55
+FILE = struct__iobuf # C:/TDM-GCC-64/x86_64-w64-mingw32/include/stdio.h: 36
+
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 55
 if hasattr(_libs['SDDEKit'], 'sd_ver_major'):
     sd_ver_major = _libs['SDDEKit'].sd_ver_major
     sd_ver_major.argtypes = []
     sd_ver_major.restype = c_uint32
 
-# /home/mw/dev/sddekit/src/sddekit.h: 56
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 56
 if hasattr(_libs['SDDEKit'], 'sd_ver_minor'):
     sd_ver_minor = _libs['SDDEKit'].sd_ver_minor
     sd_ver_minor.argtypes = []
     sd_ver_minor.restype = c_uint32
 
-enum_sd_stat = c_int # /home/mw/dev/sddekit/src/sddekit.h: 70
+enum_sd_stat = c_int # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 70
 
-SD_OK = 0 # /home/mw/dev/sddekit/src/sddekit.h: 70
+SD_OK = 0 # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 70
 
-SD_ERR = (SD_OK + 1) # /home/mw/dev/sddekit/src/sddekit.h: 70
+SD_ERR = (SD_OK + 1) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 70
 
-SD_CONT = (SD_ERR + 1) # /home/mw/dev/sddekit/src/sddekit.h: 70
+SD_CONT = (SD_ERR + 1) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 70
 
-SD_STOP = (SD_CONT + 1) # /home/mw/dev/sddekit/src/sddekit.h: 70
+SD_STOP = (SD_CONT + 1) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 70
 
-sd_stat = enum_sd_stat # /home/mw/dev/sddekit/src/sddekit.h: 70
+sd_stat = enum_sd_stat # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 70
 
-# /home/mw/dev/sddekit/src/sddekit.h: 83
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 83
 if hasattr(_libs['SDDEKit'], 'sd_util_read_square_matrix'):
     sd_util_read_square_matrix = _libs['SDDEKit'].sd_util_read_square_matrix
     sd_util_read_square_matrix.argtypes = [String, POINTER(c_uint32), POINTER(POINTER(c_double))]
     sd_util_read_square_matrix.restype = sd_stat
 
-# /home/mw/dev/sddekit/src/sddekit.h: 95
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 95
 if hasattr(_libs['SDDEKit'], 'sd_util_uniqi'):
     sd_util_uniqi = _libs['SDDEKit'].sd_util_uniqi
     sd_util_uniqi.argtypes = [c_uint32, POINTER(c_uint32), POINTER(c_uint32), POINTER(POINTER(c_uint32))]
     sd_util_uniqi.restype = sd_stat
 
-# /home/mw/dev/sddekit/src/sddekit.h: 112
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 112
 class struct_sd_rng(Structure):
     pass
 
-sd_rng = struct_sd_rng # /home/mw/dev/sddekit/src/sddekit.h: 105
+sd_rng = struct_sd_rng # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 105
 
 struct_sd_rng.__slots__ = [
     'ptr',
@@ -760,47 +697,47 @@ struct_sd_rng._fields_ = [
     ('free', CFUNCTYPE(UNCHECKED(None), POINTER(sd_rng))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 137
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 137
 if hasattr(_libs['SDDEKit'], 'sd_rng_seed'):
     sd_rng_seed = _libs['SDDEKit'].sd_rng_seed
     sd_rng_seed.argtypes = [POINTER(sd_rng), c_uint32]
     sd_rng_seed.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 138
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 138
 if hasattr(_libs['SDDEKit'], 'sd_rng_norm'):
     sd_rng_norm = _libs['SDDEKit'].sd_rng_norm
     sd_rng_norm.argtypes = [POINTER(sd_rng)]
     sd_rng_norm.restype = c_double
 
-# /home/mw/dev/sddekit/src/sddekit.h: 139
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 139
 if hasattr(_libs['SDDEKit'], 'sd_rng_fill_norm'):
     sd_rng_fill_norm = _libs['SDDEKit'].sd_rng_fill_norm
     sd_rng_fill_norm.argtypes = [POINTER(sd_rng), c_uint32, POINTER(c_double)]
     sd_rng_fill_norm.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 140
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 140
 if hasattr(_libs['SDDEKit'], 'sd_rng_nbytes'):
     sd_rng_nbytes = _libs['SDDEKit'].sd_rng_nbytes
     sd_rng_nbytes.argtypes = [POINTER(sd_rng)]
     sd_rng_nbytes.restype = c_uint32
 
-# /home/mw/dev/sddekit/src/sddekit.h: 141
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 141
 if hasattr(_libs['SDDEKit'], 'sd_rng_free'):
     sd_rng_free = _libs['SDDEKit'].sd_rng_free
     sd_rng_free.argtypes = [POINTER(sd_rng)]
     sd_rng_free.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 146
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 146
 if hasattr(_libs['SDDEKit'], 'sd_rng_new_default'):
     sd_rng_new_default = _libs['SDDEKit'].sd_rng_new_default
     sd_rng_new_default.argtypes = []
     sd_rng_new_default.restype = POINTER(sd_rng)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 159
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 159
 class struct_sd_hfill(Structure):
     pass
 
-sd_hfill = struct_sd_hfill # /home/mw/dev/sddekit/src/sddekit.h: 154
+sd_hfill = struct_sd_hfill # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 154
 
 struct_sd_hfill.__slots__ = [
     'ptr',
@@ -813,29 +750,29 @@ struct_sd_hfill._fields_ = [
     ('free', CFUNCTYPE(UNCHECKED(None), POINTER(sd_hfill))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 180
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 180
 if hasattr(_libs['SDDEKit'], 'sd_hfill_apply'):
     sd_hfill_apply = _libs['SDDEKit'].sd_hfill_apply
     sd_hfill_apply.argtypes = [POINTER(sd_hfill), c_uint32, POINTER(c_double), POINTER(c_uint32), POINTER(c_double)]
     sd_hfill_apply.restype = sd_stat
 
-# /home/mw/dev/sddekit/src/sddekit.h: 182
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 182
 if hasattr(_libs['SDDEKit'], 'sd_hfill_free'):
     sd_hfill_free = _libs['SDDEKit'].sd_hfill_free
     sd_hfill_free.argtypes = [POINTER(sd_hfill)]
     sd_hfill_free.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 187
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 187
 if hasattr(_libs['SDDEKit'], 'sd_hfill_new_val'):
     sd_hfill_new_val = _libs['SDDEKit'].sd_hfill_new_val
     sd_hfill_new_val.argtypes = [c_double]
     sd_hfill_new_val.restype = POINTER(sd_hfill)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 197
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 197
 class struct_sd_hist(Structure):
     pass
 
-sd_hist = struct_sd_hist # /home/mw/dev/sddekit/src/sddekit.h: 195
+sd_hist = struct_sd_hist # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 195
 
 struct_sd_hist.__slots__ = [
     'ptr',
@@ -884,49 +821,49 @@ struct_sd_hist._fields_ = [
     ('buf_is_null', CFUNCTYPE(UNCHECKED(c_bool), POINTER(sd_hist))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 374
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 374
 if hasattr(_libs['SDDEKit'], 'sd_hist_new_default'):
     sd_hist_new_default = _libs['SDDEKit'].sd_hist_new_default
     sd_hist_new_default.argtypes = [c_uint32, POINTER(c_uint32), POINTER(c_double), c_double, c_double]
     sd_hist_new_default.restype = POINTER(sd_hist)
 
-sd_malloc_t = CFUNCTYPE(UNCHECKED(POINTER(None)), c_size_t) # /home/mw/dev/sddekit/src/sddekit.h: 382
+sd_malloc_t = CFUNCTYPE(UNCHECKED(POINTER(None)), c_size_t) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 382
 
-sd_realloc_t = CFUNCTYPE(UNCHECKED(POINTER(None)), POINTER(None), c_size_t) # /home/mw/dev/sddekit/src/sddekit.h: 383
+sd_realloc_t = CFUNCTYPE(UNCHECKED(POINTER(None)), POINTER(None), c_size_t) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 383
 
-sd_free_t = CFUNCTYPE(UNCHECKED(None), POINTER(None)) # /home/mw/dev/sddekit/src/sddekit.h: 384
+sd_free_t = CFUNCTYPE(UNCHECKED(None), POINTER(None)) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 384
 
-# /home/mw/dev/sddekit/src/sddekit.h: 391
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 391
 if hasattr(_libs['SDDEKit'], 'sd_malloc_set_allocators'):
     sd_malloc_set_allocators = _libs['SDDEKit'].sd_malloc_set_allocators
     sd_malloc_set_allocators.argtypes = [sd_malloc_t, sd_realloc_t, sd_free_t]
     sd_malloc_set_allocators.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 397
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 397
 if hasattr(_libs['SDDEKit'], 'sd_malloc_set_stdlib_allocators'):
     sd_malloc_set_stdlib_allocators = _libs['SDDEKit'].sd_malloc_set_stdlib_allocators
     sd_malloc_set_stdlib_allocators.argtypes = []
     sd_malloc_set_stdlib_allocators.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 402
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 402
 if hasattr(_libs['SDDEKit'], 'sd_malloc'):
     sd_malloc = _libs['SDDEKit'].sd_malloc
     sd_malloc.argtypes = [c_size_t]
     sd_malloc.restype = POINTER(None)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 408
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 408
 if hasattr(_libs['SDDEKit'], 'sd_realloc'):
     sd_realloc = _libs['SDDEKit'].sd_realloc
     sd_realloc.argtypes = [POINTER(None), c_size_t]
     sd_realloc.restype = POINTER(None)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 415
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 415
 if hasattr(_libs['SDDEKit'], 'sd_free'):
     sd_free = _libs['SDDEKit'].sd_free
     sd_free.argtypes = [POINTER(None)]
     sd_free.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 458
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 458
 class struct_sd_sys_in(Structure):
     pass
 
@@ -951,9 +888,9 @@ struct_sd_sys_in._fields_ = [
     ('rng', POINTER(sd_rng)),
 ]
 
-sd_sys_in = struct_sd_sys_in # /home/mw/dev/sddekit/src/sddekit.h: 458
+sd_sys_in = struct_sd_sys_in # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 458
 
-# /home/mw/dev/sddekit/src/sddekit.h: 462
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 462
 class struct_sd_sys_out(Structure):
     pass
 
@@ -968,13 +905,13 @@ struct_sd_sys_out._fields_ = [
     ('o', POINTER(c_double)),
 ]
 
-sd_sys_out = struct_sd_sys_out # /home/mw/dev/sddekit/src/sddekit.h: 462
+sd_sys_out = struct_sd_sys_out # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 462
 
-# /home/mw/dev/sddekit/src/sddekit.h: 470
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 470
 class struct_sd_sys(Structure):
     pass
 
-sd_sys = struct_sd_sys # /home/mw/dev/sddekit/src/sddekit.h: 465
+sd_sys = struct_sd_sys # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 465
 
 struct_sd_sys.__slots__ = [
     'ndim',
@@ -997,17 +934,17 @@ struct_sd_sys._fields_ = [
     ('ptr', POINTER(None)),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 516
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 516
 if hasattr(_libs['SDDEKit'], 'sd_sys_new_cb'):
     sd_sys_new_cb = _libs['SDDEKit'].sd_sys_new_cb
     sd_sys_new_cb.argtypes = [c_uint32, c_uint32, c_uint32, c_uint32, c_uint32, POINTER(None), CFUNCTYPE(UNCHECKED(sd_stat), POINTER(None), POINTER(sd_sys_in), POINTER(sd_sys_out))]
     sd_sys_new_cb.restype = POINTER(sd_sys)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 533
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 533
 class struct_sd_sys_exc(Structure):
     pass
 
-sd_sys_exc = struct_sd_sys_exc # /home/mw/dev/sddekit/src/sddekit.h: 528
+sd_sys_exc = struct_sd_sys_exc # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 528
 
 struct_sd_sys_exc.__slots__ = [
     'ptr',
@@ -1034,17 +971,17 @@ struct_sd_sys_exc._fields_ = [
     ('set_k', CFUNCTYPE(UNCHECKED(None), POINTER(sd_sys_exc), c_double)),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 607
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 607
 if hasattr(_libs['SDDEKit'], 'sd_sys_exc_new'):
     sd_sys_exc_new = _libs['SDDEKit'].sd_sys_exc_new
     sd_sys_exc_new.argtypes = []
     sd_sys_exc_new.restype = POINTER(sd_sys_exc)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 649
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 649
 class struct_sd_net(Structure):
     pass
 
-sd_net = struct_sd_net # /home/mw/dev/sddekit/src/sddekit.h: 644
+sd_net = struct_sd_net # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 644
 
 struct_sd_net.__slots__ = [
     'ptr',
@@ -1097,19 +1034,19 @@ struct_sd_net._fields_ = [
     ('get__init1', CFUNCTYPE(UNCHECKED(c_bool), POINTER(sd_net))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 825
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 825
 if hasattr(_libs['SDDEKit'], 'sd_net_new_het'):
     sd_net_new_het = _libs['SDDEKit'].sd_net_new_het
     sd_net_new_het.argtypes = [c_uint32, c_uint32, POINTER(c_uint32), POINTER(c_uint32), POINTER(c_uint32), POINTER(c_uint32), POINTER(POINTER(sd_sys)), c_uint32, POINTER(c_uint32), POINTER(c_uint32), POINTER(c_double), POINTER(c_double)]
     sd_net_new_het.restype = POINTER(sd_net)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 848
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 848
 if hasattr(_libs['SDDEKit'], 'sd_net_new_hom'):
     sd_net_new_hom = _libs['SDDEKit'].sd_net_new_hom
     sd_net_new_hom.argtypes = [c_uint32, POINTER(sd_sys), c_uint32, c_uint32, c_uint32, c_uint32, POINTER(c_uint32), POINTER(c_uint32), POINTER(c_double), POINTER(c_double)]
     sd_net_new_hom.restype = POINTER(sd_net)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 861
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 861
 for _lib in _libs.itervalues():
     if not hasattr(_lib, 'sd_roi_new_default'):
         continue
@@ -1118,11 +1055,11 @@ for _lib in _libs.itervalues():
     sd_roi_new_default.restype = POINTER(sd_sys)
     break
 
-# /home/mw/dev/sddekit/src/sddekit.h: 872
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 872
 class struct_sd_out(Structure):
     pass
 
-sd_out = struct_sd_out # /home/mw/dev/sddekit/src/sddekit.h: 867
+sd_out = struct_sd_out # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 867
 
 struct_sd_out.__slots__ = [
     'ptr',
@@ -1135,17 +1072,17 @@ struct_sd_out._fields_ = [
     ('apply', CFUNCTYPE(UNCHECKED(sd_stat), POINTER(sd_out), c_double, c_uint32, POINTER(c_double), c_uint32, POINTER(c_double))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 901
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 901
 if hasattr(_libs['SDDEKit'], 'sd_out_new_cb'):
     sd_out_new_cb = _libs['SDDEKit'].sd_out_new_cb
     sd_out_new_cb.argtypes = [POINTER(None), CFUNCTYPE(UNCHECKED(sd_stat), POINTER(None), c_double, c_uint32, POINTER(c_double), c_uint32, POINTER(c_double))]
     sd_out_new_cb.restype = POINTER(sd_out)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 913
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 913
 class struct_sd_out_file(Structure):
     pass
 
-sd_out_file = struct_sd_out_file # /home/mw/dev/sddekit/src/sddekit.h: 908
+sd_out_file = struct_sd_out_file # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 908
 
 struct_sd_out_file.__slots__ = [
     'ptr',
@@ -1160,23 +1097,23 @@ struct_sd_out_file._fields_ = [
     ('get_fd', CFUNCTYPE(UNCHECKED(POINTER(FILE)), POINTER(sd_out_file))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 946
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 946
 if hasattr(_libs['SDDEKit'], 'sd_out_file_new_from_name'):
     sd_out_file_new_from_name = _libs['SDDEKit'].sd_out_file_new_from_name
     sd_out_file_new_from_name.argtypes = [String]
     sd_out_file_new_from_name.restype = POINTER(sd_out_file)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 955
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 955
 if hasattr(_libs['SDDEKit'], 'sd_out_file_new_from_std'):
     sd_out_file_new_from_std = _libs['SDDEKit'].sd_out_file_new_from_std
     sd_out_file_new_from_std.argtypes = [POINTER(FILE)]
     sd_out_file_new_from_std.restype = POINTER(sd_out_file)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 964
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 964
 class struct_sd_out_mem(Structure):
     pass
 
-sd_out_mem = struct_sd_out_mem # /home/mw/dev/sddekit/src/sddekit.h: 959
+sd_out_mem = struct_sd_out_mem # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 959
 
 struct_sd_out_mem.__slots__ = [
     'ptr',
@@ -1199,17 +1136,17 @@ struct_sd_out_mem._fields_ = [
     ('get_cs', CFUNCTYPE(UNCHECKED(POINTER(c_double)), POINTER(sd_out_mem))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1026
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1026
 if hasattr(_libs['SDDEKit'], 'sd_out_mem_new'):
     sd_out_mem_new = _libs['SDDEKit'].sd_out_mem_new
     sd_out_mem_new.argtypes = []
     sd_out_mem_new.restype = POINTER(sd_out_mem)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1035
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1035
 class struct_sd_out_tee(Structure):
     pass
 
-sd_out_tee = struct_sd_out_tee # /home/mw/dev/sddekit/src/sddekit.h: 1030
+sd_out_tee = struct_sd_out_tee # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1030
 
 struct_sd_out_tee.__slots__ = [
     'ptr',
@@ -1228,17 +1165,17 @@ struct_sd_out_tee._fields_ = [
     ('get_out', CFUNCTYPE(UNCHECKED(POINTER(sd_out)), POINTER(sd_out_tee), c_uint32)),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1087
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1087
 if hasattr(_libs['SDDEKit'], 'sd_out_tee_new'):
     sd_out_tee_new = _libs['SDDEKit'].sd_out_tee_new
     sd_out_tee_new.argtypes = [c_uint32]
     sd_out_tee_new.restype = POINTER(sd_out_tee)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1096
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1096
 class struct_sd_out_tavg(Structure):
     pass
 
-sd_out_tavg = struct_sd_out_tavg # /home/mw/dev/sddekit/src/sddekit.h: 1094
+sd_out_tavg = struct_sd_out_tavg # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1094
 
 struct_sd_out_tavg.__slots__ = [
     'ptr',
@@ -1261,17 +1198,17 @@ struct_sd_out_tavg._fields_ = [
     ('get_c', CFUNCTYPE(UNCHECKED(POINTER(c_double)), POINTER(sd_out_tavg))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1143
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1143
 if hasattr(_libs['SDDEKit'], 'sd_out_tavg_new'):
     sd_out_tavg_new = _libs['SDDEKit'].sd_out_tavg_new
     sd_out_tavg_new.argtypes = [c_uint32, POINTER(sd_out)]
     sd_out_tavg_new.restype = POINTER(sd_out_tavg)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1152
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1152
 class struct_sd_out_sfilt(Structure):
     pass
 
-sd_out_sfilt = struct_sd_out_sfilt # /home/mw/dev/sddekit/src/sddekit.h: 1147
+sd_out_sfilt = struct_sd_out_sfilt # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1147
 
 struct_sd_out_sfilt.__slots__ = [
     'ptr',
@@ -1296,19 +1233,19 @@ struct_sd_out_sfilt._fields_ = [
     ('get_out', CFUNCTYPE(UNCHECKED(POINTER(sd_out)), POINTER(sd_out_sfilt))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1207
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1207
 if hasattr(_libs['SDDEKit'], 'sd_out_sfilt_new'):
     sd_out_sfilt_new = _libs['SDDEKit'].sd_out_sfilt_new
     sd_out_sfilt_new.argtypes = [c_uint32, c_uint32, POINTER(c_double), POINTER(c_double), POINTER(sd_out)]
     sd_out_sfilt_new.restype = POINTER(sd_out_sfilt)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1215
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1215
 if hasattr(_libs['SDDEKit'], 'sd_out_new_until'):
     sd_out_new_until = _libs['SDDEKit'].sd_out_new_until
     sd_out_new_until.argtypes = [c_double]
     sd_out_new_until.restype = POINTER(sd_out)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1221
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1221
 for _lib in _libs.itervalues():
     if not hasattr(_lib, 'sd_out_ignore'):
         continue
@@ -1317,11 +1254,11 @@ for _lib in _libs.itervalues():
     sd_out_ignore.restype = POINTER(sd_out)
     break
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1234
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1234
 class struct_sd_sch(Structure):
     pass
 
-sd_sch = struct_sd_sch # /home/mw/dev/sddekit/src/sddekit.h: 1229
+sd_sch = struct_sd_sch # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1229
 
 struct_sd_sch.__slots__ = [
     'ptr',
@@ -1336,31 +1273,31 @@ struct_sd_sch._fields_ = [
     ('free', CFUNCTYPE(UNCHECKED(None), POINTER(sd_sch))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1278
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1278
 if hasattr(_libs['SDDEKit'], 'sd_sch_new_cb'):
     sd_sch_new_cb = _libs['SDDEKit'].sd_sch_new_cb
     sd_sch_new_cb.argtypes = [c_uint32, POINTER(None), CFUNCTYPE(UNCHECKED(sd_stat), POINTER(None), POINTER(sd_hist), POINTER(sd_rng), POINTER(sd_sys), c_double, c_double, c_uint32, POINTER(c_double), c_uint32, POINTER(c_double))]
     sd_sch_new_cb.restype = POINTER(sd_sch)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1298
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1298
 if hasattr(_libs['SDDEKit'], 'sd_sch_new_id'):
     sd_sch_new_id = _libs['SDDEKit'].sd_sch_new_id
     sd_sch_new_id.argtypes = [c_uint32]
     sd_sch_new_id.restype = POINTER(sd_sch)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1305
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1305
 if hasattr(_libs['SDDEKit'], 'sd_sch_new_em'):
     sd_sch_new_em = _libs['SDDEKit'].sd_sch_new_em
     sd_sch_new_em.argtypes = [c_uint32]
     sd_sch_new_em.restype = POINTER(sd_sch)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1314
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1314
 if hasattr(_libs['SDDEKit'], 'sd_sch_new_emc'):
     sd_sch_new_emc = _libs['SDDEKit'].sd_sch_new_emc
     sd_sch_new_emc.argtypes = [c_uint32, c_double]
     sd_sch_new_emc.restype = POINTER(sd_sch)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1325
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1325
 for _lib in _libs.itervalues():
     if not hasattr(_lib, 'sd_sch_emcolor_get_lam'):
         continue
@@ -1369,17 +1306,17 @@ for _lib in _libs.itervalues():
     sd_sch_emcolor_get_lam.restype = c_double
     break
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1332
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1332
 if hasattr(_libs['SDDEKit'], 'sd_sch_new_heun'):
     sd_sch_new_heun = _libs['SDDEKit'].sd_sch_new_heun
     sd_sch_new_heun.argtypes = [c_uint32]
     sd_sch_new_heun.restype = POINTER(sd_sch)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1349
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1349
 class struct_sd_sol(Structure):
     pass
 
-sd_sol = struct_sd_sol # /home/mw/dev/sddekit/src/sddekit.h: 1344
+sd_sol = struct_sd_sol # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1344
 
 struct_sd_sol.__slots__ = [
     'ptr',
@@ -1408,119 +1345,119 @@ struct_sd_sol._fields_ = [
     ('get_c', CFUNCTYPE(UNCHECKED(POINTER(c_double)), POINTER(sd_sol))),
 ]
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1445
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1445
 if hasattr(_libs['SDDEKit'], 'sd_sol_new_default'):
     sd_sol_new_default = _libs['SDDEKit'].sd_sol_new_default
     sd_sol_new_default.argtypes = [POINTER(sd_sys), POINTER(sd_sch), POINTER(sd_out), POINTER(sd_hfill), c_uint32, c_uint32, POINTER(c_double), c_uint32, c_uint32, POINTER(c_uint32), POINTER(c_double), c_double, c_double]
     sd_sol_new_default.restype = POINTER(sd_sol)
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1480
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1480
 if hasattr(_libs['SDDEKit'], 'sd_sparse_from_dense'):
     sd_sparse_from_dense = _libs['SDDEKit'].sd_sparse_from_dense
     sd_sparse_from_dense.argtypes = [c_uint32, c_uint32, POINTER(c_double), POINTER(c_double), c_double, POINTER(c_uint32), POINTER(POINTER(c_uint32)), POINTER(POINTER(c_uint32)), POINTER(POINTER(c_double)), POINTER(POINTER(c_double))]
     sd_sparse_from_dense.restype = sd_stat
 
-sd_log_msg_fp = CFUNCTYPE(UNCHECKED(c_int), String) # /home/mw/dev/sddekit/src/sddekit.h: 1497
+sd_log_msg_fp = CFUNCTYPE(UNCHECKED(c_int), String) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1497
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1499
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1499
 try:
     sd_log_msg = (sd_log_msg_fp).in_dll(_libs['SDDEKit'], 'sd_log_msg')
 except:
     pass
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1504
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1504
 if hasattr(_libs['SDDEKit'], 'sd_log_get_msg'):
     sd_log_get_msg = _libs['SDDEKit'].sd_log_get_msg
     sd_log_get_msg.argtypes = []
     sd_log_get_msg.restype = sd_log_msg_fp
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1509
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1509
 if hasattr(_libs['SDDEKit'], 'sd_log_set_msg'):
     sd_log_set_msg = _libs['SDDEKit'].sd_log_set_msg
     sd_log_set_msg.argtypes = [sd_log_msg_fp]
     sd_log_set_msg.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1514
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1514
 if hasattr(_libs['SDDEKit'], 'sd_log_is_quiet'):
     sd_log_is_quiet = _libs['SDDEKit'].sd_log_is_quiet
     sd_log_is_quiet.argtypes = []
     sd_log_is_quiet.restype = c_bool
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1519
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1519
 if hasattr(_libs['SDDEKit'], 'sd_log_set_quiet'):
     sd_log_set_quiet = _libs['SDDEKit'].sd_log_set_quiet
     sd_log_set_quiet.argtypes = [c_bool]
     sd_log_set_quiet.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1524
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1524
 if hasattr(_libs['SDDEKit'], 'sd_log_is_verbose'):
     sd_log_is_verbose = _libs['SDDEKit'].sd_log_is_verbose
     sd_log_is_verbose.argtypes = []
     sd_log_is_verbose.restype = c_bool
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1529
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1529
 if hasattr(_libs['SDDEKit'], 'sd_log_set_verbose'):
     sd_log_set_verbose = _libs['SDDEKit'].sd_log_set_verbose
     sd_log_set_verbose.argtypes = [c_bool]
     sd_log_set_verbose.restype = None
 
-sd_err_handler_fp = CFUNCTYPE(UNCHECKED(None), c_int, String, c_int, String, String) # /home/mw/dev/sddekit/src/sddekit.h: 1565
+sd_err_handler_fp = CFUNCTYPE(UNCHECKED(None), c_int, String, c_int, String, String) # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1565
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1570
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1570
 if hasattr(_libs['SDDEKit'], 'sd_err_default_handler'):
     sd_err_default_handler = _libs['SDDEKit'].sd_err_default_handler
     sd_err_default_handler.argtypes = [c_int, String, c_int, String, String]
     sd_err_default_handler.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1575
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1575
 if hasattr(_libs['SDDEKit'], 'sd_err_get_handler'):
     sd_err_get_handler = _libs['SDDEKit'].sd_err_get_handler
     sd_err_get_handler.argtypes = []
     sd_err_get_handler.restype = sd_err_handler_fp
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1582
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1582
 if hasattr(_libs['SDDEKit'], 'sd_err_set_handler'):
     sd_err_set_handler = _libs['SDDEKit'].sd_err_set_handler
     sd_err_set_handler.argtypes = [sd_err_handler_fp]
     sd_err_set_handler.restype = None
 
-# /home/mw/dev/sddekit/src/sddekit.h: 1587
+# C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1587
 if hasattr(_libs['SDDEKit'], 'sd_err_handler'):
     sd_err_handler = _libs['SDDEKit'].sd_err_handler
     sd_err_handler.argtypes = [c_int, String, c_int, String, String]
     sd_err_handler.restype = None
 
-sd_rng = struct_sd_rng # /home/mw/dev/sddekit/src/sddekit.h: 112
+sd_rng = struct_sd_rng # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 112
 
-sd_hfill = struct_sd_hfill # /home/mw/dev/sddekit/src/sddekit.h: 159
+sd_hfill = struct_sd_hfill # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 159
 
-sd_hist = struct_sd_hist # /home/mw/dev/sddekit/src/sddekit.h: 197
+sd_hist = struct_sd_hist # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 197
 
-sd_sys_in = struct_sd_sys_in # /home/mw/dev/sddekit/src/sddekit.h: 458
+sd_sys_in = struct_sd_sys_in # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 458
 
-sd_sys_out = struct_sd_sys_out # /home/mw/dev/sddekit/src/sddekit.h: 462
+sd_sys_out = struct_sd_sys_out # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 462
 
-sd_sys = struct_sd_sys # /home/mw/dev/sddekit/src/sddekit.h: 470
+sd_sys = struct_sd_sys # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 470
 
-sd_sys_exc = struct_sd_sys_exc # /home/mw/dev/sddekit/src/sddekit.h: 533
+sd_sys_exc = struct_sd_sys_exc # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 533
 
-sd_net = struct_sd_net # /home/mw/dev/sddekit/src/sddekit.h: 649
+sd_net = struct_sd_net # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 649
 
-sd_out = struct_sd_out # /home/mw/dev/sddekit/src/sddekit.h: 872
+sd_out = struct_sd_out # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 872
 
-sd_out_file = struct_sd_out_file # /home/mw/dev/sddekit/src/sddekit.h: 913
+sd_out_file = struct_sd_out_file # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 913
 
-sd_out_mem = struct_sd_out_mem # /home/mw/dev/sddekit/src/sddekit.h: 964
+sd_out_mem = struct_sd_out_mem # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 964
 
-sd_out_tee = struct_sd_out_tee # /home/mw/dev/sddekit/src/sddekit.h: 1035
+sd_out_tee = struct_sd_out_tee # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1035
 
-sd_out_tavg = struct_sd_out_tavg # /home/mw/dev/sddekit/src/sddekit.h: 1096
+sd_out_tavg = struct_sd_out_tavg # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1096
 
-sd_out_sfilt = struct_sd_out_sfilt # /home/mw/dev/sddekit/src/sddekit.h: 1152
+sd_out_sfilt = struct_sd_out_sfilt # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1152
 
-sd_sch = struct_sd_sch # /home/mw/dev/sddekit/src/sddekit.h: 1234
+sd_sch = struct_sd_sch # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1234
 
-sd_sol = struct_sd_sol # /home/mw/dev/sddekit/src/sddekit.h: 1349
+sd_sol = struct_sd_sol # C:\\Users\\mw\\Desktop\\sddekit\\src\\sddekit.h: 1349
 
 # No inserted files
 
