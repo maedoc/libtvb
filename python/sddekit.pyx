@@ -179,13 +179,21 @@ cdef extern from "sddekit.h":
 
 # rng {{{
 
-cdef class Rng(object):
+cdef class Rng:
     cdef sd_rng *r
 
-cdef object rng_of_ptr(sd_rng *r):
-    rng = Rng()
-    rng.r = r
-    return rng
+    def __cinit__(self):
+        self.r = sd_rng_new_default()
+
+    cdef _set_ptr(self, sd_rng *rng):
+        self.r.free(self.r)
+        self.r = rng
+        
+    def seed(self, seed):
+        self.r.seed(self.r, seed)
+
+    def norm(self):
+        return self.r.norm(self.r)
 
 # rng }}}
 
