@@ -9,9 +9,15 @@ language: c
 install:
   - make tests
   - make -B BUILD=cov tests
+  - cd python
+  - python setup.py build_ext --inplace
+  - cd ..
 script:
   - valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./tests
   - ./testscov
-#  - cd python && make test && cd ..
+  - cd python
+  - python tests.py
+  - valgrind --error-exitcode=1 --track-origins=yes --leak-check=full python tests.py
+  - cd ..
 after_success:
   - coveralls --gcov-options '-o ./ src/*.c'
