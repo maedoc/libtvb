@@ -5,6 +5,7 @@ LDFLAGS = -lm
 VALFLAGS = --error-exitcode=1 --track-origins=yes --leak-check=full 
 CFLAGS = -fPIC -std=c99 -Isrc
 OBJEXT=o
+SANFLAGS=-fsanitize=address -fsanitize=float-cast-overflow -fsanitize=undefined
 
 # various build types {{{
 ifeq ($(BUILD),fast)
@@ -14,7 +15,7 @@ else ifeq ($(BUILD),cov)
 else ifeq ($(BUILD),js)
 	CFLAGS += -s ALLOW_MEMORY_GROWTH=1 -O2
 else
-	CFLAGS += -Wall -Wextra -fsanitize=address -O0 -g
+	CFLAGS += -Wall -Wextra $(SANFLAGS) -O0 -g
 endif
 # }}}
 
