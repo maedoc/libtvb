@@ -1,8 +1,8 @@
 /* copyright 2016 Apache 2 sddekit authors */
 
-void sd_test_true(bool cond, char *scond, char *fname, int lineno, char *func);
+void sd_test_true(bool cond, const char *scond, const char *fname, int lineno, const char *func);
 
-void sd_test_failed(char *scond, char *fname, int lineno);
+void sd_test_failed(const char *scond, const char *fname, int lineno);
 
 int sd_test_report();
 

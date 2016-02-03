@@ -2,14 +2,15 @@
 
 #include "sddekit.h"
 
-struct data {
+typedef struct {
+	sd_sys sys;
 	double k_e, k_i, r_e, r_i, tau_e, tau_i, c_1, c_2, c_3,
 	       c_4, a_e, a_i, b_e, b_i, theta_e, theta_i, alpha_e,
 	       alpha_i, P, Q, c_e, c_i, c_ee, c_ie, c_ei, c_ii;
 	double D, k;
-};
+} data;
 
-struct data pars_sl14 = {
+static data pars_sl14 = {
 	/* Sanz-Leon 2014 */
 	.k_e = 1.0, .k_i = 1.0,
 	.r_e = 0.0, .r_i = 0.0,
@@ -36,7 +37,7 @@ static uint32_t nipar(sd_sys *s) { (void) s; return 0; }
 
 static sd_stat
 apply(sd_sys *s, sd_sys_in *in, sd_sys_out *out) {
-	struct data *d = s->ptr;
+	data *d = s->ptr;
 	double *x = in->x, *c = in->i, *f = out->f, *g = out->g, *o = out->o;
 	f[0] = d->alpha_e * (d->c_ee * x[0] - d->c_ei * x[1] + d->P
 		- d->theta_e + d->k*(c[0] + c[1]));
@@ -53,4 +54,35 @@ apply(sd_sys *s, sd_sys_in *in, sd_sys_out *out) {
 	o[0] = x[0];
 	o[1] = x[1];
 	return SD_OK;
+}
+
+static void wcfree(sd_sys *s)
+{
+	sd_free(s->ptr);
+}
+
+static sd_sys defaults = {
+	.ptr = NULL,
+	.ndim = &ndim,
+	.ndc = &ndc,
+	.nobs = &nobs,
+	.nrpar = &nrpar,
+	.nipar = &nipar,
+	.apply = &apply,
+	.free = &wcfree
+};
+
+sd_sys *
+sd_sys_wc_new()
+{
+	data *d = sd_malloc(sizeof(data));
+	if (d == NULL)
+	{
+		sd_err("alloc wc data failed.");
+		return NULL;
+	}
+	*d = pars_sl14;
+	d->sys = defaults;
+	d->sys.ptr = d;
+	return &(d->sys);
 }

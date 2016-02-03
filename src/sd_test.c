@@ -8,7 +8,7 @@ static test *tests;
 
 static uint32_t ntest=0, nfail=0, tests_len=0;
 
-static char *cpstr(char *str)
+static char *cpstr(const char *str)
 {
 	uint32_t nc = strlen(str) + 1;
 	char *out = sd_malloc(sizeof(char) * nc);
@@ -16,7 +16,7 @@ static char *cpstr(char *str)
 	return out;
 }
 
-static void test_record(bool cond, char *scond, char *fname, int lineno, char *func)
+static void test_record(bool cond, const char *scond, const char *fname, int lineno, const char *func)
 {
 	test t = {.pass=cond, .l=lineno};
 	t.f = cpstr(fname);
@@ -80,14 +80,14 @@ static void dump_junit_xml()
 	fprintf(fd, "</testsuite>\n");
 }
 
-void sd_test_failed(char *scond, char *fname, int lineno)
+void sd_test_failed(const char *scond, const char *fname, int lineno)
 {
 	nfail++;
 	fprintf(stderr, "[sd_test] FAILURE %d/%d %s:%d `%s'\n",
 			nfail, ntest, fname, lineno, scond);
 }
 
-void sd_test_true(bool cond, char *scond, char *fname, int lineno, char *func)
+void sd_test_true(bool cond, const char *scond, const char *fname, int lineno, const char *func)
 {
 	test_record(cond, scond, fname, lineno, func);
 	ntest++;

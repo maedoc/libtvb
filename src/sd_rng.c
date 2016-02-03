@@ -55,7 +55,7 @@ static sd_rng rng_default = {
 
 sd_rng *sd_rng_new_default()
 {
-	sd_rng *r, z = { 0 };
+	sd_rng *r;
     if ((r = sd_malloc (sizeof(sd_rng))) == NULL
 	 || (*r = rng_default, 0)
 	 || (r->ptr = sd_malloc (sizeof(struct rng_data))) == NULL)

@@ -44,6 +44,7 @@ sd_sch_new_cb(uint32_t nx, void *user_data,
 		uint32_t nc, double * restrict c)
 	)
 {
+	(void) nx;
 	data *d;
         if ((d = sd_malloc(sizeof(data))) == NULL)
 	{

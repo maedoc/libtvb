@@ -135,8 +135,8 @@ static void free_sys(sd_sys *sys) { free_ptr(sys->ptr); }
 static	uint32_t sys_ndim(sd_sys*sys) { return ((netd*)sys->ptr)->ns; }
 static	uint32_t sys_ndc(sd_sys*sys)  { return ((netd*)sys->ptr)->nnz; }
 static	uint32_t sys_nobs(sd_sys*sys) { return ((netd*)sys->ptr)->ne; }
-static	uint32_t sys_nrpar(sd_sys*sys){ return 0; }
-static	uint32_t sys_nipar(sd_sys*sys){ return 0; }
+static	uint32_t sys_nrpar(sd_sys*sys){ (void) sys; return 0; }
+static	uint32_t sys_nipar(sd_sys*sys){ (void) sys; return 0; }
 
 static sd_sys net_sys_defaults = {
 	.ndim = &sys_ndim,

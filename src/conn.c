@@ -19,7 +19,9 @@ typedef struct connd
 	     , * restrict d;
 } connd;
 
+/*
 static bool have_delays(sd_conn *conn)
 {
 	return ((connd*)conn)->d_not_null;
 }
+*/
