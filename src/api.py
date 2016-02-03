@@ -187,7 +187,7 @@ class GenFnPtrFieldWrappers(VisitStructFnPtrFields):
 
     _h_template = "{restype} {struct_name}_{field_name}({arg_types});\n"
 
-    _c_template = "{restype} {struct_name}_{field_name}({arg_type_names})\n{{\n\treturn {first_arg}->({arg_names});\n}}\n\n"
+    _c_template = "{restype} {struct_name}_{field_name}({arg_type_names})\n{{\n\treturn {first_arg}->{field_name}({arg_names});\n}}\n\n"
 
     def __init__(self):
         super(GenFnPtrFieldWrappers, self).__init__()
@@ -229,12 +229,12 @@ def generate_fn_ptr_field_wrapper_files(path=None, redo=False, filename='fn_ptr_
 
     """
     import api
+    path = path or './'
     hpath = join(path, filename + '.h')
     cpath = hpath[:-1] + 'c'
     if exists(hpath) and exists(cpath) and redo is False:
         return
     wrappers = GenFnPtrFieldWrappers.apply(api.header_ast())
-    path = path or './'
     with open(hpath, 'w') as fd:
         fd.write('''/* copyright 2016 Apache 2 sddekit authors */\n
 /* This file was automatically generated based on src/sddekit_simple.h */\n

@@ -14,7 +14,7 @@ else ifeq ($(BUILD),cov)
 else ifeq ($(BUILD),js)
 	CFLAGS += -s ALLOW_MEMORY_GROWTH=1 -O2
 else
-	CFLAGS += -Wall -Wextra -O0 -g
+	CFLAGS += -Wall -Wextra -fsanitize=address -O0 -g
 endif
 # }}}
 
