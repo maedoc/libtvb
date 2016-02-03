@@ -9,7 +9,7 @@ before_install:
   - pip install --user cpp-coveralls cython
 language: c
 install:
-  - make tests
+  - make SANFLAGS= tests
   - make -B BUILD=cov tests
 script:
   - valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./tests
