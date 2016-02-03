@@ -18,7 +18,8 @@ optimization and inversion techniques.
 
 ## Using
 
-Currently the [documentation](https://maedoc.github.io/sddekit),
+Currently the [overview](https://github.com/maedoc/sddekit/wiki/High-level-overview),
+[documentation](https://maedoc.github.io/sddekit),
 [tests](tests) and [benchmark](bench/bench_net_exc.c) are the best places 
 to look to understand what you can do with SDDEKit.
 
