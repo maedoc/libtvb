@@ -1,9 +1,8 @@
 # SDDEKit 
 
-[![Join the chat at https://gitter.im/maedoc/sddekit](https://badges.gitter.im/maedoc/sddekit.svg)](https://gitter.im/maedoc/sddekit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 [![Build Status](https://travis-ci.org/maedoc/sddekit.svg?branch=master)](https://travis-ci.org/maedoc/sddekit)
 ![Coverage Status](https://coveralls.io/repos/github/maedoc/sddekit/badge.svg?branch=master)
+[![Join the chat at https://gitter.im/maedoc/sddekit](https://badges.gitter.im/maedoc/sddekit.svg)](https://gitter.im/maedoc/sddekit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## What is SDDEKit?
 
