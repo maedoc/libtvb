@@ -1,6 +1,6 @@
 # SDDEKit 
 
-![Build Status](https://travis-ci.org/maedoc/sddekit.svg?branch=master)
+[![Build Status](https://travis-ci.org/maedoc/sddekit.svg?branch=master)](https://travis-ci.org/maedoc/sddekit)
 ![Coverage Status](https://coveralls.io/repos/github/maedoc/sddekit/badge.svg?branch=master)
 
 ## What is SDDEKit?
