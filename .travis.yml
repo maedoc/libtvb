@@ -3,8 +3,6 @@ addons:
   packages:
   - valgrind
   - python-numpy
-  - libasan0
-  - libubsan0
 before_install:
   - pip install --user cpp-coveralls cython
 language: c
