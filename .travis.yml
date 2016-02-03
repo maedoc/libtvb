@@ -15,3 +15,10 @@ script:
 #  - cd python && make test && cd ..
 after_success:
   - coveralls --gcov-options '-o ./ src/*.c'
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/6be8df01a63d92f7ba79
+    on_success: change
+    on_failure: always
+    on_start: never
