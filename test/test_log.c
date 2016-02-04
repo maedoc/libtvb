@@ -15,6 +15,7 @@ TEST(log, simple)
 	sd_log_set_quiet(1);
 	sd_log_info("echo?");
 	sd_log_debug("echo?");
+	sd_log_set_verbose(1);
 }
 
 static int n_msg = 0;

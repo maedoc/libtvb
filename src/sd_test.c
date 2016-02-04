@@ -95,6 +95,18 @@ void sd_test_true(bool cond, const char *scond, const char *fname, int lineno, c
 		sd_test_failed(scond, fname, lineno);
 }
 
+void sd_test_assert_near(double expected, double actual, double tol, const char *fname, int lineno, const char *func)
+{
+	bool cond;
+	char buf[512];
+	double l=expected, r=actual, d;
+
+	d = l - r;
+	cond = (d * d) < tol;
+	sprintf(buf, "(|| %g - %g || = %g) < %g", l, r, d*d, tol);
+	sd_test_true(cond, buf, fname, lineno, func);
+}
+
 int sd_test_report()
 {
 	if (nfail > 0) {

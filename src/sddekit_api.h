@@ -1106,6 +1106,72 @@ SD_API sd_out_tavg *
 sd_out_tavg_new(uint32_t len, sd_out *out);
 
 /* Forward declare interface type for explicit use in signatures. */
+typedef struct sd_out_conv sd_out_conv;
+
+struct sd_out_conv {
+    void *ptr;
+
+    /**
+     * Get interface for output.
+     */
+    sd_out *(*out)(sd_out_conv *);
+
+    /**
+     * Free memory allocated for this object.
+     */
+    void (*free)(sd_out_conv*);
+
+    /**
+     * Get current position in buffers.
+     */
+    uint32_t (*get_pos)(sd_out_conv *);
+
+    /**
+     * Get length of filter / kernel.
+     */
+    uint32_t (*get_len)(sd_out_conv *);
+
+    /**
+     * Get subsampling factor.
+     */
+    uint32_t (*get_ds)(sd_out_conv *);
+
+    /**
+     * Get number of samples consumed before next sample produced.
+     */
+    uint32_t (*get_ds_count)(sd_out_conv *);
+
+    /**
+     * Get sd_out instance to which samples are passed.
+     */
+    sd_out * (*get_next_out)(sd_out_conv *);
+
+    /* TODO consider the following for sd_out interface */
+
+    /**
+     * Get number of elements in state vector.
+     */
+    uint32_t (*get_nx)(sd_out_conv *);
+
+    /**
+     * Get number of elements in coupling vector.
+     */
+    uint32_t (*get_nc)(sd_out_conv *);
+
+};
+
+/**
+ * Create instance of temporal convolution output.
+ *
+ * \param len length of filter
+ * \param filt coefficients of filter
+ * \param out output to pass convolution samples to.
+ * \return instance of sd_out_conv or NULL if error occurred.
+ */
+SD_API sd_out_conv *
+sd_out_conv_new(uint32_t len, double *filt, sd_out *out);
+
+/* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_out_sfilt sd_out_sfilt;
 
 /**

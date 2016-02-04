@@ -5,6 +5,8 @@
 #include "sddekit.h"
 #include "test.h"
 
+# define M_PI		3.14159265358979323846
+
 TEST(out, file) {
 	double t, x[2], c[1];
 	sd_out_file *of;
@@ -232,4 +234,76 @@ TEST(out, sfilt) {
 
 	SD_CALL_AS_(sfilt, out, free);
 	SD_CALL_AS_(mem, out, free);
+}
+
+/* simple out keep just last sample for testing */
+typedef struct { double t, x[2], c[1]; } keep_last;
+
+static sd_stat keep_last_apply(void *data, double t,
+	uint32_t nx, double * restrict x,
+	uint32_t nc, double * restrict c)
+{
+	keep_last *d = data;
+	d->x[0] = x[0];
+	d->x[1] = x[1];
+	d->c[0] = c[0];
+	d->t = t;
+	return SD_CONT;
+}
+
+TEST(out, conv) {
+	uint32_t i;
+	sd_out_conv *conv;
+	sd_out *last;
+	keep_last kl;
+
+	/* let filt by sin(x) on x in (0, 2 * pi), convolve with
+	 * signal sin(t); ignoring boundary effects, output must
+	 * be -pi cos(t).
+	 */
+	uint32_t n = 100;
+	double t, e, x[2], c[1], *filt = sd_malloc(sizeof(double) * n);
+	double dt=M_PI*2.0/(n - 1);
+
+	for (i=0; i<n; i++)
+		filt[i] = sin(i * dt);
+
+	last = sd_out_new_cb(&kl, &keep_last_apply);
+	conv = sd_out_conv_new(n, filt, last);
+
+	/* pass over boundary effect */
+	for (i=0; i<n; i++)
+	{
+		t = i * dt;
+		x[0] = sin(t);
+		x[1] = x[0] * 2;
+		c[0] = x[1] * 2;
+		EXPECT_EQ(SD_CONT, SD_CALL_AS(conv, out, apply, t, 2, x, 1, c));
+	}
+
+	EXPECT_EQ(99, conv->get_pos(conv));
+	EXPECT_EQ(100, conv->get_len(conv));
+	EXPECT_EQ(1, conv->get_ds(conv));
+	EXPECT_EQ(1, conv->get_ds_count(conv));
+	EXPECT_EQ(last, conv->get_next_out(conv));
+	EXPECT_EQ(2, conv->get_nx(conv));
+	EXPECT_EQ(1, conv->get_nc(conv));
+
+	/* test output of convolution */
+	for (i=0; i<10; i++)
+	{
+		t = i * dt;
+		x[0] = sin(t);
+		x[1] = x[0] * 2;
+		c[0] = x[1] * 2;
+		EXPECT_EQ(SD_CONT, SD_CALL_AS(conv, out, apply, t, 2, x, 1, c));
+		e = - M_PI * cos(kl.t);
+		ASSERT_NEAR(1.0, kl.x[0] * dt / e, 1e-2);
+		ASSERT_NEAR(1.0, kl.x[1] * dt / (2*e), 1e-2);
+		ASSERT_NEAR(1.0, kl.c[0] * dt /  (4*e), 1e-2);
+	}
+
+	/* clean up */
+	last->free(last);
+	SD_CALL_AS_(conv, out, free);
 }
