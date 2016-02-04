@@ -20,11 +20,9 @@ though the intention is to support
 import io
 import os
 import sys
-import pycparser
 from os.path import exists, join, abspath
 import subprocess
 import ctypes
-import pycparser
 from pycparser import c_ast
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -55,7 +53,6 @@ def get_fake_libc_include_path():
     libc = None
     if 'PYCPARSER' in os.environ:
         libc = abspath(join(os.environ['PYCPARSER'], 'utils', 'fake_libc_include'))
-    import pdb; pdb.set_trace()
     return libc
 
 def build_cpp_cmd(header='sddekit_simple.h', cc='gcc', libc=None):
