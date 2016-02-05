@@ -20,8 +20,10 @@ typedef enum sd_stat {
 	/*! Returned by output object to indicate solver should continue */
 	SD_CONT,
 	/*! Returned by output object to indicate solver should stop */
-	SD_STOP
-} sd_stat;
+	SD_STOP,
+	/*! Returned by function it dosen't know */
+	SD_UNKNOWN
+    } sd_stat;
 
 /* utilities {{{ */
 
@@ -326,6 +328,12 @@ typedef void*(*sd_malloc_t)(size_t size);
 typedef void*(*sd_realloc_t)(void *ptr, size_t size);
 typedef void(*sd_free_t)(void *ptr);
 
+/* Memory register */
+typedef struct mem_register {
+	void *ptr;
+	struct mem_register *next;
+} mem_register;
+
 /**
  * Set custom allocators to be used whenever sd_ calls require allocating or freeing 
  * memory.
@@ -352,8 +360,25 @@ SD_API void *
 sd_realloc(void *ptr, size_t size);
 
 /**
+ * Initialize & finalize register of memory allocated by sd_malloc
+ */
+SD_API void
+sd_malloc_reg_init();
+
+SD_API void
+sd_malloc_reg_fin();
+
+/**
+ * return SD_OK if valid pointer, SD_ERR if invalid, SD_UNKNOWN if we dont' know
+ * (because register inactive for example) 
+ */
+SD_API sd_stat
+sd_malloc_reg_query(void *);
+
+/**
  * Free memory using current allocator.
  */
+
 SD_API void
 sd_free(void *ptr);
 
