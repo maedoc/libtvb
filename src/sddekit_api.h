@@ -328,12 +328,6 @@ typedef void*(*sd_malloc_t)(size_t size);
 typedef void*(*sd_realloc_t)(void *ptr, size_t size);
 typedef void(*sd_free_t)(void *ptr);
 
-/* Memory register */
-typedef struct mem_register {
-	void *ptr;
-	struct mem_register *next;
-} mem_register;
-
 /**
  * Set custom allocators to be used whenever sd_ calls require allocating or freeing 
  * memory.
@@ -366,7 +360,7 @@ SD_API void
 sd_malloc_reg_init();
 
 SD_API void
-sd_malloc_reg_fin();
+sd_malloc_reg_stop();
 
 /**
  * return SD_OK if valid pointer, SD_ERR if invalid, SD_UNKNOWN if we dont' know
