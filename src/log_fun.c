@@ -1,11 +1,15 @@
-/* function to replace macro according to issue at- 
-https://github.com/maedoc/sddekit/issues/88
-This function generates a string and passes on the same to the appropriate logger.*/
+/**
+ * This function generates a string and passes on the same to
+ * the appropriate logger. 
+ * Once completed, it is expected to replace the existing macros.
+ * It needs to be extended further and needs to support error handlers as well.
+*/
 
-/* add include for logger function */
 #include "sddekit.h"
 
-#define SIZE 256 // change this appropriately
+#include <stdarg.h>
+
+#define SIZE 256 // change this as required
 
 int logmsg(char *format, ...)
 {
@@ -13,7 +17,7 @@ int logmsg(char *format, ...)
 	
 	va_list args;
 	va_start(args, format);
-
+	
 	if (vsnprintf(msg, SIZE, format, args) < 0)
 	{
 		//error
@@ -21,5 +25,8 @@ int logmsg(char *format, ...)
 
 	va_end(args);
 	
-	logger(msg);
+	/*logger(msg);
+	invoke logger after changing in src/sddekit.h
+	msg is the only argument that should be passed*/
 }
+
