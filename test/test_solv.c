@@ -105,15 +105,15 @@ TEST(solv, simple) {
 	sol->cont(sol);
 
 	EXPECT_EQ(1,schd.n_calls);
-	EXPECT_EQ(DT,schd.dt);
+	ASSERT_NEAR(DT,schd.dt, 1e-15);
 	EXPECT_EQ(sol->get_rng(sol),schd.rng);
 
 	EXPECT_EQ(1,sysd.n_calls);
 	EXPECT_EQ(NX,sysd.nx);
 	EXPECT_EQ(NC,sysd.nc);
-	EXPECT_EQ(T0,sysd.t);
-	EXPECT_EQ(T0+DT,sol->get_t(sol));
-	EXPECT_EQ(sol->get_x(sol),sysd.x);
+	ASSERT_NEAR(T0,sysd.t, 1e-15);
+	ASSERT_NEAR(T0+DT,sol->get_t(sol), 1e-15);
+	EXPECT_EQ(sol->get_x(sol),sysd.x+1);
 	EXPECT_EQ(sol->get_c(sol),sysd.c);
 	EXPECT_EQ(NULL,sysd.f);
 	EXPECT_EQ(NULL,sysd.g);

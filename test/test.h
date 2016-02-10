@@ -10,6 +10,11 @@ int sd_test_report();
 
 #define EXPECT_EQ(l, r) EXPECT_TRUE((l)==(r))
 
+#define EXPECT_EQF(l, r) {\
+	EXPECT_TRUE((l)==(r));\
+	if ((l)!=(r)) sd_log_debug("expected %f, got %f, diff = %g", l, r, (l) - (r));\
+}
+
 #define ASSERT_NEAR(l, r, tol) EXPECT_TRUE((((l)-(r))*((l)-(r)))<tol)
 
 #define TEST(topic, name) void sd_test__ ## topic ## _ ## name ()

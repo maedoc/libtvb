@@ -74,11 +74,11 @@ TEST(hist, basic) {
 	h->fill(h, hf);
 	hf->free(hf);
 	for (i=0; i<35; i++)
-		EXPECT_EQ(-(i*dt), h->get_buf_lin(h, i));
-	EXPECT_EQ(dt, h->get_buf_lin(h, 35));
+		ASSERT_NEAR(-(i*dt), h->get_buf_lin(h, i), 1e-15);
+	ASSERT_NEAR(dt, h->get_buf_lin(h, 35), 1e-15);
 	for (i=0; i<7; i++)
-		EXPECT_EQ(-(i*dt), h->get_buf_lin(h, 36+i));
-	EXPECT_EQ(dt, h->get_buf_lin(h, 36+7));
+		ASSERT_NEAR(-(i*dt), h->get_buf_lin(h, 36+i), 1e-15);
+	ASSERT_NEAR(dt, h->get_buf_lin(h, 36+7), 1e-15);
 
 	h->get(h, dt/3, x);
 	ASSERT_NEAR(x[0], -vd[0]+dt/3, 1e-15);

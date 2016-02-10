@@ -91,9 +91,9 @@ TEST(net, simple) {
 	in.i[1] = in.x[2] = 2.0;
 	in.i[2] = in.x[4] = 3.0;
 	SD_CALL_AS(net, sys, apply, &in, &out);
-	EXPECT_EQ((exc->get_a(exc) - in.x[0] + exc->get_k(exc)*w[0]*in.x[2])/exc->get_tau(exc), out.f[1]);
-	EXPECT_EQ((exc->get_a(exc) - in.x[2] + exc->get_k(exc)*w[1]*in.x[4])/exc->get_tau(exc), out.f[3]);
-	EXPECT_EQ((exc->get_a(exc) - in.x[4])/exc->get_tau(exc), out.f[5]);
+	ASSERT_NEAR((exc->get_a(exc) - in.x[0] + exc->get_k(exc)*w[0]*in.x[2])/exc->get_tau(exc), out.f[1], 1e-15);
+	ASSERT_NEAR((exc->get_a(exc) - in.x[2] + exc->get_k(exc)*w[1]*in.x[4])/exc->get_tau(exc), out.f[3], 1e-15);
+	ASSERT_NEAR((exc->get_a(exc) - in.x[4])/exc->get_tau(exc), out.f[5], 1e-15);
 
 	/* clean up */
 	sys->free(sys);
