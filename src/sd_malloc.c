@@ -11,7 +11,8 @@ static sd_realloc_t _sd_realloc = realloc;
 static sd_free_t _sd_free = free;
 
 /* Memory register */
-//Objects {{{
+
+/* Objects {{{ */
 typedef struct mem_register mem_register;
 
 struct mem_register {
@@ -20,27 +21,28 @@ struct mem_register {
 	struct mem_register *next;
 };
 
-//Memory register indicator object
-static bool reg_flag = 0;
+/* Memory register indicator object */
+static bool reg_active = false;
 
-//Required register starting and ending nodes
+/* Required register starting and ending nodes */
 static mem_register *mem_reg_base = NULL, *mem_reg_end = NULL;
 
-// }}}
-// fuctions {{{
-static void *reg_search(void *);
+/*  }}} */
+
+/*  fuctions {{{ */
+static mem_register *reg_search(void *);
 static void reg_push(void *, size_t);
 static void reg_pop(void *ptr);
 
-//Initiates memory register
+/* Initiates memory register */
 void sd_malloc_reg_init() {
-	reg_flag = 1;
+	reg_active = true;
 }
 
-//Stops memory register and free register memory
+/* Stops memory register and free register memory */
 void sd_malloc_reg_stop() {
 	if(mem_reg_base == NULL) {
-		reg_flag = 0;
+		reg_active = false;
 		return;
 	}
 	mem_register *temp = mem_reg_base;
@@ -58,28 +60,25 @@ void sd_malloc_reg_stop() {
    Returns the object with ptr if found and is mem_register_base
    Else returns NULL
 */
-static void *reg_search(void *ptr) {
+static mem_register *reg_search(void *ptr) {
 	mem_register *temp, *store;
 	for(temp = mem_reg_base, store = mem_reg_base; temp != NULL; temp = temp->next) {
-		if((temp->start >= ptr) && (temp->upto <ptr))
+		if((temp->start >= ptr) && (temp->upto < ptr))
 			return store;
 		store = temp;
 	}
 	return NULL;
 }
 
-//Checks if ptr exists in register
+/* Checks if ptr exists in register */
 sd_stat sd_malloc_reg_query(void *ptr){
-	if(reg_flag == 0)
+	if(reg_active)
+		return reg_search(ptr) != NULL ? SD_OK : SD_ERR;
+	else
 		return SD_UNKNOWN;
-	mem_register *temp = reg_search(ptr);
-	if(temp == NULL)
-		return SD_ERR;
-	else 
-		return SD_OK;
 }
 
-//Adds a record of a new chunk of memory to register
+/* Adds a record of a new chunk of memory to register */
 static void reg_push(void *new_ptr, size_t size) {
 	if(new_ptr == NULL)
 		return;
@@ -90,7 +89,12 @@ static void reg_push(void *new_ptr, size_t size) {
 		return;
 	}
 	n->start = new_ptr;
-	n->upto = new_ptr + size;
+	/* pointer arith on void* is undefined behavior because void is not a
+	 * type with a specific size. However, we know size is the number of
+	 * bytes, so we just need to cast new_ptr to a type with size of one byte
+	 * e.g. a char
+	 */
+	n->upto = (void*) (((char*) new_ptr) + size);
 	n->next = NULL;
 	if(mem_reg_base == NULL) {
 		mem_reg_base = n;
@@ -101,19 +105,22 @@ static void reg_push(void *new_ptr, size_t size) {
 	}
 }
 
-//Deletes record of a chunk of memory from register
+/* Deletes record of a chunk of memory from register */
 static void reg_pop(void *ptr) {
 	if(ptr == NULL)
 		return;
 	mem_register *temp = reg_search(ptr);
 	if(temp == NULL) {
-		sd_err("Unable to find. Not allocated by sd_malloc.");
+		/* Unable to find, not allocated by us OR allocated before
+		 * reg was active. 
+		 */
 		return;
 	}
 	if(temp == mem_reg_base && temp->start == ptr) {
 		mem_reg_base = mem_reg_base->next;
 		if(temp == mem_reg_end)
-			mem_reg_end = NULL; //In this case register has only one element.
+			/* In this case register has only one element. */
+			mem_reg_end = NULL;
 	} else {
 		mem_register *temp2 = temp;
 		temp = temp->next;
@@ -143,8 +150,8 @@ void *sd_malloc(size_t size) {
 	new_ptr = (*_sd_malloc)(size);
 	if (new_ptr==NULL)
 		sd_err( "[sd_alloc] alloc returned a NULL pointer." );
-	if (reg_flag)
-		reg_push(new_ptr,size);
+	if (reg_active)
+		reg_push(new_ptr, size);
 	return new_ptr;
 }
 
@@ -153,7 +160,7 @@ void *sd_realloc(void *ptr, size_t size) {
 	new_ptr = (*_sd_realloc)(ptr, size);
 	if (new_ptr==NULL)
 		sd_err( "[sd_realloc] realloc returned a NULL pointer." );
-	if (reg_flag) {
+	if (reg_active) {
 		reg_pop(ptr);
 		reg_push(new_ptr, size);
 	}
@@ -172,7 +179,7 @@ void sd_free(void *ptr) {
 	sd_log_debug("%d'th call to sd_free on %p.", n, ptr);
 	n++;
 #endif
-	if (reg_flag)
+	if (reg_active)
 		reg_pop(ptr);
 	(*_sd_free)(ptr);
 }
