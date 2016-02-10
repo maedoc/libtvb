@@ -113,7 +113,7 @@ TEST(solv, simple) {
 	EXPECT_EQ(NC,sysd.nc);
 	ASSERT_NEAR(T0,sysd.t, 1e-15);
 	ASSERT_NEAR(T0+DT,sol->get_t(sol), 1e-15);
-	EXPECT_EQ(sol->get_x(sol),sysd.x+1);
+	EXPECT_EQ(sol->get_x(sol),sysd.x);
 	EXPECT_EQ(sol->get_c(sol),sysd.c);
 	EXPECT_EQ(NULL,sysd.f);
 	EXPECT_EQ(NULL,sysd.g);
