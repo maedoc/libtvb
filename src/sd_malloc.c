@@ -153,6 +153,10 @@ void *sd_realloc(void *ptr, size_t size) {
 	new_ptr = (*_sd_realloc)(ptr, size);
 	if (new_ptr==NULL)
 		sd_err( "[sd_realloc] realloc returned a NULL pointer." );
+	if (reg_flag) {
+		reg_pop(ptr);
+		reg_push(new_ptr, size);
+	}
 	return new_ptr;
 }
 
