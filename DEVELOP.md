@@ -1,0 +1,55 @@
+# Developing
+
+Fork the code, try it out. See our documented [issues](issues) or
+add your own.
+
+## Contributing
+
+Please follow the generic GitHub workflow:
+
+- fork the repo
+- create a topic branch, e.g add-foo-implementation
+- make modifications
+- git commit -m 'useful comments'
+- push branch to your fork on GitHub
+- open pull request
+
+[Here's way more detail w/ pictures](https://guides.github.com/introduction/flow/index.html)
+
+## Python wrapper
+
+The current work on Python wrapper in the `ctype` branch follows the naming conventions
+of the C library for the moment, drastically reducing the code required to use it. Though
+if time permits, the API could be Python-ized.
+
+## C lib architecture
+
+To keep things general, most high-level components are exposed as interfaces through
+structs whose fields are just function pointers.
+
+Contributing an implementation of a particular interface therefore implies
+
+- writing implementations for each of the members of the interface struct
+- writing a constructor function which
+  - alloc with sd_malloc
+  - fill out interface struct
+  - return it
+- document & test
+
+Keep in mind that if you 'subclass' an existing interface, some methods like
+`free` should be available (and correctly implemented) in both
+
+## What is SD_API?
+
+It is defined in [sddekit.h](https://github.com/maedoc/sddekit/blob/master/src/sddekit.h#L22)
+
+When you are compiling with Microsoft Visual Studio, the visibility of an API function depends on a non-standard declaration in front of the function declaration:
+
+- when compiling the library itself, it has to be dllexport
+- when compiling a code using the library it has to be dllimport
+
+To support these cases, all sddekit public functions are declared with SD_API,
+which is defined according to whether the code in which the header is included
+is part of the library or just using the library.
+
+On Linux or Mac, SD_API is ignored for the moment.
