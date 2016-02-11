@@ -20,12 +20,10 @@ though the intention is to support
 import io
 import os
 import sys
-import pycparser
 from os.path import exists, join, abspath
 import subprocess
 import ctypes
-import pycparser
-from pycparser import c_ast
+from pycparser import c_ast, CParser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 UP = os.path.dirname(HERE)
@@ -55,7 +53,6 @@ def get_fake_libc_include_path():
     libc = None
     if 'PYCPARSER' in os.environ:
         libc = abspath(join(os.environ['PYCPARSER'], 'utils', 'fake_libc_include'))
-    import pdb; pdb.set_trace()
     return libc
 
 def build_cpp_cmd(header='sddekit_simple.h', cc='gcc', libc=None):
@@ -86,7 +83,7 @@ def preprocessed_header(cmd=None, redo=False, ppfname=PPFNAME):
 
 def header_ast(src=None, ppfname=PPFNAME):
     src = src or preprocessed_header()
-    cp = pycparser.CParser()
+    cp = CParser()
     ast = cp.parse(src, ppfname)
     return ast
 
@@ -142,9 +139,9 @@ class FuncInfo(App):
         self.argtypes = [TypeInfo.apply(child) for _, child in node.args.children()]
 
 
-class VisitStructFnPtrFields(App):
+class VisitStructFields(App):
     """
-    Visits function pointers which are fields of structs.
+    Visits fields of a struct.
 
     This will not do anything by itself, but should probably be subclassed
     with a visit_FuncDecl method to do something with the resulting
@@ -177,7 +174,7 @@ class VisitStructFnPtrFields(App):
         self.struct -= 1
 
 
-class GenFnPtrFieldWrappers(VisitStructFnPtrFields):
+class GenFnPtrFieldWrappers(VisitStructFields):
     """
     Visits function pointer in struct declarations to extract
     type and name information in order to generate header and implementation
