@@ -1437,9 +1437,23 @@ sd_sparse_from_dense(
 /**
  * Type definition for callback handling formatted messages.
  */
-typedef int (*sd_log_msg_fp)(const char *fmt, ...);
+typedef void (*sd_log_msg_fp)(const char *);
 
-extern sd_log_msg_fp sd_log_msg;
+SD_API void sd_log_handler_printf(const char *);
+
+SD_API void sd_log_msg(const char *format, ...);
+
+typedef void(*sd_log_handler)(char *);
+
+/**
+ * Set a custom log handler.
+ */
+ SD_API void sd_log_set_handler(sd_log_handler);
+
+/**
+ *Get the current log handler
+ */
+ SD_API sd_log_handler sd_log_get_handler();
 
 /**
  * Get function pointer handling messages.
