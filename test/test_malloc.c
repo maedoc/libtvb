@@ -45,6 +45,7 @@ TEST(malloc, reg1) {
 
 TEST(malloc, reg2) {
 
+	sd_malloc_reg_init();
 	/* alloc series of memory regions */
 	int i;
 	char *bar[10];
@@ -55,29 +56,36 @@ TEST(malloc, reg2) {
 	for (i=0; i<10; i++)
 		EXPECT_EQ( SD_OK, sd_malloc_reg_query( bar[i] + (i % 4) ) );
 
+	/* realloc a part of them for test */
+	for (i=3; i<8; i++)
+		bar[i] = sd_realloc(bar[i], sizeof(char)*10);
+
 	/* free part of them */
-	for (i=0; i<5; i++)
+	for (i=0; i<3; i++)
 		sd_free(bar[i]);
 
-	/* freed part returns err, part still in memory is ok */
+	/* freed part returns err, part still in memory or the one reallocated is ok */
 	for (i=0; i<10; i++)
 	{
-		if (i < 5)
+		if (i < 3)
 			EXPECT_EQ( SD_ERR, sd_malloc_reg_query( bar[i] + (i % 4) ) );
+		else if ((i >= 3) && (i < 8))
+			EXPECT_EQ( SD_OK, sd_malloc_reg_query( bar[i] + ((3 * i) % 10) ) );
 		else
 			EXPECT_EQ( SD_OK, sd_malloc_reg_query( bar[i] + (i % 4) ) );
 	}
 
+	
 	sd_malloc_reg_stop();
 
 	/* check unknown and free the rest */
-	for (i=0; i<5; i++)
+	for (i=0; i<7; i++)
 	{
-		EXPECT_EQ( SD_UNKNOWN, sd_malloc_reg_query(bar[i+5]) );
-		sd_free(bar[i+5]);
+		EXPECT_EQ( SD_UNKNOWN, sd_malloc_reg_query(bar[i+3]) );
+		sd_free(bar[i+3]);
 	}
 
 	/* failing test to make sure this unit test is running */
-	EXPECT_EQ( 1, 2 );
+	/* EXPECT_EQ( 1, 2 ); */
 
 }

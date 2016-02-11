@@ -53,6 +53,7 @@ void sd_malloc_reg_stop() {
 	(*_sd_free)(temp);
 	mem_reg_base = NULL;
 	mem_reg_end = NULL;
+	reg_active = false;
 }
 
 /* Search for an object in register 
@@ -63,7 +64,7 @@ void sd_malloc_reg_stop() {
 static mem_register *reg_search(void *ptr) {
 	mem_register *temp, *store;
 	for(temp = mem_reg_base, store = mem_reg_base; temp != NULL; temp = temp->next) {
-		if((temp->start >= ptr) && (temp->upto < ptr))
+		if((temp->start <= ptr) && (temp->upto > ptr))
 			return store;
 		store = temp;
 	}
