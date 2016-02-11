@@ -8,12 +8,12 @@ before_install:
 language: c
 install:
   - make SANFLAGS= tests
-  - make -B BUILD=cov tests
 script:
   - valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./tests
-  - ./testscov
 #  - cd python && make test && cd ..
 after_success:
+  - make -B BUILD=cov tests
+  - ./testscov
   - coveralls --gcov-options '-o ./ src/*.c'
 notifications:
   webhooks:
