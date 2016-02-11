@@ -84,8 +84,4 @@ TEST(malloc, reg2) {
 		EXPECT_EQ( SD_UNKNOWN, sd_malloc_reg_query(bar[i+3]) );
 		sd_free(bar[i+3]);
 	}
-
-	/* failing test to make sure this unit test is running */
-	/* EXPECT_EQ( 1, 2 ); */
-
 }
