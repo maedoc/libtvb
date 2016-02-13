@@ -120,10 +120,6 @@ struct sd_hfill {
 	sd_stat (*apply)(sd_hfill*, uint32_t n, double * restrict t, uint32_t *indices,
 		double * restrict buf);
 	/**
-	 * \return number of bytes used by this sd_hfill instance.
-	 */
-	uint32_t (*nbytes)(sd_hfill*);
-	/**
 	 * Free memory allocated for this sd_hfill instance.
 	 */
 	void (*free)(sd_hfill*);
