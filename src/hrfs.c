@@ -39,25 +39,25 @@ static double gamma_eval(double T, gamma_params gp)
 		* exp(-(T + 1e-14)/gp.scale);
 }
 
-void sd_hrf_glover(uint32_t n, double *t, double *x)
+void sd_hrf_glover(uint32_t n, double dt, double *x)
 {
 	uint32_t i;
 	gamma_params gp1 = compute_gamma_params(5.4, 5.2),
 		     gp2 = compute_gamma_params(10.8, 7.35);
 
-	if (n < 2 || t==NULL || x==NULL)
+	if (n < 2 || dt<=0.0 || x==NULL)
 	{
-		sd_err("n<2, NULL t or NULL x pointers");
+		sd_err("n<2, non-positive dt or NULL x pointers");
 		return ;
 	}
 
 	for (i=0; i<n; i++)
-		x[i] = gamma_eval(t[i], gp1) - 0.35 * gamma_eval(t[i], gp2);
+		x[i] = gamma_eval(i * dt, gp1) - 0.35 * gamma_eval(i * dt, gp2);
 
-	normalize(n, x, t[1] - t[0]);
+	normalize(n, x, dt);
 }
 
-void sd_hrf_volt1(uint32_t n, double *t, double *x)
+void sd_hrf_volt1(uint32_t n, double dt, double *x)
 {
 	uint32_t i;
 	double tau_s = 0.8,
@@ -65,16 +65,16 @@ void sd_hrf_volt1(uint32_t n, double *t, double *x)
 	       k_1 = 5.6,
 	       V_0 = 0.02;
 
-	if (n < 2 || t==NULL || x==NULL)
+	if (n < 2 || dt<=0.0 || x==NULL)
 	{
-		sd_err("n<2, NULL t or NULL x pointers");
+		sd_err("n<2, non-positive dt or NULL x pointers");
 		return ;
 	}
 
 	for (i=0; i<n; i++)
-		x[i] = 1/3. * exp(-0.5*(t[i] / tau_s))  \
-			* (sin(sqrt(1./tau_f - 1./(4.*pow(tau_s, 2))) * t[i]))  \
+		x[i] = 1/3. * exp(-0.5*((i * dt) / tau_s))  \
+			* (sin(sqrt(1./tau_f - 1./(4.*pow(tau_s, 2))) * (i * dt)))  \
 			/ (sqrt(1./tau_f - 1./(4.*pow(tau_s, 2))));
 
-	normalize(n, x, t[1] - t[0]);
+	normalize(n, x, dt);
 }

@@ -1177,19 +1177,19 @@ sd_out_conv_new(uint32_t len, double *filt, sd_out *out);
  * Glover 1999 double-gamma HRF kernel, based on NiPy.
  *
  * \param[in] n number of time points
- * \param[in] t array of time points
+ * \param[in] dt time step between HRF samples.
  * \param[out] x values of HRF at time points in t.
  */
-SD_API void sd_hrf_glover(uint32_t n, double *t, double *x);
+SD_API void sd_hrf_glover(uint32_t n, double dt, double *x);
 
 /**
  * First-order Volterra HRF kernel, based on TVB.
  *
- * \param[in] n number of time points
- * \param[in] t array of time points
+ * \param[in] n number of time points.
+ * \param[in] dt time step between HRF samples.
  * \param[out] x values of HRF at time points in t.
  */
-SD_API void sd_hrf_volt1(uint32_t n, double *t, double *x);
+SD_API void sd_hrf_volt1(uint32_t n, double dt, double *x);
 
 /* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_out_sfilt sd_out_sfilt;
