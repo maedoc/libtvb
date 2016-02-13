@@ -306,4 +306,5 @@ TEST(out, conv) {
 	/* clean up */
 	last->free(last);
 	SD_CALL_AS_(conv, out, free);
+	sd_free(filt);
 }

@@ -35,6 +35,9 @@ static void _free(conv *c)
 {
 	sd_free(c->x);
 	sd_free(c->c);
+	sd_free(c->x_out);
+	sd_free(c->c_out);
+	sd_free(c->filt);
 	sd_free(c); 
 }
 
@@ -89,9 +92,7 @@ static sd_stat apply(sd_out *out, double t,
 			uint32_t ci, fi, j;
 
 			/* circular index on buffer starts at oldest sample, moving forward through time */
-			ci = d->pos + 1 + i;
-			if (ci > d->len)
-				ci %= d->len;
+			ci = (d->pos + 1 + i) % d->len;
 
 			/* filter index moves backward through time */
 			fi = d->len - i - 1;
