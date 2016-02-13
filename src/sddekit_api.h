@@ -374,6 +374,14 @@ SD_API sd_stat
 sd_malloc_reg_query(void *);
 
 /**
+ * return total bytes allocated by sd_malloc after register init.
+ * return 0 if register not inititalized or no memory allocated after init.
+ */
+
+SD_API uint32_t
+sd_malloc_total_nbytes();
+
+/**
  * Free memory using current allocator.
  */
 
