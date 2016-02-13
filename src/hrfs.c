@@ -56,3 +56,25 @@ void sd_hrf_glover(uint32_t n, double *t, double *x)
 
 	normalize(n, x, t[1] - t[0]);
 }
+
+void sd_hrf_volt1(uint32_t n, double *t, double *x)
+{
+	uint32_t i;
+	double tau_s = 0.8,
+	       tau_f = 0.4,
+	       k_1 = 5.6,
+	       V_0 = 0.02;
+
+	if (n < 2 || t==NULL || x==NULL)
+	{
+		sd_err("n<2, NULL t or NULL x pointers");
+		return ;
+	}
+
+	for (i=0; i<n; i++)
+		x[i] = 1/3. * exp(-0.5*(t[i] / tau_s))  \
+			* (sin(sqrt(1./tau_f - 1./(4.*pow(tau_s, 2))) * t[i]))  \
+			/ (sqrt(1./tau_f - 1./(4.*pow(tau_s, 2))));
+
+	normalize(n, x, t[1] - t[0]);
+}
