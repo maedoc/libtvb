@@ -571,6 +571,8 @@ sd_sys_exc_new();
 
 /* exc }}} */
 
+#include "gen2d.h"
+
 /* net {{{ */
 
 /* network
