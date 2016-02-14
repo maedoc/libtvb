@@ -572,6 +572,7 @@ sd_sys_exc_new();
 /* exc }}} */
 
 #include "gen2d.h"
+#include "rww.h"
 
 /* net {{{ */
 
