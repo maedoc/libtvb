@@ -27,9 +27,9 @@ typedef struct {
 
 #define PAR(name, value)\
 	static double get_ ## name(sd_sys_gen2d *s)\
-		{ return ((gen2d*) s->ptr).pars.name; } \
+		{ return ((gen2d*) s->ptr)->pars.name; } \
 	static void set_ ## name(sd_sys_gen2d *s, double new)\
-		{ ((gen2d*) s->ptr).pars.name = new; }
+		{ ((gen2d*) s->ptr)->pars.name = new; }
 #define LASTPAR(n, v) PAR(n, v)
 #include "gen2d_pars.h"
 #undef PAR
@@ -44,27 +44,22 @@ static sd_stat apply(sd_sys *s, sd_sys_in *in, sd_sys_out *out)
 		pars *p = &(((gen2d*) s->ptr)->pars);
 		double *x = in->x, *c = in->i, *f = out->f, *g = out->g, *o = out->o;
 		double V = x[0], W = x[1];
-		f[0] = p->alpha * W - p->f * V *V *+ p->g * V + p->gamma * (p->I + c[0]);
-		if (p->f != 0.0)
-				f[0] -= V * V * V;
-		if (p->e != 0.0)
-				f[0] += V * V;
-
-		f[0] = (x[0] - x[0]*x[0]*x[0]/3.0 + x[1]) * d->tau;
-		f[1] = (d->a - x[0] + d->k*c[0]) / d->tau;
+		double V2 = V * V;
+		f[0] = p->d * p->tau * (p->alpha * W - p->f*V2*V + p->e*V2 + p->g * V + p->gamma * (p->I + c[0]));
+		f[1] = p->d * (p->a + p->b * V + p->c * V2 - p->beta * W) / p->tau;
 		g[0] = p->D;
 		g[1] = p->D;
 		o[0] = x[0];
 		return SD_OK;
 }
 
-uint32_t  ndim(sd_sys *s) { (void) s;  return 2; }
-uint32_t   ndc(sd_sys *s) { (void) s;  return 1; }
-uint32_t  nobs(sd_sys *s) { (void) s;  return 1; }
-uint32_t nrpar(sd_sys *s) { (void) s;  return 4; }
-uint32_t nipar(sd_sys *s) { (void) s;  return 0; }
+static uint32_t  ndim(sd_sys *s) { (void) s;  return 2; }
+static uint32_t   ndc(sd_sys *s) { (void) s;  return 1; }
+static uint32_t  nobs(sd_sys *s) { (void) s;  return 1; }
+static uint32_t nrpar(sd_sys *s) { (void) s;  return 4; }
+static uint32_t nipar(sd_sys *s) { (void) s;  return 0; }
 
-sd_sys sys_if_default = { 
+static sd_sys sys_if_default = { 
 	.ptr = NULL,
 	.ndim = &ndim,
 	.ndc = &ndc,
@@ -72,12 +67,12 @@ sd_sys sys_if_default = {
 	.nrpar = &nrpar,
 	.nipar = &nipar,
 	.apply = &apply,
-	.free = &gen2d_free
+	.free = &sys_free
 };
 
-sd_sys * get_sys(sd_sys_gen2d *s) { return &(((gen2d*) s->ptr)->sys_id); }
+static sd_sys * get_sys(sd_sys_gen2d *s) { return &(((gen2d*) s->ptr)->sys_if); }
 
-sd_sys_gen2d gen2d_if_default = { 
+static sd_sys_gen2d gen2d_if_default = { 
 	.ptr = NULL,
 	.sys = &get_sys,
 #define PAR(n, v) .get_##n = &get_##n, .set_##n = &set_##n,

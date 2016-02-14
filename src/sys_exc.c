@@ -46,11 +46,11 @@ static sd_stat apply(sd_sys *s, sd_sys_in *in, sd_sys_out *out)
 	return SD_OK;
 }
 
-uint32_t  ndim(sd_sys *s) { (void) s;  return 2; }
-uint32_t   ndc(sd_sys *s) { (void) s;  return 1; }
-uint32_t  nobs(sd_sys *s) { (void) s;  return 1; }
-uint32_t nrpar(sd_sys *s) { (void) s;  return 4; }
-uint32_t nipar(sd_sys *s) { (void) s;  return 0; }
+static uint32_t  ndim(sd_sys *s) { (void) s;  return 2; }
+static uint32_t   ndc(sd_sys *s) { (void) s;  return 1; }
+static uint32_t  nobs(sd_sys *s) { (void) s;  return 1; }
+static uint32_t nrpar(sd_sys *s) { (void) s;  return 4; }
+static uint32_t nipar(sd_sys *s) { (void) s;  return 0; }
 
 sd_sys sys_default = { 
 	.ptr = NULL,
@@ -63,7 +63,7 @@ sd_sys sys_default = {
 	.free = &exc_free
 };
 
-sd_sys * get_sys(sd_sys_exc *e) { return &(((struct data *) e->ptr)->sys_if); }
+static sd_sys * get_sys(sd_sys_exc *e) { return &(((struct data *) e->ptr)->sys_if); }
 
 sd_sys_exc exc_default = { 
 	.ptr = NULL,

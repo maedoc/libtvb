@@ -15,26 +15,26 @@ typedef struct netd
 	bool _init1;
 } netd;
 
-uint32_t  get_n       (sd_net *net)             { return ((netd*)net->ptr)->n; }
-uint32_t  get_m       (sd_net *net)             { return ((netd*)net->ptr)->m; }
-uint32_t  get_nnz     (sd_net *net)             { return ((netd*)net->ptr)->nnz; }
-uint32_t *get_or      (sd_net *net)             { return ((netd*)net->ptr)->Or; }
-uint32_t  get_or_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Or[i]; }
-uint32_t *get_ic      (sd_net *net)             { return ((netd*)net->ptr)->Ic; }
-uint32_t  get_ic_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ic[i]; }
-double *  get_w       (sd_net *net)             { return ((netd*)net->ptr)->w; }
-double    get_w_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->w[i]; }
-double *  get_d       (sd_net *net)             { return ((netd*)net->ptr)->d; }
-double    get_d_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->d[i]; }
-uint32_t  get_ns      (sd_net *net)             { return ((netd*)net->ptr)->ns; }
-uint32_t  get_ne      (sd_net *net)             { return ((netd*)net->ptr)->ne; }
-bool      cn_is_null  (sd_net *net)             { return ((netd*)net->ptr)->cn == NULL; }
-uint32_t  get_Ms_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ms[i]; }
-uint32_t  get_Ma_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ma[i]; }
-uint32_t  get_Me_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Me[i]; }
-uint32_t  get_M_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->M[i]; }
-sd_sys *  get_models_i(sd_net *net, uint32_t i) { return ((netd*)net->ptr)->models[i]; }
-bool      get__init1  (sd_net *net)             { return ((netd*)net->ptr)->_init1; }
+static uint32_t  get_n       (sd_net *net)             { return ((netd*)net->ptr)->n; }
+static uint32_t  get_m       (sd_net *net)             { return ((netd*)net->ptr)->m; }
+static uint32_t  get_nnz     (sd_net *net)             { return ((netd*)net->ptr)->nnz; }
+static uint32_t *get_or      (sd_net *net)             { return ((netd*)net->ptr)->Or; }
+static uint32_t  get_or_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Or[i]; }
+static uint32_t *get_ic      (sd_net *net)             { return ((netd*)net->ptr)->Ic; }
+static uint32_t  get_ic_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ic[i]; }
+static double *  get_w       (sd_net *net)             { return ((netd*)net->ptr)->w; }
+static double    get_w_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->w[i]; }
+static double *  get_d       (sd_net *net)             { return ((netd*)net->ptr)->d; }
+static double    get_d_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->d[i]; }
+static uint32_t  get_ns      (sd_net *net)             { return ((netd*)net->ptr)->ns; }
+static uint32_t  get_ne      (sd_net *net)             { return ((netd*)net->ptr)->ne; }
+static bool      cn_is_null  (sd_net *net)             { return ((netd*)net->ptr)->cn == NULL; }
+static uint32_t  get_Ms_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ms[i]; }
+static uint32_t  get_Ma_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ma[i]; }
+static uint32_t  get_Me_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Me[i]; }
+static uint32_t  get_M_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->M[i]; }
+static sd_sys *  get_models_i(sd_net *net, uint32_t i) { return ((netd*)net->ptr)->models[i]; }
+static bool      get__init1  (sd_net *net)             { return ((netd*)net->ptr)->_init1; }
 
 static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 {
