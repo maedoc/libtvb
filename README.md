@@ -57,6 +57,17 @@ with `fig/bench_net_exc.py`, producing
 As stated, these are in place to help build up the library at this point. In the
 future extensive examples for different kinds of systems & networks will be provided.
 
+## Features
+
+Current implemented
+
+- a generic solver driver
+- Euler-Maruyama, Heun & colored noise variants
+- network system
+- simple excitable, generic 2d oscillator & reduced Wong-Wang systems
+- temporal averaging, convolution, spatial filter, memory buffer and write to file
+- linear interpolation history buffer
+
 ## Where to go from here?
 
 - If you're a programmer, we'd be happy to have help! See [`DEVELOP.md`](DEVELOP.md).
