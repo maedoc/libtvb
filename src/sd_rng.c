@@ -24,6 +24,11 @@ static double rng_norm(sd_rng *r)
 	return rk_gauss(&d->rks);
 }
 
+static double rng_uniform(sd_rng *r)
+{
+	return rk_double(&(((struct rng_data *) r->ptr)->rks));
+}
+
 static void rng_fill_norm(sd_rng *r, uint32_t n, double *x)
 {
 	uint32_t i;
@@ -48,6 +53,7 @@ static sd_rng rng_default = {
 	.ptr = NULL,
 	.seed = &rng_seed,
 	.norm = &rng_norm,
+	.uniform = &rng_uniform,
 	.fill_norm = &rng_fill_norm,
 	.nbytes = &rng_nbytes,
 	.free = &rng_free

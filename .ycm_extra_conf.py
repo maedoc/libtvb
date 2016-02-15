@@ -26,6 +26,7 @@ import ycm_core
 flags = [
 	'-Wall', '-Wextra', '-Wpedantic', '-fexceptions', '-fstrict-aliasing',
 	'-I', './src', '-isystem', '/usr/include', '-isystem', '/usr/local/include',
+        '-I', '../src',
 	'-DSKDEBUG',
 ]
 
@@ -36,8 +37,6 @@ mex_flags = []
 if 'MATLAB' in os.environ:
     mex_flags.append('-I%s/extern/include' % (
         os.path.abspath(os.environ['MATLAB'])))
-
-print mex_flags
 
 # Set this to the absolute path to the folder (NOT the file!) containing the
 # compile_commands.json file to use that instead of 'flags'. See here for

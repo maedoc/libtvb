@@ -5,6 +5,10 @@
  * other header like sddekit.h or a simplified one for binding.
  */
 
+#ifndef SDDEKIT_H
+#include "prelude.h"
+#endif
+
 /* sddekit verion numbers */
 uint32_t sd_ver_major();
 uint32_t sd_ver_minor();
@@ -75,6 +79,10 @@ struct sd_rng {
 	 * Generate a single sample from N(0, 1).
 	 */
 	double (*norm)(sd_rng*);
+        /**
+         * Generate a single sample on U(0, 1).
+         */
+        double (*uniform)(sd_rng*);
 	/**
 	 * Generate and fill an array with samples from N(0, 1).
 	 */

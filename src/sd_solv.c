@@ -1,6 +1,7 @@
 /* copyright 2016 Apache 2 sddekit authors */
 
 #include "sddekit.h"
+#include <time.h>
 
 typedef struct sol_data {
 	uint32_t nx, nca, nce;
@@ -82,6 +83,7 @@ sd_sol_new_default(
 	)
 {
 	char *errmsg;
+	clock_t tic = clock();
 	sd_sol *sol = NULL;
 	/* error handling */
 #define FAILIF(cond, msg)\
@@ -143,6 +145,9 @@ sd_sol_new_default(
 		s->t = t0;
 		s->dt = dt;
 	}
+	clock_t toc = clock();
+	double walltime = (double) (toc - tic) / CLOCKS_PER_SEC;
+	sd_log_info("continuation required %.3f s walltime\n", walltime);
 	return sol;
 uhoh:
 	/* clean up */

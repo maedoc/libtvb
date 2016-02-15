@@ -28,3 +28,6 @@ struct sd_sys_rww
 #undef LPAR
 
 };
+
+SD_API struct sd_sys_rww *
+sd_sys_rww_new();
