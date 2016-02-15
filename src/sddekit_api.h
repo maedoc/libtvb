@@ -166,6 +166,11 @@ struct sd_hist {
 	*/
 	uint32_t(*get_vi2i)(sd_hist*, uint32_t vi);
 
+        /**
+         * Get vector of vi2i values.
+         */
+        uint32_t *(*get_vi2i_vec)(sd_hist *h);
+
 	/**
 	* Get the number of (unique) delayed variable indices.
 	*
@@ -327,6 +332,13 @@ struct sd_hist {
 SD_API sd_hist *
 sd_hist_new_default(uint32_t nd, uint32_t *vi, 
 		    double *vd, double t0, double dt);
+
+/**
+ * Initialize a history instance which ignores the given delays, but otherwise
+ * conforms to the history interface.
+ */ 
+SD_API struct sd_hist *
+sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt);
 
 /* history }}} */
 

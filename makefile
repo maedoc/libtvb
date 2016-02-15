@@ -9,13 +9,23 @@ SANFLAGS=-fsanitize=address -fsanitize=float-cast-overflow -fsanitize=undefined
 
 # various build types {{{
 ifeq ($(BUILD),fast)
-	CFLAGS += -Ofast
+	CFLAGS += -Ofast -flto -march=native
 else ifeq ($(BUILD),cov)
 	CFLAGS += -pg -fprofile-arcs -ftest-coverage
 else ifeq ($(BUILD),js)
 	CFLAGS += -s ALLOW_MEMORY_GROWTH=1 -O2
 else
 	CFLAGS += -Wall -Wextra $(SANFLAGS) -O0 -g
+endif
+
+ifeq ($(FDO),gen)
+	CFLAGS += -fprofile-generate
+else ifeq ($(FDO),use)
+	CFLAGS += -fprofile-use
+else ifeq ($(FDO),prof)
+	CFLAGS += -pg -fprofile-arcs
+else ifeq ($(FDO),callgrind)
+	CFLAGS += -g
 endif
 # }}}
 

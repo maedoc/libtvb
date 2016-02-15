@@ -31,6 +31,7 @@ static void sol_free(sd_sol *sol)
 
 static sd_stat cont(sd_sol *sol)
 {
+	clock_t tic = clock();
 	sol_data *s = sol->ptr;
 	sd_hist *h;
 
@@ -45,7 +46,9 @@ static sd_stat cont(sd_sol *sol)
 		s->t += s->dt;
 		s->cont = s->out->apply(s->out, s->t, s->nx, s->x, s->nce, s->c);
 	} while (s->cont == SD_CONT);
-
+	clock_t toc = clock();
+	double walltime = (double) (toc - tic) / CLOCKS_PER_SEC;
+	sd_log_debug("continuation required %.3f s walltime", walltime);
 	return SD_OK;
 }
 
@@ -83,7 +86,6 @@ sd_sol_new_default(
 	)
 {
 	char *errmsg;
-	clock_t tic = clock();
 	sd_sol *sol = NULL;
 	/* error handling */
 #define FAILIF(cond, msg)\
@@ -118,13 +120,25 @@ sd_sol_new_default(
 	{
 		sol_data *s = (sol_data*)sol->ptr;
 		if (nca > 0 && vi!=NULL && vd!=NULL) 
+		{
+			size_t cn;
+			bool have_delays = vd[0] != 0.0;
+			for (uint32_t i=1; i<nca; i++)
+				have_delays |= vd[i] != 0.0;
+			if (have_delays)
 			{
-				size_t cn;
+				sd_log_debug("delays found.");
 				FAILIF((s->hist = sd_hist_new_default(nca, vi, vd, t0, dt)) == NULL, "failed to create history.")
-				FAILIF(s->hist->fill(s->hist, hf)!=SD_OK, "history fill failed.")
-				/* s->c big enough to accomate aff or eff */
-				cn = nca > nce ? nca : nce;
-				FAILIF((s->c = sd_malloc(sizeof(double) * cn)) == NULL, "alloc coupling array failed.")
+			}
+			else
+			{
+				sd_log_debug("no delays present.");
+				FAILIF((s->hist = sd_hist_new_no_delays(nca, vi, vd, t0, dt)) == NULL, "failed to create history.")
+			}
+			FAILIF(s->hist->fill(s->hist, hf)!=SD_OK, "history fill failed.")
+			/* s->c big enough to accomate aff or eff */
+			cn = nca > nce ? nca : nce;
+			FAILIF((s->c = sd_malloc(sizeof(double) * cn)) == NULL, "alloc coupling array failed.")
 		} else {
 			s->nca = 0;
 			s->c = NULL;
@@ -145,9 +159,6 @@ sd_sol_new_default(
 		s->t = t0;
 		s->dt = dt;
 	}
-	clock_t toc = clock();
-	double walltime = (double) (toc - tic) / CLOCKS_PER_SEC;
-	sd_log_info("continuation required %.3f s walltime\n", walltime);
 	return sol;
 uhoh:
 	/* clean up */

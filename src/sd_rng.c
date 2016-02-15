@@ -21,12 +21,13 @@ static void rng_seed(sd_rng *r, uint32_t seed)
 static double rng_norm(sd_rng *r)
 {
 	struct rng_data *d = r->ptr;
-	return rk_gauss(&d->rks);
+	return rk_gauss(&(d->rks));
 }
 
 static double rng_uniform(sd_rng *r)
 {
-	return rk_double(&(((struct rng_data *) r->ptr)->rks));
+	struct rng_data *d = r->ptr;
+	return rk_random(&(d->rks)) * 1.0 / RK_MAX;
 }
 
 static void rng_fill_norm(sd_rng *r, uint32_t n, double *x)

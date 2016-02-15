@@ -4,7 +4,7 @@
 
 typedef struct hist_data
 {
-	/*               nu+1   nu    nu    nu   nd, maxvi */
+	/*               nu+1   nu    nu    nu   nd, maxvi+1 */
 	uint32_t nd, nu, *lim, *len, *pos, *uvi, *vi, *vi2i, maxvi;
 	/*   sum(len)  nu     nd 		*/
 	double *buf, *maxd, *del, dt, t;
@@ -12,6 +12,8 @@ typedef struct hist_data
 
 uint32_t get_maxvi(sd_hist *h) { return ((hist_data*) h->ptr)->maxvi; }
 uint32_t get_vi2i(sd_hist *h, uint32_t vi) { return ((hist_data*) h->ptr)->vi2i[vi]; }
+
+uint32_t *get_vi2i_vec(sd_hist *h) { return ((hist_data*) h->ptr)->vi2i; }
 
 static void update_time(sd_hist *hist, double new_t)
 {
@@ -292,6 +294,7 @@ static sd_hist sd_hist_defaults = {
 	.get_maxd = &get_maxd,
 	.get_vi = &get_vi,
 	.get_vd = &get_vd,
+	.get_vi2i_vec = &get_vi2i_vec,
 	.buf_is_null = &buf_is_null
 };
 
@@ -385,6 +388,44 @@ sd_hist_new_default(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
 	return hist;
 }
 
+/* no delay variant {{{ */
+
+static void get_no_delay(sd_hist *hist, double t, double *aff)
+{
+	(void) t;
+	struct hist_data *hd = hist->ptr;
+	for (uint32_t i=0; i<hd->nd; i++)
+		aff[i] = hd->buf[hd->vi2i[hd->vi[i]]];
+}
+
+static void set_no_delay(sd_hist *hist, double t, double *eff)
+{
+	(void) t;
+	struct hist_data *hd = hist->ptr;
+	memcpy(hd->buf, eff, sizeof(double) * hd->maxvi);
+}
+
+struct sd_hist *
+sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
+{
+	struct sd_hist *hist = sd_hist_new_default(nd, vi, vd, t0, dt);
+	if (hist == NULL)
+	{
+		sd_err("hist no delay init failed.");
+		return NULL;
+	}
+	/*
+	struct hist_data *hd = hist->ptr;
+	sd_free(hd->buf);
+	hd->buf = sd_malloc(sizeof(double) * hd->maxvi);
+	*/
+	hist->get = &get_no_delay;
+	hist->set = &set_no_delay;
+	return hist;
+}
+
+/* }}} */
+
 static sd_stat val_fill_apply(sd_hfill *hf, uint32_t n, double * restrict t,
 							  uint32_t *indices, double * restrict buf)
 {
@@ -417,3 +458,6 @@ sd_hfill_new_val(double val)
 	hf->apply = &val_fill_apply;
 	return hf;
 }
+
+/* vim: foldmethod=marker
+ */

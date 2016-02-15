@@ -13,6 +13,8 @@ typedef struct netd
 	sd_sys **models;
 	/* flag for init1 use */
 	bool _init1;
+	/* cache vi2i from history */
+	uint32_t *vi2i;
 } netd;
 
 static uint32_t  get_n       (sd_net *net)             { return ((netd*)net->ptr)->n; }
@@ -44,10 +46,13 @@ static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 	sd_sys **sysi = d->models;
 	sd_sys_in in_l = *in;
 	sd_sys_out out_l = *out;
+	/* cache vi2i if not present */
+	if (d->vi2i==NULL)
+		d->vi2i = in->hist->get_vi2i_vec(in->hist);
 	/* compute (sparse) inputs */
 	for (l=0; l<d->ne; l++) 
 		for (d->cn[l]=0.0, j=d->Or[l]; j<d->Or[l+1]; j++)
-			d->cn[l] += in->i[in->hist->get_vi2i(in->hist, d->Ic[j])] * d->w[j];
+			d->cn[l] += in->i[d->vi2i[d->Ic[j]]] * d->w[j];
 	/* TODO redo, this is not restrict */
 	in_l.i = out_l.o = d->cn;
 	for (l = 0; l < d->n; l++)
@@ -223,6 +228,7 @@ sd_net_new_het(uint32_t n, uint32_t m,
 		return NULL;
 	}
 	net->_init1 = 0;
+	net->vi2i = NULL;
 	return &(net->net_if);
 }
 

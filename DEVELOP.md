@@ -39,6 +39,23 @@ Contributing an implementation of a particular interface therefore implies
 Keep in mind that if you 'subclass' an existing interface, some methods like
 `free` should be available (and correctly implemented) in both
 
+## Profiling
+
+Profiling the code means compiling it with specific flags and running benchmarks
+or test code to generate information on how much time each part of the code takes.
+
+The quickest way to start is to build tests or benchmarks with GCC coverage/profiling.
+
+```$
+```
+
+But Valgrind's callgrind tool provides more detail (line-by-line profiling) at greater
+runtime cost. The makefile can build callgrind-compatible binaries like so
+```bash
+make -B -j SANFLAGS= BUILD=fast FDO=callgrind bench_vmb
+```
+
+
 ## What is SD_API?
 
 It is defined in [sddekit.h](https://github.com/maedoc/sddekit/blob/master/src/sddekit.h#L22)
