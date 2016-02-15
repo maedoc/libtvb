@@ -1270,7 +1270,7 @@ sd_out_new_until(double time);
  * Create new out for ignoring x or c.
  */
 SD_API sd_out *
-sd_out_ignore(bool ignore_x, bool ignore_c);
+sd_out_new_ign(bool ignore_x, bool ignore_c, struct sd_out *next);
 
 /* out }}} */
 

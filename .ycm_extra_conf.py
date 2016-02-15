@@ -25,7 +25,7 @@ import ycm_core
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
 flags = [
 	'-Wall', '-Wextra', '-Wpedantic', '-fexceptions', '-fstrict-aliasing',
-	'-I', './include', '-isystem', '/usr/include', '-isystem', '/usr/local/include',
+	'-I', './src', '-isystem', '/usr/include', '-isystem', '/usr/local/include',
 	'-DSKDEBUG',
 ]
 

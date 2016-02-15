@@ -309,3 +309,45 @@ TEST(out, conv) {
 	SD_CALL_AS_(conv, out, free);
 	sd_free(filt);
 }
+
+struct ign_test
+{
+	double t;
+	bool nx_zero, nc_zero, x_null, c_null;
+};
+
+static sd_stat ign_test_apply(void *data, double t, uint32_t nx, double *x, uint32_t nc, double *c)
+{
+	struct ign_test *d = data;
+	d->t = t;
+	d->nx_zero = nx == 0;
+	d->nc_zero = nc == 0;
+	d->x_null = x == NULL;
+	d->c_null = c == NULL;
+	return SD_CONT;
+}
+
+static void test_ign_cond(bool x, bool c)
+{
+	double t = M_PI;
+	sd_out *ign, *test;
+	struct ign_test test_data = { 0 };
+	test = sd_out_new_cb(&test_data, &ign_test_apply);
+	ign = sd_out_new_ign(x, c, test);
+	ign->apply(ign, t, 5, &t, 4, &t);
+	EXPECT_EQ(test_data.t, t);
+	EXPECT_EQ(test_data.nx_zero, x);
+	EXPECT_EQ(test_data.nc_zero, c);
+	EXPECT_EQ(test_data.x_null, x);
+	EXPECT_EQ(test_data.c_null, c);
+	ign->free(ign);
+	test->free(test);
+}
+
+TEST(out, ign)
+{
+	test_ign_cond(true, true);
+	test_ign_cond(false, true);
+	test_ign_cond(true, false);
+	test_ign_cond(false, false);
+}
