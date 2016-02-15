@@ -65,6 +65,8 @@ void sd_hrf_volt1(uint32_t n, double dt, double *x)
 	       k_1 = 5.6,
 	       V_0 = 0.02;
 
+	(void) k_1; (void) V_0;
+
 	if (n < 2 || dt<=0.0 || x==NULL)
 	{
 		sd_err("n<2, non-positive dt or NULL x pointers");

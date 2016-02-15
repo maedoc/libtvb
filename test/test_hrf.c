@@ -5,7 +5,6 @@
 
 TEST(hrf, glover) 
 {
-	uint32_t i;
 	double h[30];
 
 	sd_hrf_glover(30, 1.0, h);
@@ -16,7 +15,6 @@ TEST(hrf, glover)
 
 TEST(hrf, volt1) 
 {
-	uint32_t i;
 	double h[30];
 
 	sd_hrf_volt1(30, 1.0, h);

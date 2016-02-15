@@ -39,13 +39,13 @@ static void free_rww(struct sd_sys_rww *rww) { sd_free(rww->ptr); }
 
 /* get / set parameters */
 #define PAR(n, v) \
-	static double get_##n(sd_sys_rww *sys) \
+	static double get_##n(struct sd_sys_rww *sys) \
 	{\
-		return ((struct rww *r) sys->ptr).pars.n;\
+		return ((struct rww *) sys->ptr)->pars.n;\
 	}\
-	static void set_##n(sd_sys_rww *sys, double val) \
+	static void set_##n(struct sd_sys_rww *sys, double val) \
 	{\
-		((struct rww *r) sys->ptr).pars.n = val;\
+		((struct rww *) sys->ptr)->pars.n = val;\
 	}
 #define LPAR(n, v) PAR(n, v)
 #include "rww_pars.h"
@@ -73,7 +73,7 @@ static sd_stat apply(sd_sys *s, sd_sys_in *in, sd_sys_out *out)
 	return SD_OK;
 }
 
-sd_sys sys_default = { 
+static sd_sys sys_default = { 
 	.ptr = NULL,
 	.ndim = &ndim,
 	.ndc = &ndc,
@@ -84,7 +84,7 @@ sd_sys sys_default = {
 	.free = &free_sys
 };
 
-sd_sys * get_sys(sd_sys_rww *r) { return &(((struct rww*) r->ptr)->sys_if); }
+sd_sys * get_sys(struct sd_sys_rww *r) { return &(((struct rww*) r->ptr)->sys_if); }
 
 struct sd_sys_rww rww_default = {
 	.ptr = NULL,

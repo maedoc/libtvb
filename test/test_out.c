@@ -243,6 +243,7 @@ static sd_stat keep_last_apply(void *data, double t,
 	uint32_t nx, double * restrict x,
 	uint32_t nc, double * restrict c)
 {
+	(void) nx; (void) nc;
 	keep_last *d = data;
 	d->x[0] = x[0];
 	d->x[1] = x[1];

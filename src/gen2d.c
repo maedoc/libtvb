@@ -74,6 +74,7 @@ static sd_sys * get_sys(sd_sys_gen2d *s) { return &(((gen2d*) s->ptr)->sys_if); 
 
 static sd_sys_gen2d gen2d_if_default = { 
 	.ptr = NULL,
+	.free = &gen2d_free,
 	.sys = &get_sys,
 #define PAR(n, v) .get_##n = &get_##n, .set_##n = &set_##n,
 #define LASTPAR(n, v) .get_##n = &get_##n, .set_##n = &set_##n
