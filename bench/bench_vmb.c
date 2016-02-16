@@ -92,7 +92,7 @@ void out_init(double dt, double tf, char *lfp_fname, char *bold_fname)
 int main(int argc, char *argv[])
 {
 	/* defaults, can read from args if required */
-	double dt=0.1, tf=10e3;
+	double dt=0.1, tf=10e3, I=0.3, G=0.0, w=1.0, sigma=0.0042;
 	char *lfp_fname="lfp.txt", *bold_fname="bold.txt",
 	     *w_fname="weights.txt";
 
@@ -110,19 +110,24 @@ int main(int argc, char *argv[])
 			if (argv[i][j]=='=')
 			{
 				argv[i][j] = '\0';
-				if (!strcmp(argv[i], "tf"))
-				{
-					tf = strtod(argv[i]+j+1, NULL);
-					sd_log_info("tf set to %g", tf);
-					break;
+#define PARSE(var)\
+				if (!strcmp(argv[i], #var))\
+				{\
+					var = strtod(argv[i]+j+1, NULL);\
+					sd_log_info(#var " set to %g", var);\
+					break;\
 				}
-				else
-				{
-					sd_log_info("unknown arg %s", argv[i]);
-				}
+                PARSE(tf)
+                PARSE(dt)
+                PARSE(I)
+                PARSE(G)
+                PARSE(w)
+                PARSE(sigma)
 			}
 		}
 	}
+    
+    sd_log_info("I=%g w=%g G=%g tf=%g dt=h=%g sigma=%g", I, w, G, tf, dt, sigma);
 
 	/* setup output, use o_ign */
 	out_init(dt, tf, lfp_fname, bold_fname);
@@ -138,12 +143,14 @@ int main(int argc, char *argv[])
 	for (uint32_t i=0; i<nz_conn_weights; i++)
 	{
 		delays[i] = 0.0;
-		conn_weights_sparse[i] *= 1e-3;
+		conn_weights_sparse[i] *= G;
 	}
 
 	/* setup model */
 	struct sd_sys_rww *rww = sd_sys_rww_new();
-	rww->set_D(rww, 1e-2);
+	rww->set_D(rww, sigma);
+    rww->set_w(rww, w);
+    rww->set_I_o(rww, I);
 	struct sd_net *net = sd_net_new_hom(n_node, SD_AS(rww, sys), 1, 1, 1,
 		nz_conn_weights, row_offsets, col_indices, conn_weights_sparse, delays);
 
