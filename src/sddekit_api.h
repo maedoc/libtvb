@@ -593,6 +593,7 @@ sd_sys_exc_new();
 
 #include "gen2d.h"
 #include "rww.h"
+#include "hmje.h"
 
 /* net {{{ */
 

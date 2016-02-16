@@ -68,7 +68,7 @@ libSDDEKit.$(DLLEXT): $(o_lib)
 	$(CC) -shared $^ -o libSDDEKit.$(DLLEXT) $(LDFLAGS)
 
 clean:
-	$(RM) $(o_lib) $(o_test) bench_* tests* *.dat *.exe *.$(DLLEXT) *.ilk *.pdb
+	$(RM) $(o_lib) $(o_test) bench_* tests* *.dat *.exe *.$(DLLEXT) *.ilk *.pdb *.gcda callgrind.out.*
 
 gh-pages:
 	git branch -D gh-pages

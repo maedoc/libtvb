@@ -52,11 +52,11 @@ static void free_rww(struct sd_sys_rww *rww) { sd_free(rww->ptr); }
 #undef PAR
 #undef LPAR
 
-uint32_t  ndim(sd_sys *s) { (void) s;  return 1; }
-uint32_t   ndc(sd_sys *s) { (void) s;  return 1; }
-uint32_t  nobs(sd_sys *s) { (void) s;  return 1; }
-uint32_t nrpar(sd_sys *s) { (void) s;  return 9; }
-uint32_t nipar(sd_sys *s) { (void) s;  return 0; }
+static uint32_t  ndim(sd_sys *s) { (void) s;  return 1; }
+static uint32_t   ndc(sd_sys *s) { (void) s;  return 1; }
+static uint32_t  nobs(sd_sys *s) { (void) s;  return 1; }
+static uint32_t nrpar(sd_sys *s) { (void) s;  return 9; }
+static uint32_t nipar(sd_sys *s) { (void) s;  return 0; }
 
 static sd_stat apply(sd_sys *s, sd_sys_in *in, sd_sys_out *out)
 {
