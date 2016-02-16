@@ -60,7 +60,7 @@ void out_init(double dt, double tf, char *lfp_fname, char *bold_fname)
 int main(int argc, char *argv[])
 {
 	/* defaults, can read from args if required */
-    uint32_t seed=42
+    uint32_t seed=42;
 	double dt=0.1, tf=10e3, I=0.3, G=0.0, w=1.0, sigma=0.0042;
 	char *lfp_fname="lfp.txt", *bold_fname="bold.txt",
 	     *w_fname="weights.txt";
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 			if (argv[i][j]=='=')
 			{
 				argv[i][j] = '\0';
-                if (!strcmp(argv[i], "seed")
+                if (!strcmp(argv[i], "seed"))
                 {
                     seed = atoi(argv[i]+j+1);
                     sd_log_info("seed set to %d", seed);
@@ -131,14 +131,14 @@ int main(int argc, char *argv[])
 
 	/* setup soln */
 	struct sd_rng *rng = sd_rng_new_default();
-	rng->seed(rng, 42);
+	rng->seed(rng, seed);
 	double *r0 = sd_malloc(sizeof(double)*n_node);
 	for (uint32_t i=0; i<n_node; i++)
 		r0[i] = rng->uniform(rng);
 	sd_sch *eul = sd_sch_new_em(n_node);
 	sd_hfill *hf = sd_hfill_new_val(0.0);
 	sd_sol *sol = sd_sol_new_default(SD_AS(net, sys), eul, o_ign, hf,
-		42, n_node, r0, n_node, nz_conn_weights, col_indices,
+		seed, n_node, r0, n_node, nz_conn_weights, col_indices,
 	       	delays, 0.0, dt);
 
 	/* solve */
