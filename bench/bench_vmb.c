@@ -98,7 +98,15 @@ int main(int argc, char *argv[])
 
 	/* read some args */
 	for (int i=1; i<argc; i++)
+	{
+		if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "help"))
+		{
+			fprintf(stderr, "option %s, default %g", "dt", dt);
+			fprintf(stderr, "option %s, default %g", "tf", tf);
+			return 0;
+		}
 		for (uint32_t j=0; j<strlen(argv[i]); j++)
+		{
 			if (argv[i][j]=='=')
 			{
 				argv[i][j] = '\0';
@@ -113,6 +121,8 @@ int main(int argc, char *argv[])
 					sd_log_info("unknown arg %s", argv[i]);
 				}
 			}
+		}
+	}
 
 	/* setup output, use o_ign */
 	out_init(dt, tf, lfp_fname, bold_fname);
