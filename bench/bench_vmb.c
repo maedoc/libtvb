@@ -31,7 +31,7 @@ void out_done()
 void out_init(double dt, double tf, char *lfp_fname, char *bold_fname)
 {
 	uint32_t hrf_len=60;
-	double hrf_coef[60], hrf_dt = 500.0, lfp_dt=5.0;
+	double hrf_coef[60], hrf_dt = 100.0, lfp_dt=1.0;
 
 	o_tee = sd_out_tee_new(3);
 
@@ -60,6 +60,7 @@ void out_init(double dt, double tf, char *lfp_fname, char *bold_fname)
 int main(int argc, char *argv[])
 {
 	/* defaults, can read from args if required */
+    uint32_t seed=42
 	double dt=0.1, tf=10e3, I=0.3, G=0.0, w=1.0, sigma=0.0042;
 	char *lfp_fname="lfp.txt", *bold_fname="bold.txt",
 	     *w_fname="weights.txt";
@@ -78,6 +79,12 @@ int main(int argc, char *argv[])
 			if (argv[i][j]=='=')
 			{
 				argv[i][j] = '\0';
+                if (!strcmp(argv[i], "seed")
+                {
+                    seed = atoi(argv[i]+j+1);
+                    sd_log_info("seed set to %d", seed);
+                    break;
+                }
 #define PARSE(var)\
 				if (!strcmp(argv[i], #var))\
 				{\
