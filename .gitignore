@@ -33,3 +33,5 @@ junit.xml
 *.bc.
 *.dSYM
 .DS_Store
+*.ipynb
+.ipynb_checkpoints
