@@ -18,7 +18,7 @@ struct rww_pars
 #undef LPAR
 };
 
-struct rww_pars default_pars = {
+static struct rww_pars default_pars = {
 #define LPAR(n, v) .n = v
 #define PAR(n, v) LPAR(n, v),
 #include "rww_pars.h"
@@ -86,7 +86,7 @@ static sd_sys sys_default = {
 
 sd_sys * get_sys(struct sd_sys_rww *r) { return &(((struct rww*) r->ptr)->sys_if); }
 
-struct sd_sys_rww rww_default = {
+static struct sd_sys_rww rww_default = {
 	.ptr = NULL,
 	.free = &free_rww,
 	.sys = &get_sys,

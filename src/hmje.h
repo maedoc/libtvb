@@ -36,6 +36,6 @@ struct sd_sys_hmje
 };
 
 SD_API struct sd_sys_hmje *
-sd_sys_hmje();
+sd_sys_hmje_new();
 
 #endif

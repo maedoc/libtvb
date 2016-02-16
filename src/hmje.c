@@ -12,7 +12,7 @@ struct hmje_pars
 #undef LPAR
 };
 
-struct hmje_pars default_pars = {
+static struct hmje_pars default_pars = {
 #define LPAR(n, v) .n = v
 #define PAR(n, v) LPAR(n, v),
 #include "hmje_pars.h"
@@ -112,7 +112,7 @@ static sd_sys sys_default = {
 	.free = &free_sys
 };
 
-sd_sys * get_sys(struct sd_sys_hmje *r) { return &(((struct hmje*) r->ptr)->sys_if); }
+static sd_sys * get_sys(struct sd_sys_hmje *r) { return &(((struct hmje*) r->ptr)->sys_if); }
 
 struct sd_sys_hmje hmje_default = {
 	.ptr = NULL,
