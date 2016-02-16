@@ -3,35 +3,6 @@
 #include "sddekit.h"
 #include <time.h>
 
-struct subsamp_data {
-	uint32_t pos, len;
-	sd_out *next;
-};
-
-static sd_stat subsamp_apply(void *data, double t,
-	uint32_t nx, double * restrict x,
-	uint32_t nc, double * restrict c)
-{
-	struct subsamp_data *d = data;
-	d->pos++;
-	if (d->pos == d->len)
-	{
-		d->pos = 0;
-		return d->next->apply(d->next, t, nx, x, nc, c);
-	}
-	return SD_CONT;
-}
-
-sd_out * subsamp_new(uint32_t len, sd_out *next)
-{
-	struct subsamp_data *d = sd_malloc(sizeof(struct subsamp_data));
-	d->len = len;
-	d->pos = 0;
-	d->next = next;
-	sd_log_debug("subsamp pos %d len %d", d->pos, d->len);
-	return sd_out_new_cb(d, &subsamp_apply);
-}
-
 /* output graph {{{
  *
  * raw -> ignore c -> lfp tavg -> tee -> file
@@ -40,8 +11,7 @@ sd_out * subsamp_new(uint32_t len, sd_out *next)
  */
 struct sd_out *o_ign, *o_tf;
 struct sd_out_file *of_lfp, *of_bold;
-/* struct sd_out_tavg *ot_lfp, *ot_bold; */
-struct sd_out *ot_lfp, *ot_bold;
+struct sd_out_tavg *ot_lfp, *ot_bold;
 struct sd_out_tee *o_tee;
 struct sd_out_conv *oc_bold;
 
@@ -50,8 +20,8 @@ void out_done()
 	uint32_t i;
 	sd_out *outs[8] = {o_ign, o_tf, SD_AS(of_lfp, out),
 		SD_AS(of_bold, out), 
-		ot_lfp, /* SD_AS(ot_lfp, out), */
-		ot_bold, /* SD_AS(ot_bold, out),  */
+		SD_AS(ot_lfp, out),
+		SD_AS(ot_bold, out),
 		SD_AS(o_tee, out),
 		SD_AS(oc_bold, out)};
 	for (i=0; i<8; i++)
@@ -76,15 +46,13 @@ void out_init(double dt, double tf, char *lfp_fname, char *bold_fname)
 	of_bold = sd_out_file_new_from_name(bold_fname);
 	sd_hrf_volt1(hrf_len, hrf_dt, hrf_coef);
 	oc_bold = sd_out_conv_new(hrf_len, hrf_coef, SD_AS(of_bold, out));
-	/*ot_bold = sd_out_tavg_new((uint32_t) (hrf_dt / lfp_dt), SD_AS(oc_bold, out));*/
-	ot_bold = subsamp_new((uint32_t) (hrf_dt / lfp_dt), SD_AS(oc_bold, out));
-	o_tee->set_out(o_tee, 2, ot_bold); /*SD_AS(ot_bold, out));*/
+	ot_bold = sd_out_tavg_new((uint32_t) (hrf_dt / lfp_dt), SD_AS(oc_bold, out));
+	o_tee->set_out(o_tee, 2, SD_AS(ot_bold, out));
 
 	/* feed tee with lfp tavg */
-	/*ot_lfp = sd_out_tavg_new((uint32_t) (lfp_dt / dt), SD_AS(o_tee, out));*/
-	ot_lfp = subsamp_new((uint32_t) (lfp_dt / dt), SD_AS(o_tee, out));
+	ot_lfp = sd_out_tavg_new((uint32_t) (lfp_dt / dt), SD_AS(o_tee, out));
 
-	o_ign = sd_out_new_ign(false, true, ot_lfp); /*SD_AS(ot_lfp, out));*/
+	o_ign = sd_out_new_ign(false, true, SD_AS(ot_lfp, out));
 }
 
 /* output graph }}} */
