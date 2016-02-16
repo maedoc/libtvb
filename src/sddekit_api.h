@@ -817,10 +817,8 @@ sd_net_new_het(uint32_t n, uint32_t m, uint32_t * restrict M, uint32_t * restric
 /**
  * Init network for homogeneous model case where m==1, simplifying setup.
  *
- * \param net network to initialize.
  * \param n number of nodes in network.
  * \param sys model system to use.
- * \param data user data for system.
  * \param ns number of state variables for system.
  * \param na number of afferent terms for system.
  * \param ne number of efferent terms for system.
@@ -1602,23 +1600,41 @@ SD_API void sd_log_set_verbose(bool flag);
 /**
  * Define logging macros differently depending on the compiler being used.
  */
+
+/* use color when available */
+#define SD_KNRM  "\x1B[0m"
+#define SD_KRED  "\x1B[31m"
+#define SD_KGRN  "\x1B[32m"
+#define SD_KYEL  "\x1B[33m"
+#define SD_KBLU  "\x1B[34m"
+#define SD_KMAG  "\x1B[35m"
+#define SD_KCYN  "\x1B[36m"
+#define SD_KWHT  "\x1B[37m"
+#define SD_RESET "\033[0m"
+
 #ifdef _MSC_VER
 #ifdef mex_h
 #define sd_log_info(fmt, ...) if (!sd_log_is_quiet()) \
 	sd_log_msg("[INFO] <a href=\"matlab: opentoline('%s', %d)\">%s:%d</a> (%s) " fmt "\n", __FILE__, __LINE__, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 #define sd_log_debug(fmt, ...) if (sd_log_is_verbose()) \
 	sd_log_msg("[DEBUG] <a href=\"matlab: opentoline('%s', %d)\">%s:%d</a> (%s) " fmt "\n", __FILE__, __LINE__, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#define sd_log_fail(fmt, ...) \
+	sd_log_msg("[FAIL] <a href=\"matlab: opentoline('%s', %d)\">%s:%d</a> (%s) " fmt "\n", __FILE__, __LINE__, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 #else /* not mex_h */
 #define sd_log_info(fmt, ...) if (!sd_log_is_quiet()) \
 	sd_log_msg("[INFO] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 #define sd_log_debug(fmt, ...) if (sd_log_is_verbose()) \
 	sd_log_msg("[DEBUG] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#define sd_log_fail(fmt, ...) \
+	sd_log_msg("[FAIL] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 #endif /* ifdef mex_h */
 #else /* use GCC double hash to eat final comma */
 #define sd_log_info(fmt, ...) if (!sd_log_is_quiet()) \
-	sd_log_msg("[INFO] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
+	sd_log_msg(SD_KGRN "[INFO]" SD_KBLU " %s:%d (%s) " SD_RESET fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
 #define sd_log_debug(fmt, ...) if (sd_log_is_verbose()) \
-	sd_log_msg("[DEBUG] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
+	sd_log_msg(SD_KYEL "[DEBUG]" SD_KBLU " %s:%d (%s) " SD_RESET fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
+#define sd_log_fail(fmt, ...) \
+	sd_log_msg(SD_KRED "[FAIL]" SD_KBLU " %s:%d (%s) " SD_RESET fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
 #endif
 
 /* log }}} */

@@ -83,7 +83,7 @@ static void dump_junit_xml()
 void sd_test_failed(const char *scond, const char *fname, int lineno)
 {
 	nfail++;
-	fprintf(stderr, "[sd_test] FAILURE %d/%d %s:%d `%s'\n",
+	sd_log_fail("test failure %d/%d %s:%d `%s'",
 			nfail, ntest, fname, lineno, scond);
 }
 
@@ -110,9 +110,9 @@ void sd_test_assert_near(double expected, double actual, double tol, const char 
 int sd_test_report()
 {
 	if (nfail > 0) {
-		sd_log_info( "[sd_test] %d/%d tests failed", nfail, ntest );
+		sd_log_fail("%d/%d tests failed", nfail, ntest );
 	} else {
-		sd_log_info( "[sd_test] all %d tests passed", ntest );
+		sd_log_info("all %d tests passed", ntest );
 	}
 	dump_junit_xml();
 	free_tests();

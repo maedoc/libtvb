@@ -46,13 +46,23 @@ static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 	sd_sys **sysi = d->models;
 	sd_sys_in in_l = *in;
 	sd_sys_out out_l = *out;
-	/* cache vi2i if not present */
-	if (d->vi2i==NULL)
-		d->vi2i = in->hist->get_vi2i_vec(in->hist);
 	/* compute (sparse) inputs */
 	for (l=0; l<d->ne; l++) 
-		for (d->cn[l]=0.0, j=d->Or[l]; j<d->Or[l+1]; j++)
-			d->cn[l] += in->i[d->vi2i[d->Ic[j]]] * d->w[j];
+	{
+		if (0)
+			for (d->cn[l]=0.0, j=d->Or[l]; j<d->Or[l+1]; j++)
+				d->cn[l] += in->i[d->vi2i[d->Ic[j]]] * d->w[j];
+
+		double sum = 0.0;
+		double *ij = in->i + d->Or[l];
+		double *wj = d->w + d->Or[l];
+		uint32_t j=0, n=d->Or[l+1] - d->Or[l];
+
+		while (j++ < n)
+			sum += *ij++ * *wj++;
+
+		d->cn[l] = sum;
+	}
 	/* TODO redo, this is not restrict */
 	in_l.i = out_l.o = d->cn;
 	for (l = 0; l < d->n; l++)
@@ -61,7 +71,7 @@ static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 		if ((stat = (*sysi)->apply(*sysi, &in_l, &out_l)) != SD_OK)
 			return stat;
 		/* TODO double check */
-		in_l.id += 1;
+		in_l.id = l;
 		in_l.i += d->Ma[ml];
 		in_l.x += d->Ms[ml];
 		out_l.f += d->Ms[ml];
