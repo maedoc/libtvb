@@ -15,7 +15,7 @@ struct sd_conn
 
 struct conn
 {
-	uint32_t nnz, nrow, ncol,
+	uint32_t nnz, nrow, ncol
 	       , * restrict row_offsets
 	       , * restrict col_indices;
 	double * restrict weights
@@ -50,7 +50,7 @@ get_el(struct sd_conn *sd_conn,
 	}
 
 non_zero:
-	*val = 0.0:
+	*val = 0.0;
 	return SD_ZERO;
 }
 

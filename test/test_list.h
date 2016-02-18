@@ -1,6 +1,7 @@
 /* list of tests. If your test is TEST(foo, bar) then you should
  * add TEST_FOUND(foo, bar) here.
  */
+TEST_FOUND(arith, sum)
 TEST_FOUND(dat_read_square, matrix)
 TEST_FOUND(err, basic)
 TEST_FOUND(exc, em)

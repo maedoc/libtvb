@@ -31,6 +31,12 @@ typedef enum sd_stat {
 
 /* utilities {{{ */
 
+SD_API double
+sd_arith_sum0(uint32_t n, double *x);
+
+SD_API double
+sd_arith_sum1(uint32_t n, double *x);
+
 /**
  * Read a square matrix from file in ascii format into w.
  * \note w must be freed by user.
