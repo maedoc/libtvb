@@ -83,7 +83,7 @@ static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 		out->o[l] = d->cn[d->Ic[l]];
 	return SD_OK;
 }
-
+// new(sys, conn)
 sd_net *sd_net_new_hom(uint32_t n, sd_sys *sys,
 		uint32_t ns, uint32_t na, uint32_t ne,
 		uint32_t nnz, 
