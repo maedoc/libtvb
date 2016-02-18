@@ -5,7 +5,7 @@
 #include "sddekit.h"
 #include "test.h"
 
-TEST(test_sparse, test_sparse_from_dense) {
+TEST(sparse, fromdense) {
 	uint32_t n, nnz, *Or, *Ic;
 	double A[4], B[4], *sA, *sB; 
 
