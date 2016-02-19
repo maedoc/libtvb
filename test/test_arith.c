@@ -17,4 +17,5 @@ TEST(arith, sum)
 		x[i] = 1.0;
 	EXPECT_EQ(0, sd_arith_sum0(n, x)/n-1.0);
 	EXPECT_EQ(0, sd_arith_sum1(n, x)/n-1.0);
+	rng->free(rng);
 }
