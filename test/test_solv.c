@@ -65,6 +65,8 @@ static sd_stat test_out(void *data, double t,
 #define NC 2
 
 TEST(solv, simple) {
+	sd_malloc_reg_init();
+	uint32_t tic;
 	uint32_t vi[NC];
 	double x[NX], vd[NX], rand0;
 	sys_data sysd;
@@ -77,7 +79,10 @@ TEST(solv, simple) {
 	sd_rng *rng;
 	sd_hfill *hf;
 
+	tic = sd_malloc_total_nbytes();
 	rng = sd_rng_new_default();
+	EXPECT_EQ( tic + rng->nbytes(rng), sd_malloc_total_nbytes());
+
 	rng->seed(rng, SEED);
 	rand0 = rng->norm(rng);
 	rng->free(rng);
@@ -128,4 +133,5 @@ TEST(solv, simple) {
 	sch->free(sch);
 	sys->free(sys);
 	sol->free(sol);
+	sd_malloc_reg_stop();
 }

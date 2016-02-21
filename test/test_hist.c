@@ -26,6 +26,8 @@ sd_hfill *hf_t_new()
 #define ND 4
 
 TEST(hist, basic) {
+	sd_malloc_reg_init();
+	uint32_t tic;
 	uint32_t i, vi[ND];
 	double dt, vd[ND], x[ND];
 	sd_hist *h;
@@ -40,7 +42,9 @@ TEST(hist, basic) {
 	vd[1] = 4.5 * dt;
 	vd[2] = 33.3 * dt;
 	vd[3] = 0.0;
+	tic = sd_malloc_total_nbytes();
 	h = sd_hist_new_default(ND, vi, vd, 0.0, dt);
+	EXPECT_EQ( tic + h->nbytes(h), sd_malloc_total_nbytes());
 
 	EXPECT_EQ(ND, h->get_nd(h));
 	EXPECT_EQ(0.0, h->get_t(h));
@@ -93,6 +97,7 @@ TEST(hist, basic) {
 	ASSERT_NEAR( h->get_buf_lin(h, 36 + 7), 2.0, 1e-15);
 
 	h->free(h);
+	sd_malloc_reg_stop();
 }
 
 static uint32_t het_ndim(sd_sys *sys) { (void) sys; return 1; }

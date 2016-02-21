@@ -396,6 +396,14 @@ SD_API sd_stat
 sd_malloc_reg_query(void *);
 
 /**
+ * return total bytes allocated by sd_malloc after register init.
+ * return 0 if register not inititalized or no memory allocated after init.
+ */
+
+SD_API uint32_t
+sd_malloc_total_nbytes();
+
+/**
  * Free memory using current allocator.
  */
 
@@ -489,6 +497,11 @@ struct sd_sys {
 	 * \return SD_OK if calculation succeeds, SD_ERR if error occurs.
 	 */
 	sd_stat (*apply)(sd_sys*, sd_sys_in*, sd_sys_out*);
+
+	/**
+	 * \return number of bytes used by this system instance.
+	 */
+	uint32_t (*nbytes)(sd_sys*);
 
 	/**
 	 * Free memory allocated for this system instance.
@@ -645,6 +658,11 @@ struct sd_net {
 	 * Get system interface for this network.
 	 */
 	sd_sys * ( * sys)(sd_net *d);
+
+	/**
+	 * \return number of bytes used by this network.
+	 */
+	uint32_t (*nbytes)(sd_net *d);
 
 	/**
 	 * Free memory allocated for this network.
@@ -867,6 +885,11 @@ struct sd_out {
 	 * Free memory allocated for this output instance.
 	 */
 	void (*free)(sd_out *);
+
+	/**
+	 * \return number of bytes used by this output instance.
+	 */
+	uint32_t (*nbytes)(sd_out *);
 
 	/**
 	 * Apply output to current state.
@@ -1342,6 +1365,11 @@ struct sd_sch {
 		uint32_t nc, double * restrict c);
 
 	/**
+	 * \return number of bytes used for this scheme.
+	 */
+	uint32_t (*nbytes)(sd_sch *);
+
+	/**
 	 * Free memory allocated for this scheme.
 	 */
 	void (*free)(sd_sch *);
@@ -1432,6 +1460,11 @@ struct sd_sol {
 	 * \param s allocated solver instance.
 	 */
 	void (*free)(sd_sol *s);
+
+	/**
+	 * \return number of bytes used by this solver instance.
+	 */
+	uint32_t (*nbytes)(sd_sol *s);
 
 	/**
 	 * Continue stepping in time until one or more outputs returns 0 to stop.
