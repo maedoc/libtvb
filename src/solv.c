@@ -5,14 +5,15 @@
 
 typedef struct sol_data {
 	uint32_t nx, nca, nce;
-	sd_stat cont;
-	sd_sys *sys;
-	sd_sch *sch;
-	sd_out *out;
-	sd_hfill *hf;
-	sd_hist *hist; /* nd==nca, ci, cd */
-	sd_rng *rng; /* TODO mv to scheme? */
+	enum sd_stat cont;
+	struct sd_sch *sch;
+	struct sd_out *out;
 	double t, dt, *x, *c, *x0;
+	/* TODO the rest moves to scheme */
+	struct sd_sys *sys;
+	struct sd_hfill *hf;
+	struct sd_hist *hist; /* nd==nca, ci, cd */
+	struct sd_rng *rng;
 } sol_data;
 
 static void sol_free(sd_sol *sol)
