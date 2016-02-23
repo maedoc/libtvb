@@ -29,7 +29,7 @@ struct sd_sys_hmje
 	double (*get_##n)(struct sd_sys_hmje *);\
 	void   (*set_##n)(struct sd_sys_hmje *, double);
 #define LPAR(n, v) PAR(n, v)
-#include "hmje_pars.h"
+#include "sys_hmje_pars.h"
 #undef PAR
 #undef LPAR
 

@@ -26,7 +26,7 @@ struct sd_sys_gen2d {
 	double (*get_##n)(sd_sys_gen2d *);\
 	void (*set_##n)(sd_sys_gen2d *, double);
 #define LASTPAR(n, v) PAR(n, v)
-#include "gen2d_pars.h"
+#include "sys_gen2d_pars.h"
 #undef PAR
 #undef LASTPAR
 

@@ -699,9 +699,9 @@ sd_sys_exc_new();
 
 /* exc }}} */
 
-#include "gen2d.h"
-#include "rww.h"
-#include "hmje.h"
+#include "sys_gen2d.h"
+#include "sys_rww.h"
+#include "sys_hmje.h"
 
 /* net {{{ */
 

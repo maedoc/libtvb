@@ -6,7 +6,7 @@ typedef struct {
 		double 
 #define PAR(n, v) n,
 #define LASTPAR(n, v) n;
-#include "gen2d_pars.h"
+#include "sys_gen2d_pars.h"
 #undef PAR
 #undef LASTPAR
 } pars;
@@ -14,7 +14,7 @@ typedef struct {
 static pars default_pars = {
 #define PAR(name, value) .name = value,
 #define LASTPAR(name, value) .name = value
-#include "gen2d_pars.h"
+#include "sys_gen2d_pars.h"
 #undef PAR
 #undef LASTPAR
 };
@@ -31,7 +31,7 @@ typedef struct {
 	static void set_ ## name(sd_sys_gen2d *s, double new)\
 		{ ((gen2d*) s->ptr)->pars.name = new; }
 #define LASTPAR(n, v) PAR(n, v)
-#include "gen2d_pars.h"
+#include "sys_gen2d_pars.h"
 #undef PAR
 #undef LASTPAR
 
@@ -78,7 +78,7 @@ static sd_sys_gen2d gen2d_if_default = {
 	.sys = &get_sys,
 #define PAR(n, v) .get_##n = &get_##n, .set_##n = &set_##n,
 #define LASTPAR(n, v) .get_##n = &get_##n, .set_##n = &set_##n
-#include "gen2d_pars.h"
+#include "sys_gen2d_pars.h"
 #undef PAR
 #undef LASTPAR
 };

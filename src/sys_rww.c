@@ -13,7 +13,7 @@ struct rww_pars
 	double
 #define PAR(n, v) n,
 #define LPAR(n, v) n;
-#include "rww_pars.h"
+#include "sys_rww_pars.h"
 #undef PAR
 #undef LPAR
 };
@@ -21,7 +21,7 @@ struct rww_pars
 static struct rww_pars default_pars = {
 #define LPAR(n, v) .n = v
 #define PAR(n, v) LPAR(n, v),
-#include "rww_pars.h"
+#include "sys_rww_pars.h"
 #undef PAR
 #undef LPAR
 };
@@ -48,7 +48,7 @@ static void free_rww(struct sd_sys_rww *rww) { sd_free(rww->ptr); }
 		((struct rww *) sys->ptr)->pars.n = val;\
 	}
 #define LPAR(n, v) PAR(n, v)
-#include "rww_pars.h"
+#include "sys_rww_pars.h"
 #undef PAR
 #undef LPAR
 
@@ -92,7 +92,7 @@ static struct sd_sys_rww rww_default = {
 	.sys = &get_sys,
 #define LPAR(n, v) .get_##n = &get_##n, .set_##n=&set_##n
 #define PAR(n, v) LPAR(n, v),
-#include "rww_pars.h"
+#include "sys_rww_pars.h"
 #undef LPAR
 #undef PAR
 };

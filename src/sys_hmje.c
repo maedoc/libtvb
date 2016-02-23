@@ -7,7 +7,7 @@ struct hmje_pars
 	double
 #define PAR(n, v) n,
 #define LPAR(n, v) n;
-#include "hmje_pars.h"
+#include "sys_hmje_pars.h"
 #undef PAR
 #undef LPAR
 };
@@ -15,7 +15,7 @@ struct hmje_pars
 static struct hmje_pars default_pars = {
 #define LPAR(n, v) .n = v
 #define PAR(n, v) LPAR(n, v),
-#include "hmje_pars.h"
+#include "sys_hmje_pars.h"
 #undef PAR
 #undef LPAR
 };
@@ -42,7 +42,7 @@ static void free_hmje(struct sd_sys_hmje *hmje) { sd_free(hmje->ptr); }
 		((struct hmje *) sys->ptr)->pars.n = val;\
 	}
 #define LPAR(n, v) PAR(n, v)
-#include "hmje_pars.h"
+#include "sys_hmje_pars.h"
 #undef PAR
 #undef LPAR
 
@@ -120,7 +120,7 @@ struct sd_sys_hmje hmje_default = {
 	.sys = &get_sys,
 #define LPAR(n, v) .get_##n = &get_##n, .set_##n=&set_##n
 #define PAR(n, v) LPAR(n, v),
-#include "hmje_pars.h"
+#include "sys_hmje_pars.h"
 #undef LPAR
 #undef PAR
 };
