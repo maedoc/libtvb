@@ -10,6 +10,7 @@ struct conn
 	double * restrict weights
 	     , * restrict delays
 	     , delay_scale;
+	struct sd_conn sd_conn;
 };
 
 double get_delay_scale(const struct sd_conn *sd_conn)
@@ -77,3 +78,119 @@ double weighted_sum(
 	return sum;
 }
 
+const double * get_weights(
+	const struct sd_conn *c)
+{
+	return ((struct conn*) c->ptr)->weights;
+}
+
+const double * get_delays(
+	const struct sd_conn *c)
+{
+	return ((struct conn*) c->ptr)->delays;
+}
+
+uint32_t get_n_nonzeros(const struct sd_conn *sd_conn)
+{
+	return ((struct conn*) sd_conn->ptr)->nnz;
+}
+
+void free_conn(const struct sd_conn *sd_conn)
+{
+	const struct conn *conn = sd_conn->ptr;
+	sd_free(conn->weights);
+	sd_free(conn->delays);
+	sd_free(conn->row_offsets);
+	sd_free(conn->col_indices);
+	sd_free((void*) conn);
+}
+	
+const struct sd_conn * sd_conn_new_sparse(
+	uint32_t n_rows,
+	uint32_t n_cols,
+	uint32_t n_nonzeros,
+	uint32_t * restrict row_offsets,
+	uint32_t * restrict col_indices,
+	double * restrict weights,
+	double * restrict delays
+)
+{
+	struct conn *conn;
+	if ((conn = malloc(sizeof(struct conn))) == NULL)
+	{
+		sd_err("alloc conn data failed.");
+		return NULL;
+	}
+	conn->nrow = n_rows;
+	conn->ncol = n_cols;
+	conn->nnz = n_nonzeros;
+	conn->row_offsets = row_offsets;
+	conn->col_indices = col_indices;
+	conn->weights = weights;
+	conn->delays = delays;
+	conn->delay_scale = 1.0;
+	struct sd_conn c = {
+		.ptr = conn,
+		.get_el = &get_el,
+		.weighted_sum = &weighted_sum,
+		.get_weights = &get_weights,
+		.get_delays = &get_delays,
+		.get_delay_scale = &get_delay_scale,
+		.set_delay_scale = &set_delay_scale,
+		.get_n_nonzeros = &get_n_nonzeros,
+		.free = &free_conn,
+	};
+	memcpy(&(conn->sd_conn), &c, sizeof(struct sd_conn));
+	return &(conn->sd_conn);
+}
+
+const struct sd_conn * sd_conn_new_dense(
+	uint32_t n_rows,
+	uint32_t n_cols,
+	double * restrict weights,
+	double * restrict delays
+)
+{
+	enum sd_stat stat;
+	uint32_t n_nonzeros, *row_offsets, *col_indices;
+	double *sparse_weights, *sparse_delays;
+	stat = sd_sparse_from_dense(
+		n_rows, n_cols, weights, delays, 0.0,
+		&n_nonzeros, &row_offsets, &col_indices,
+		&sparse_weights, &sparse_delays);
+	if (stat != SD_OK)
+	{
+		sd_err("unable to convert dense connectivity to sparse");
+		return NULL;
+	}
+	return sd_conn_new_sparse(n_rows, n_cols, n_nonzeros,
+		row_offsets, col_indices, 
+		sparse_weights, sparse_delays);
+}
+
+const struct sd_conn * sd_conn_new_files(
+	const char *weights_filename,
+	const char *delays_filename
+)
+{
+	enum sd_stat stat;
+	uint32_t n;
+	double *weights, *delays;
+	stat = sd_util_read_square_matrix(weights_filename, &n, &weights);
+	if (stat != SD_OK)
+	{
+		sd_err("failed to read weights matrix");
+		return NULL;
+	}
+	stat = sd_util_read_square_matrix(delays_filename, &n, &delays);
+	if (stat != SD_OK)
+	{
+		sd_err("failed to read delays matrix");
+		sd_free(weights);
+		return NULL;
+	}
+	const struct sd_conn *sd_conn = sd_conn_new_dense(n, n, weights, delays);
+	sd_free(weights);
+	sd_free(delays);
+	return sd_conn;
+}

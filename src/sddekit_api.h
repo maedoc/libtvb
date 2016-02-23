@@ -76,7 +76,7 @@ sd_util_uniqi(uint32_t n,
 /* connectivity {{{ */
 struct sd_conn
 {
-	const void *ptr;
+	void * const ptr;
 
 	/**
 	 * Get an element from this connectivity.
@@ -91,7 +91,7 @@ struct sd_conn
 	 * element is, and SD_OUT_OF_BOUNDS if i_row or i_col exceed the size of
 	 * the connectivity.
 	 */
-	enum sd_nnz (*get_el)(
+	enum sd_stat (*get_el)(
 		const struct sd_conn *sd_conn, 
 		const uint32_t i_row, const uint32_t i_col, 
 		double *weight, double *delay
@@ -106,13 +106,42 @@ struct sd_conn
 		const struct sd_conn *,
 		const double * restrict
 		);
-	const double *(*get_weights)(const struct sd_conn *);
-	const double *(*get_delays)(const struct sd_conn *);
-	double (*get_delay_scale)(const struct sd_conn *);
-	enum sd_stat (*set_delay_scale)(const struct sd_conn *, double);
+
+	/**
+	 * Get the number of non-zero elements in weights.
+	 */
+	uint32_t (* const get_n_nonzeros)(const struct sd_conn *);
+
+	/**
+	 * Get vector of non-zero weights.
+	 */
+	const double *(* const get_weights)(const struct sd_conn *);
+
+	/**
+	 * Get vector of delays corresponding to non-zero weights.
+	 */
+	const double *(* const get_delays)(const struct sd_conn *);
+
+	/**
+	 * Get the current scale of the delays
+	 */
+	double (* const get_delay_scale)(const struct sd_conn *);
+
+	/**
+	 * Set the current scale of the delays
+	 *
+	 * \note This can be used for example where delays are due to finite
+	 * conduction speed to set the speed. 
+	 */
+	enum sd_stat (* const set_delay_scale)(const struct sd_conn *, double);
+
+	/**
+	 * Free memory used by this connectivity instance.
+	 */
+	void (* const free)(const struct sd_conn *);
 };
 
-struct sd_conn *
+const struct sd_conn *
 sd_conn_new_sparse(
 	uint32_t n_rows,
 	uint32_t n_cols,
@@ -123,14 +152,14 @@ sd_conn_new_sparse(
 	double * restrict delays
 );
 
-struct sd_conn * sd_conn_new_dense(
+const struct sd_conn * sd_conn_new_dense(
 	uint32_t n_rows,
 	uint32_t n_cols,
 	double * restrict weights,
 	double * restrict delays
 );
 
-struct sd_conn *
+const struct sd_conn *
 sd_conn_new_files(
 	const char *weights_filename,
 	const char *delays_filename
