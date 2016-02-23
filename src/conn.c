@@ -2,24 +2,6 @@
 
 #include "sddekit.h"
 
-struct sd_conn
-{
-	const void *ptr;
-	enum sd_nnz
-	(*get_el)(const struct sd_conn *sd_conn, 
-		const uint32_t i_row, const uint32_t i_col, 
-		double *weight, double *delay
-	);
-	double (* const weighted_sum)(
-		const struct sd_conn *,
-		const double * restrict
-		);
-	const double *(*get_weights)(const struct sd_conn *);
-	const double *(*get_delays)(const struct sd_conn *);
-	double (*get_delay_scale)(const struct sd_conn *);
-	enum sd_stat (*set_delay_scale)(const struct sd_conn *, double);
-};
-
 struct conn
 {
 	uint32_t nnz, nrow, ncol
@@ -50,10 +32,8 @@ enum sd_stat set_delay_scale(const struct sd_conn *sd_conn, double new_delay_sca
 	return SD_OK;
 }
 
-enum sd_nnz { SD_ZERO, SD_NON_ZERO, SD_OUT_OF_BOUNDS };
-
-static enum sd_nnz
-get_el(const struct sd_conn *sd_conn, 
+static enum sd_stat get_el(
+	const struct sd_conn *sd_conn, 
 	const uint32_t i_row, const uint32_t i_col, 
 	double *weight, double *delay)
 {
@@ -97,26 +77,3 @@ double weighted_sum(
 	return sum;
 }
 
-struct sd_conn *
-sd_conn_new_sparse(
-	uint32_t n_rows,
-	uint32_t n_cols,
-	uint32_t n_nonzeros,
-	uint32_t * restrict row_offsets,
-	uint32_t * restrict col_indices,
-	double * restrict weights,
-	double * restrict delays
-);
-
-struct sd_conn * sd_conn_new_dense(
-	uint32_t n_rows,
-	uint32_t n_cols,
-	double * restrict weights,
-	double * restrict delays
-);
-
-struct sd_conn *
-sd_conn_new_files(
-	const char *weights_filename,
-	const char *delays_filename
-);

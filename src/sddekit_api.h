@@ -14,9 +14,9 @@ uint32_t sd_ver_major();
 uint32_t sd_ver_minor();
 
 /**
- * Status codes used by various functions.
+ * Status codes returned by various functions.
  */
-typedef enum sd_stat {
+enum sd_stat {
 	/*! Function call succeeded */
 	SD_OK,
 	/*! An error occurred during the function call or one of the functions it called. */
@@ -25,9 +25,17 @@ typedef enum sd_stat {
 	SD_CONT,
 	/*! Returned by output object to indicate solver should stop */
 	SD_STOP,
-	/*! Returned by function it dosen't know */
-	SD_UNKNOWN
-    } sd_stat;
+	/*! Returned by function it doesn't know */
+	SD_UNKNOWN,
+	/*! Returned to indicate zero value in sparse matrix */
+	SD_ZERO,
+	/*! Returned to indicate non zero value in sparse matrix */
+	SD_NON_ZERO,
+	/*! Returned to indicate an out-of-bounds condition */
+	SD_OUT_OF_BOUNDS
+};
+
+typedef enum sd_stat sd_stat;
 
 /* utilities {{{ */
 
@@ -64,6 +72,71 @@ sd_util_uniqi(uint32_t n,
 	      uint32_t **uints);
 
 /* util }}} */
+
+/* connectivity {{{ */
+struct sd_conn
+{
+	const void *ptr;
+
+	/**
+	 * Get an element from this connectivity.
+	 *
+	 * \param[in] sd_conn connectivity instance.
+	 * \param[in] i_row row index.
+	 * \param[in] i_col column index.
+	 * \param[out] weight weight value at row i_row, column i_col
+	 * \param[out] delay delay value at row i_row, column i_col
+	 * \return SD_ZERO if the element (i_row, i_col) is not in the sparse
+	 * representation because the weight value is zero. SD_NON_ZERO if the
+	 * element is, and SD_OUT_OF_BOUNDS if i_row or i_col exceed the size of
+	 * the connectivity.
+	 */
+	enum sd_nnz (*get_el)(
+		const struct sd_conn *sd_conn, 
+		const uint32_t i_row, const uint32_t i_col, 
+		double *weight, double *delay
+	);
+
+	/**
+	 * Compute a weight sum between a vector and the non-zero weights of 
+	 * this connectivity
+	 *
+	 */
+	double (* const weighted_sum)(
+		const struct sd_conn *,
+		const double * restrict
+		);
+	const double *(*get_weights)(const struct sd_conn *);
+	const double *(*get_delays)(const struct sd_conn *);
+	double (*get_delay_scale)(const struct sd_conn *);
+	enum sd_stat (*set_delay_scale)(const struct sd_conn *, double);
+};
+
+struct sd_conn *
+sd_conn_new_sparse(
+	uint32_t n_rows,
+	uint32_t n_cols,
+	uint32_t n_nonzeros,
+	uint32_t * restrict row_offsets,
+	uint32_t * restrict col_indices,
+	double * restrict weights,
+	double * restrict delays
+);
+
+struct sd_conn * sd_conn_new_dense(
+	uint32_t n_rows,
+	uint32_t n_cols,
+	double * restrict weights,
+	double * restrict delays
+);
+
+struct sd_conn *
+sd_conn_new_files(
+	const char *weights_filename,
+	const char *delays_filename
+);
+
+/* connectivity }}} */
 
 /* rng {{{ */
 

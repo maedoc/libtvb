@@ -46,7 +46,7 @@ static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 	sd_sys **sysi = d->models;
 	sd_sys_in in_l = *in;
 	sd_sys_out out_l = *out;
-	/* compute (sparse) inputs */
+	/* TODO compute (sparse) inputs */
 	for (l=0; l<d->ne; l++) 
 	{
 		if (0)
@@ -63,19 +63,19 @@ static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 
 		d->cn[l] = sum;
 	}
-	/* TODO redo, this is not restrict */
+	/* TODO i & o need to be large enough for max Ma/Me*/
 	in_l.i = out_l.o = d->cn;
 	for (l = 0; l < d->n; l++)
 	{
 		uint32_t ml = d->M[l];
 		if ((stat = (*sysi)->apply(*sysi, &in_l, &out_l)) != SD_OK)
 			return stat;
-		/* TODO double check */
 		in_l.id = l;
-		in_l.i += d->Ma[ml];
 		in_l.x += d->Ms[ml];
 		out_l.f += d->Ms[ml];
 		out_l.g += d->Ms[ml];
+		/* TODO */
+		in_l.i += d->Ma[ml];
 		out_l.o += d->Me[ml];
 	}
 	/* compute outputs */
