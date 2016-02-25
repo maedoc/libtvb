@@ -20,13 +20,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -48,7 +48,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>libSDDEKit</TargetName>
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)..</OutDir>
+    <OutDir>$(SolutionDir)..\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -111,6 +111,8 @@
     <ClCompile Include="..\..\src\rng.c" />
     <ClCompile Include="..\..\src\scheme.c" />
     <ClCompile Include="..\..\src\sch_cb.c" />
+    <ClCompile Include="..\..\src\sch_emc.c" />
+    <ClCompile Include="..\..\src\sch_heun.c" />
     <ClCompile Include="..\..\src\solv.c" />
     <ClCompile Include="..\..\src\sparse.c" />
     <ClCompile Include="..\..\src\sys_cb.c" />

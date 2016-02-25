@@ -1,8 +1,5 @@
 /* copyright 2016 Apache 2 sddekit authors */
 
-#ifndef SD_SYS_HMJE_H
-#define SD_SYS_HMJE_H
-
 #include "sddekit.h"
 
 /**
@@ -13,21 +10,14 @@
  */
 struct sd_sys_hmje
 {
-	void *ptr;
+	sd_declare_common_members(sd_sys_hmje);
 
-	/**
-	 * Free memory allocated for this instance.
-	 */
-	void (*free)(struct sd_sys_hmje *);
-
-	/**
-	 * Get system interface for this instance.
-	 */
+	/*! Get system interface for this instance. */
 	struct sd_sys *(*sys)(struct sd_sys_hmje *);
 
 #define PAR(n, v)\
-	double (*get_##n)(struct sd_sys_hmje *);\
-	void   (*set_##n)(struct sd_sys_hmje *, double);
+	double (*get_##n)(struct sd_sys_hmje *hmje);\
+	void   (*set_##n)(struct sd_sys_hmje *hmje, double);
 #define LPAR(n, v) PAR(n, v)
 #include "sys_hmje_pars.h"
 #undef PAR
@@ -37,5 +27,3 @@ struct sd_sys_hmje
 
 SD_API struct sd_sys_hmje *
 sd_sys_hmje_new();
-
-#endif

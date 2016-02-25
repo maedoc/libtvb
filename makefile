@@ -3,7 +3,7 @@
 CC=gcc
 LDFLAGS = -lm
 VALFLAGS = --error-exitcode=1 --track-origins=yes --leak-check=full 
-CFLAGS = -fPIC -std=c99 -Isrc
+CFLAGS = -fPIC -std=c99 -Iinclude
 OBJEXT=o
 
 cc_asan:=$(shell expr `gcc -dumpversion` \>= 4.8)

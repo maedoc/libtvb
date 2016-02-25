@@ -9,11 +9,7 @@ static int compare_int(const void *a, const void *b)
 	else /* a > b */ return  1;
 }
 
-sd_stat sd_util_uniqi(
-	uint32_t n, 
-	uint32_t * restrict ints, 
-	uint32_t * restrict nuniq, 
-	uint32_t ** uints)
+enum sd_stat sd_util_uniqi(uint32_t n, uint32_t *ints, uint32_t *nuniq, uint32_t ** uints)
 { 
 	uint32_t i, j, *ints_copy;
 
@@ -59,49 +55,5 @@ sd_stat sd_util_uniqi(
 
 	sd_free(ints_copy);
 	
-	return SD_OK;
-}
-
-sd_stat sd_util_read_square_matrix(const char *fname, uint32_t *n, double **w)
-{
-	uint32_t nn;
-	FILE *fd;
-	double _, *wi;
-	/* open file */
-	fd = fopen(fname, "r");
-	if (fd==NULL) {
-		sd_err("failed to open file");
-		return SD_ERR;
-	}
-	/* count number of readable elements */
-	nn = 0;
-	{
-		int count;
-		while (1) {
-			count = fscanf(fd, "%lg", &_);
-			if (count < 1)
-				break;
-			nn++;
-		}
-	}
-	rewind(fd);
-	/* setup memory */
-	*n = (uint32_t) sqrt(nn);
-	wi = sd_malloc (sizeof(double)*nn);
-	*w = wi;
-	if (wi==NULL) {
-		fclose(fd);
-		return SD_ERR;
-	}
-	/* read data into memory this time */
-	{
-		int count;
-		while (1) {
-			count = fscanf(fd, "%lg", wi++);
-			if (count < 1)
-				break;
-		}
-	}
-	fclose(fd);
 	return SD_OK;
 }

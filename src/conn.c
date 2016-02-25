@@ -13,12 +13,26 @@ struct conn
 	struct sd_conn sd_conn;
 };
 
-double get_delay_scale(const struct sd_conn *sd_conn)
+/* TODO this is likely target for optimization */
+void row_wise_weighted_sum(struct sd_conn *sd_conn, double * restrict values, double * restrict sums)
+{
+	struct conn *conn = sd_conn->ptr;
+	for (uint32_t i=0; i<conn->nrow; i++)
+	{
+		double sum = 0.0;
+		for (uint32_t j=conn->row_offsets[i]; j<conn->row_offsets[i+1]; j++)
+			sum += conn->weights[j] * values[j];
+		sums[i] = sum;
+	}
+}
+
+double get_delay_scale(struct sd_conn *sd_conn)
 {
 	return ((struct conn*) sd_conn->ptr)->delay_scale;
 }
 
-enum sd_stat set_delay_scale(const struct sd_conn *sd_conn, double new_delay_scale)
+enum sd_stat set_delay_scale(
+		struct sd_conn *sd_conn, double new_delay_scale)
 {
 	if (new_delay_scale <= 0.0)
 	{
@@ -34,8 +48,8 @@ enum sd_stat set_delay_scale(const struct sd_conn *sd_conn, double new_delay_sca
 }
 
 static enum sd_stat get_el(
-	const struct sd_conn *sd_conn, 
-	const uint32_t i_row, const uint32_t i_col, 
+	struct sd_conn *sd_conn, 
+	uint32_t i_row, uint32_t i_col, 
 	double *weight, double *delay)
 {
 	struct conn *c = sd_conn->ptr;
@@ -65,9 +79,12 @@ non_zero:
 	return SD_ZERO;
 }
 
+/* TODO if possible this is one of those primitives to target for
+ * optimization
+ */
 double weighted_sum(
-	const struct sd_conn *sd_conn,
-	const double * restrict x
+	struct sd_conn *sd_conn,
+	double *x
 	)
 {
 	const struct conn * const conn = sd_conn->ptr;
@@ -78,26 +95,26 @@ double weighted_sum(
 	return sum;
 }
 
-const double * get_weights(
-	const struct sd_conn *c)
+double * get_weights(
+	struct sd_conn *c)
 {
 	return ((struct conn*) c->ptr)->weights;
 }
 
-const double * get_delays(
-	const struct sd_conn *c)
+double * get_delays(
+	struct sd_conn *c)
 {
 	return ((struct conn*) c->ptr)->delays;
 }
 
-uint32_t get_n_nonzeros(const struct sd_conn *sd_conn)
+uint32_t get_n_nonzeros(struct sd_conn *sd_conn)
 {
 	return ((struct conn*) sd_conn->ptr)->nnz;
 }
 
-void free_conn(const struct sd_conn *sd_conn)
+void free_conn(struct sd_conn *sd_conn)
 {
-	const struct conn *conn = sd_conn->ptr;
+	struct conn *conn = sd_conn->ptr;
 	sd_free(conn->weights);
 	sd_free(conn->delays);
 	sd_free(conn->row_offsets);
@@ -105,14 +122,14 @@ void free_conn(const struct sd_conn *sd_conn)
 	sd_free((void*) conn);
 }
 	
-const struct sd_conn * sd_conn_new_sparse(
+struct sd_conn * sd_conn_new_sparse(
 	uint32_t n_rows,
 	uint32_t n_cols,
 	uint32_t n_nonzeros,
-	uint32_t * restrict row_offsets,
-	uint32_t * restrict col_indices,
-	double * restrict weights,
-	double * restrict delays
+	uint32_t *row_offsets,
+	uint32_t *col_indices,
+	double *weights,
+	double *delays
 )
 {
 	struct conn *conn;
@@ -131,8 +148,7 @@ const struct sd_conn * sd_conn_new_sparse(
 	conn->delay_scale = 1.0;
 	struct sd_conn c = {
 		.ptr = conn,
-		.get_el = &get_el,
-		.weighted_sum = &weighted_sum,
+		.row_wise_weighted_sum = &row_wise_weighted_sum,
 		.get_weights = &get_weights,
 		.get_delays = &get_delays,
 		.get_delay_scale = &get_delay_scale,
@@ -144,11 +160,11 @@ const struct sd_conn * sd_conn_new_sparse(
 	return &(conn->sd_conn);
 }
 
-const struct sd_conn * sd_conn_new_dense(
+struct sd_conn * sd_conn_new_dense(
 	uint32_t n_rows,
 	uint32_t n_cols,
-	double * restrict weights,
-	double * restrict delays
+	double *weights,
+	double *delays
 )
 {
 	enum sd_stat stat;
@@ -166,31 +182,4 @@ const struct sd_conn * sd_conn_new_dense(
 	return sd_conn_new_sparse(n_rows, n_cols, n_nonzeros,
 		row_offsets, col_indices, 
 		sparse_weights, sparse_delays);
-}
-
-const struct sd_conn * sd_conn_new_files(
-	const char *weights_filename,
-	const char *delays_filename
-)
-{
-	enum sd_stat stat;
-	uint32_t n;
-	double *weights, *delays;
-	stat = sd_util_read_square_matrix(weights_filename, &n, &weights);
-	if (stat != SD_OK)
-	{
-		sd_err("failed to read weights matrix");
-		return NULL;
-	}
-	stat = sd_util_read_square_matrix(delays_filename, &n, &delays);
-	if (stat != SD_OK)
-	{
-		sd_err("failed to read delays matrix");
-		sd_free(weights);
-		return NULL;
-	}
-	const struct sd_conn *sd_conn = sd_conn_new_dense(n, n, weights, delays);
-	sd_free(weights);
-	sd_free(delays);
-	return sd_conn;
 }

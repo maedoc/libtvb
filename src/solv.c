@@ -3,49 +3,39 @@
 #include "sddekit.h"
 #include <time.h>
 
-typedef struct sol_data {
-	uint32_t nx, nca, nce;
+struct sol_data {
+	uint32_t nx, nc;
 	enum sd_stat cont;
 	struct sd_sch *sch;
 	struct sd_out *out;
-	double t, dt, *x, *c, *x0;
-	/* TODO the rest moves to scheme */
-	struct sd_sys *sys;
-	struct sd_hfill *hf;
-	struct sd_hist *hist; /* nd==nca, ci, cd */
-	struct sd_rng *rng;
-} sol_data;
+	double t, *x, *c, *x0;
+	struct sd_sol sol;
+};
 
-static void sol_free(sd_sol *sol)
+typedef struct sol_data sol_data;
+
+static void sol_free(struct sd_sol *sol)
 {
 	sol_data *s = sol->ptr;
-	s->rng->free(s->rng);
 	sd_free(s->x);
 	sd_free(s->x0);
-	if (s->c != NULL) {
-		sd_free(s->c);
-		s->hist->free(s->hist);
-	}
+	sd_free(s->c);
 	sd_free(s);
 	sd_free(sol);
 }
 
-static sd_stat cont(sd_sol *sol)
+static enum sd_stat cont(struct sd_sol *sol)
 {
 	clock_t tic = clock();
-	sol_data *s = sol->ptr;
-	sd_hist *h;
-
-	h = s->nca ? s->hist : NULL;
+	struct sol_data *s = sol->ptr;
 	s->cont = SD_CONT;
 	do {
-		if (s->sch->apply(s->sch, h, s->rng, s->sys, s->t, s->dt, s->nx, s->x, s->nce, s->c)!=SD_OK) 
+		if (s->sch->apply(s->sch, &s->t, s->x, s->c)!=SD_OK) 
 		{
-			sd_err("scheme failure.");
+			sd_err("scheme application failed.");
 			return SD_ERR;
 		}
-		s->t += s->dt;
-		s->cont = s->out->apply(s->out, s->t, s->nx, s->x, s->nce, s->c);
+		s->cont = s->out->apply(s->out, s->t, s->nx, s->x, s->nc, s->c);
 	} while (s->cont == SD_CONT);
 	clock_t toc = clock();
 	double walltime = (double) (toc - tic) / CLOCKS_PER_SEC;
@@ -54,12 +44,7 @@ static sd_stat cont(sd_sol *sol)
 }
 
 static uint32_t  get_nx(sd_sol *s) { return ((sol_data*)s->ptr)->nx; }
-static uint32_t get_nce(sd_sol *s) { return ((sol_data*)s->ptr)->nce; }
-static uint32_t get_nca(sd_sol *s) { return ((sol_data*)s->ptr)->nca; }
-
-static  sd_hist *get_hist(sd_sol *s) { return ((sol_data*)s->ptr)->hist; }
-static sd_rng  *get_rng (sd_sol *s) { return ((sol_data*)s->ptr)->rng ; }
-
+static uint32_t get_nc(sd_sol *s) { return ((sol_data*)s->ptr)->nc; }
 static double *get_c(sd_sol *s) { return ((sol_data*)s->ptr)->c; }
 static double *get_x(sd_sol *s) { return ((sol_data*)s->ptr)->x; }
 static double  get_t(sd_sol *s) { return ((sol_data*)s->ptr)->t; }
@@ -69,10 +54,7 @@ static sd_sol sol_default = {
 	.free = &sol_free,
 	.cont = &cont,
 	.get_nx = &get_nx,
-	.get_nce = &get_nce,
-	.get_nca = &get_nca,
-	.get_hist = &get_hist,
-	.get_rng  = &get_rng ,
+	.get_nc = &get_nc,
 	.get_c = &get_c,
 	.get_x = &get_x,
 	.get_t = &get_t,
@@ -80,101 +62,45 @@ static sd_sol sol_default = {
 
 sd_sol *
 sd_sol_new_default(
-	sd_sys *sys, sd_sch *scheme, sd_out *out, sd_hfill *hf,
-	uint32_t seed, uint32_t nx, double * restrict x0, uint32_t nce,
-	uint32_t nca, uint32_t * restrict vi, double * restrict vd,
-	double t0, double dt
-	)
+	double t0,
+	uint32_t nx, uint32_t nc, /* TODO should these from scheme->sys->ndim */
+	struct sd_sch *scheme,
+	struct sd_out *out,
+	double * x0
+)
 {
-	char *errmsg;
-	sd_sol *sol = NULL;
-	/* error handling */
-#define FAILIF(cond, msg)\
-       	if (cond) { \
-		errmsg = msg;\
-		goto uhoh;\
-	}
-	/* allocate & zero sol interface & data */
+	sol_data *s;
+	if ((s = sd_malloc(sizeof(struct sol_data))) == NULL
+	 || (s->x = sd_malloc(sizeof(double) * nx)) == NULL
+
+	 /* TODO nc v. ndc v nobs not the same, schemes are aliasing c as i & o */
+	 || (s->c = sd_malloc(sizeof(double) * nc)) == NULL
+	 || (s->x0 = sd_malloc(sizeof(double) * nx)) == NULL
+	)
 	{
-		sol_data zdat = { 0 };
-		FAILIF((sol = sd_malloc(sizeof(sd_sol)))==NULL, "allocating solver failed.");
-		*sol = sol_default;
-		FAILIF((sol->ptr = sd_malloc(sizeof(sol_data)))==NULL, "allocating solver data failed.");
-		*((sol_data*) sol->ptr) = zdat;
-		/* TODO fill interface table */
+		if (s->x != NULL)
+			sd_free(s->x);
+		if (s->c != NULL)
+			sd_free(s->c);
+		if (s != NULL)
+			sd_free(s);
+		sd_err("failed to alloc solver");
+		return NULL;
 	}
-	FAILIF(sys == NULL || scheme == NULL || hf == NULL || out == NULL,
-		"cannot initialize solver with NULL system, scheme, out or history function.")
-	/* copy arguments */
 	{
-		sol_data *s = (sol_data*)sol->ptr;
-		s->nx = nx;
-		s->nce = nce;
-		s->nca = nca;
-		s->cont = 1;
-		s->sys = sys;
-		s->sch = scheme;
-		s->out = out;
-		s->hf = hf;
+		sol_data z = { 0 };
+		*s = z;
 	}
-	/* setup coupling */
-	{
-		sol_data *s = (sol_data*)sol->ptr;
-		if (nca > 0 && vi!=NULL && vd!=NULL) 
-		{
-			size_t cn;
-			bool have_delays = vd[0] != 0.0;
-			for (uint32_t i=1; i<nca; i++)
-				have_delays |= vd[i] != 0.0;
-			if (have_delays)
-			{
-				sd_log_debug("delays found.");
-				FAILIF((s->hist = sd_hist_new_default(nca, vi, vd, t0, dt)) == NULL, "failed to create history.")
-			}
-			else
-			{
-				sd_log_debug("no delays present.");
-				FAILIF((s->hist = sd_hist_new_no_delays(nca, vi, vd, t0, dt)) == NULL, "failed to create history.")
-			}
-			FAILIF(s->hist->fill(s->hist, hf)!=SD_OK, "history fill failed.")
-			/* s->c big enough to accomate aff or eff */
-			cn = nca > nce ? nca : nce;
-			FAILIF((s->c = sd_malloc(sizeof(double) * cn)) == NULL, "alloc coupling array failed.")
-		} else {
-			s->nca = 0;
-			s->c = NULL;
-		}
-	}
-	/* initial conditions */
-	{
-		sol_data *s = (sol_data*)sol->ptr;
-		FAILIF((s->rng = sd_rng_new_default())==NULL,
-			"couldn't create a new rng");
-		s->rng->seed(s->rng, seed);
-		FAILIF((s->x = sd_malloc (sizeof(double) * nx))==NULL, 
-				"failed to alloc solver x")
-		FAILIF((s->x0 = sd_malloc (sizeof(double) * nx))==NULL, 
-			"failed to alloc solver x0")
-		memcpy(s->x, x0, sizeof(double) * s->nx);
-		memcpy(s->x0, x0, sizeof(double) * s->nx);
-		s->t = t0;
-		s->dt = dt;
-	}
-	return sol;
-uhoh:
-	/* clean up */
-	{
-		if (sol != NULL && sol->ptr != NULL)
-		{
-			sol_data *s = sol->ptr;
-			if (s->x!=NULL) sd_free(s->x);
-			if (s->x0!=NULL) sd_free(s->x0);
-			if (s->c!=NULL) sd_free(s->c);
-			if (s->hist!=NULL) s->hist->free(s->hist);
-		}
-		if (sol != NULL)
-			sd_free(sol);
-	}
-	sd_err("%s", errmsg);
-	return NULL;
+	s->sol = sol_default;
+	s->nx = nx;
+	s->nc = nc;
+	s->cont = 1;
+	s->sch = scheme;
+	s->out = out;
+	memcpy(s->x, x0, sizeof(double) * s->nx);
+	memcpy(s->x0, x0, sizeof(double) * s->nx);
+	for (uint32_t i=0; i<nc; i++)
+		s->c[i] = 0.0;
+	s->t = t0;
+	return &(s->sol);
 }

@@ -10,12 +10,8 @@ typedef struct hist_data
 	double *buf, *maxd, *del, dt, t;
 } hist_data;
 
-uint32_t get_maxvi(sd_hist *h) { return ((hist_data*) h->ptr)->maxvi; }
-uint32_t get_vi2i(sd_hist *h, uint32_t vi) { return ((hist_data*) h->ptr)->vi2i[vi]; }
 
-uint32_t *get_vi2i_vec(sd_hist *h) { return ((hist_data*) h->ptr)->vi2i; }
-
-static void update_time(sd_hist *hist, double new_t)
+static void update_time(struct sd_hist *hist, double new_t)/*{{{*/
 {
 	uint32_t i, n_steps;
 	hist_data *h = hist->ptr;
@@ -46,9 +42,9 @@ static void update_time(sd_hist *hist, double new_t)
 		else
 			h->pos[i] -= n_steps;
 	}
-}
+}/*}}}*/
 
-static void hist_free(sd_hist *hist)
+static void hist_free(struct sd_hist *hist)/*{{{*/
 {
 	hist_data *h = hist->ptr;
 	sd_free(h->uvi);
@@ -62,9 +58,9 @@ static void hist_free(sd_hist *hist)
 	sd_free(h->buf);
 	sd_free(h);
 	sd_free(hist);
-}
+}/*}}}*/
 
-static sd_stat fill(sd_hist *hist, sd_hfill *hf)
+static sd_stat fill(struct sd_hist *hist, sd_hfill *hf)/*{{{*/
 {
 	uint32_t i, j, ui, o, n, *vi;
 	double *t;
@@ -116,9 +112,9 @@ end:
 	if (vi!=NULL) sd_free(vi);
 
 	return errmsg == NULL ? SD_OK : SD_ERR;
-}
+}/*}}}*/
 
-static void get(sd_hist *hist, double t, double *aff)
+static void get(struct sd_hist *hist, double t, double *aff) /* {{{ */
 {
 	uint32_t i;
 	hist_data *h = hist->ptr;
@@ -157,10 +153,10 @@ static void get(sd_hist *hist, double t, double *aff)
 
 #ifdef SDDEBUG
 		if ((i0_ < h->lim[ui]) || (i0_ >= h->lim[ui+1]))
-			sd_log_debug("[sd_hist_get] oob: i0_=%d not in [%d, %d) at %s:%d\n",
+			sd_log_debug("oob: i0_=%d not in [%d, %d) at %s:%d\n",
                                      i0_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__ );
 		if ((i1_ < h->lim[ui]) || (i1_ >= h->lim[ui+1]))
-			sd_log_debug("[sd_hist_get] oob: i0_=%d not in [%d, %d) at %s:%d\n",
+			sd_log_debug("oob: i0_=%d not in [%d, %d) at %s:%d\n",
                                      i1_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__ );
 #endif
 
@@ -171,9 +167,9 @@ static void get(sd_hist *hist, double t, double *aff)
 
 		aff[i] = m * dx + y0;
 	}
-}
+} /* }}} */
 
-static void set(sd_hist *hist, double t, double *eff)
+static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
 {
 	uint32_t i, i0, i1;
 	double x0, dx, dt;
@@ -212,102 +208,56 @@ static void set(sd_hist *hist, double t, double *eff)
 			h->buf[i0] = eff[h->vi2i[h->uvi[i]]];
 		}
 	}
-}
+}/*}}}*/
 
-static uint32_t nbytes(sd_hist *hist)
+static uint32_t nbytes(struct sd_hist *hist)/*{{{*/
 {
 	uint32_t nb;
 	hist_data *h = hist->ptr;
-	nb = sizeof(sd_hist) + sizeof(hist_data);
+	nb = sizeof(struct sd_hist) + sizeof(hist_data);
 	nb += sizeof(uint32_t) * ((h->nu+1) + 3*h->nu + h->nd + h->maxvi);
 	nb += sizeof(double) * (h->lim[h->nu] + h->nu + h->nd);
 	return nb;
-}
+}/*}}}*/
 
-static uint32_t get_nu(sd_hist *h) {
-	return ((hist_data*) h->ptr)->nu;
-}
+/* accessors {{{ */
 
-static double get_buf_lin(sd_hist *hist, uint32_t index)
-{
-	hist_data *h = hist->ptr;
-#ifdef SDDEBUG
-	if (index >= h->lim[h->nu])
-		sd_log_debug( "[hist->get_buf_lin] oob index=%d not in [0, %d)\n", index, h->lim[h->nu] );
-#endif
-	return h->buf[index];
-}
-
-static double get_t(sd_hist *h) {
+static double get_t(struct sd_hist *h) {
 	return ((hist_data*) h->ptr)->t;
 }
 
-static double get_dt(sd_hist *h) {
+static double get_dt(struct sd_hist *h) {
 	return ((hist_data*) h->ptr)->dt;
 }
 
-static uint32_t get_lim(sd_hist *h, uint32_t i) {
-	return ((hist_data*) h->ptr)->lim[i];
-}
-
-static uint32_t get_len(sd_hist *h, uint32_t i) {
-	return ((hist_data*) h->ptr)->len[i];
-}
-
-static uint32_t get_nd(sd_hist *h) {
+static uint32_t get_nd(struct sd_hist *h) {
 	return ((hist_data*) h->ptr)->nd;
 }
 
-static uint32_t get_pos(sd_hist *h, uint32_t i) {
-	return ((hist_data*) h->ptr)->pos[i];
-}
-
-static uint32_t get_uvi(sd_hist *h, uint32_t i) {
-	return ((hist_data*) h->ptr)->uvi[i];
-}
-
-static uint32_t get_vi(sd_hist *h, uint32_t i) {
+static double get_vi(struct sd_hist *h, uint32_t i) {
 	return ((hist_data*) h->ptr)->vi[i];
 }
 
-static double get_maxd(sd_hist *h, uint32_t i) {
-	return ((hist_data*) h->ptr)->maxd[i];
-}
-
-static bool buf_is_null(sd_hist *h) {
-	return ((hist_data*) h->ptr)->buf == NULL;
-}
-
-static double get_vd(sd_hist *h, uint32_t i) {
+static double get_vd(struct sd_hist *h, uint32_t i) {
 	return ((hist_data*) h->ptr)->del[i];
 }
+/* }}} */
 
-static sd_hist sd_hist_defaults = {
+static struct sd_hist sd_hist_defaults = {/*{{{*/
 	.ptr = NULL,
-	.get_maxvi = &get_maxvi,
-	.get_vi2i = &get_vi2i,
-	.get_nu = &get_nu,
+	.get_nd = &get_nd,
+	.get_t = &get_t,
+	.get_dt = &get_dt,
+	.get_vd = &get_vd,
+	.get_vi = &get_vi,
 	.free = &hist_free,
 	.fill = &fill,
 	.get = &get,
 	.set = &set,
 	.nbytes = &nbytes,
-	.get_buf_lin = &get_buf_lin,
-	.get_nd = &get_nd,
-	.get_t = &get_t,
-	.get_dt = &get_dt,
-	.get_lim = &get_lim,
-	.get_len = &get_len,
-	.get_pos = &get_pos,
-	.get_uvi = &get_uvi,
-	.get_maxd = &get_maxd,
-	.get_vi = &get_vi,
-	.get_vd = &get_vd,
-	.get_vi2i_vec = &get_vi2i_vec,
-	.buf_is_null = &buf_is_null
-};
+};/*}}}*/
 
-static sd_stat setup_buffer_structure(hist_data *h, double dt)
+static sd_stat setup_buffer_structure(hist_data *h, double dt)/*{{{*/
 {
 	uint32_t i, j, ui;
 	double maxd;
@@ -359,14 +309,13 @@ fail:
 	if (h->vi2i!=NULL) sd_free(h->vi2i);
 	sd_err("%s", errmsg);
 	return SD_ERR;
-}
+}/*}}}*/
 
-sd_hist *
-sd_hist_new_default(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
+struct sd_hist * sd_hist_new_linterp(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)/*{{{*/
 {
-	sd_hist *hist;
+	struct sd_hist *hist;
 	hist_data *h = NULL, zh = { 0 };
-	if ((hist = sd_malloc(sizeof(sd_hist))) == NULL
+	if ((hist = sd_malloc(sizeof(struct sd_hist))) == NULL
 		|| (h = hist->ptr = sd_malloc(sizeof(hist_data))) == NULL
 		|| (*h = zh, (h->nd = nd) < 1)
 		|| sd_util_uniqi(nd, vi, &(h->nu), &(h->uvi)) != SD_OK
@@ -395,11 +344,11 @@ sd_hist_new_default(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
 	*hist = sd_hist_defaults;
 	hist->ptr = h;
 	return hist;
-}
+}/*}}}*/
 
 /* no delay variant {{{ */
 
-static void get_no_delay(sd_hist *hist, double t, double *aff)
+static void get_no_delay(struct sd_hist *hist, double t, double *aff)
 {
 	(void) t;
 	struct hist_data *hd = hist->ptr;
@@ -407,7 +356,7 @@ static void get_no_delay(sd_hist *hist, double t, double *aff)
 		aff[i] = hd->buf[hd->vi2i[hd->vi[i]]];
 }
 
-static void set_no_delay(sd_hist *hist, double t, double *eff)
+static void set_no_delay(struct sd_hist *hist, double t, double *eff)
 {
 	(void) t;
 	struct hist_data *hd = hist->ptr;
@@ -435,8 +384,31 @@ sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double d
 
 /* }}} */
 
+/* nearest interp variant {{{ */
+
+static void convert_delays_to_nearest(struct sd_hist *hist)
+{
+	hist_data *data = (hist_data *) hist->ptr;
+	double *rd = data->del;
+	for (uint32_t i=0; i<data->nd; i++, rd++)
+		*rd = round(*rd/data->dt)*data->dt;
+}
+
+struct sd_hist * sd_hist_new_nearest(
+	uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
+{
+	/* TODO consider split off file, use shared private struct */
+	struct sd_hist *hist = sd_hist_new_linterp(nd, vi, vd, t0, dt);
+	convert_delays_to_nearest(hist);
+	sd_log_debug("nearest hist for compat only, not yet optimized");
+	return hist;
+}
+
+/* }}} */
+
+/* fill {{{ */
 static sd_stat val_fill_apply(sd_hfill *hf, uint32_t n, double * restrict t,
-							  uint32_t *indices, double * restrict buf)
+			      uint32_t *indices, double * restrict buf)
 {
 	uint32_t i;
 	double value = *((double*)hf->ptr);
@@ -467,6 +439,7 @@ sd_hfill_new_val(double val)
 	hf->apply = &val_fill_apply;
 	return hf;
 }
+/* }}} */
 
 /* vim: foldmethod=marker
  */

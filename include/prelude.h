@@ -1,5 +1,6 @@
 /* copyright 2016 Apache 2 sddekit authors */
 
+/* TODO mv lib, string & math into impl files */
 /* standard C includes {{{ */
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,7 +22,7 @@
 #endif
 /* }}} */
 
-/* ignore restrict if compiler doesn't support it {{{ */
+/* TODO double check these versions, ignore restrict if compiler doesn't support it {{{ */
 #if defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 #   define restrict __restrict
 #elif defined(_MSC_VER) && _MSC_VER >= 1400
@@ -31,6 +32,7 @@
 #endif
 /* }}} */
 
+/* TODO drop these */
 /* cf. https://gist.github.com/maedoc/f22f691c1ee22fe1961d#prelude {{{ */
 #define SD_AS(obj, type) (((obj)->type)(obj))
 

@@ -2,58 +2,45 @@
 
 #include "sddekit.h"
 
-typedef struct data
-{
-	sd_sch sch;
-	uint32_t nx;
-	void *user_data;
-	sd_stat (*user_apply)(void *, sd_hist *, sd_rng *, sd_sys *,
-		double t, double dt, 
-		uint32_t nx, double * restrict x,
-		uint32_t nc, double * restrict c);
-} data;
+#include "sch_base.h"
 
-static sd_stat apply(sd_sch *sch, sd_hist *hist, sd_rng *rng, sd_sys *sys,
-		double t, double dt, 
-		uint32_t nx, double * restrict x,
-		uint32_t nc, double * restrict c)
+struct data
 {
-	data *d = sch->ptr;
-	return d->user_apply(d->user_data, hist, rng, sys, t, dt, nx, x, nc, c);
+	struct sch_base base;
+	void *user_data;
+	sd_stat(*user_apply)(void *, double *t, double *, double *);
+};
+
+static sd_stat apply(struct sd_sch *sch, double *t, double *x, double *c)
+{
+	struct data *d = sch->ptr;
+	return d->user_apply(d->user_data, t, x, c);
 }
 
-static void cb_free(sd_sch *sch)
+static void cb_free(struct sd_sch *sch)
 {
 	sd_free(sch->ptr);
 }
 
-static uint32_t get_nx(sd_sch *sch) { return ((data*) sch->ptr)->nx; }
-
-static sd_sch defaults = {
-	.ptr = NULL,
-	.get_nx = &get_nx,
-	.free = &cb_free,
-	.apply = &apply
-};
-
-SD_API sd_sch *
-sd_sch_new_cb(uint32_t nx, void *user_data,
-	sd_stat (*user_apply)(void *, sd_hist *, sd_rng *, sd_sys *,
-		double t, double dt, 
-		uint32_t nx, double * restrict x,
-		uint32_t nc, double * restrict c)
-	)
+struct sd_sch *
+sd_sch_new_cb(
+	double dt,
+	struct sd_sys *sys,
+	struct sd_hist *hist,
+	struct sd_rng *rng,
+	void *user_data,
+	sd_stat(*user_apply)(void *, double *t, double *, double *) )
 {
-	(void) nx;
-	data *d;
-        if ((d = sd_malloc(sizeof(data))) == NULL)
+	struct data *d;
+	if ((d = sd_malloc(sizeof(struct data))) == NULL)
 	{
 		sd_err("alloc sch cb failed.");
 		return NULL;
 	}
-	d->sch = defaults;
-	d->sch.ptr = d;
+	sch_base_init(&(d->base), sys->ndim(sys), dt, sys, hist, rng);
+	d->base.sch.ptr = d;
+	d->base.sch.ptr = d;
 	d->user_data = user_data;
 	d->user_apply = user_apply;
-	return &(d->sch);
+	return &d->base.sch;
 }

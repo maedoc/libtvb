@@ -164,5 +164,11 @@
     <ClCompile Include="..\..\src\ver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\sch_heun.c">
+      <Filter>Source Files\sch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sch_emc.c">
+      <Filter>Source Files\sch</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

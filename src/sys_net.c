@@ -2,244 +2,211 @@
 
 #include "sddekit.h"
 
-typedef struct netd
+struct data
 {
-	sd_sys sys_if;
-	sd_net net_if;
-	uint32_t n, m, nnz, * restrict M, * restrict Ms, 
-			 * restrict Ma, * restrict Me, ns, ne, 
-			 * restrict Or, * restrict Ic;
-	double * restrict w, * restrict d, * restrict cn;
-	sd_sys **models;
-	/* flag for init1 use */
-	bool _init1;
-	/* cache vi2i from history */
-	uint32_t *vi2i;
-} netd;
+	uint32_t n_node, n_subsys, *node_subsys_map;
+	double *aff;
+	struct sd_sys sys;
+	struct sd_net net;
+	struct sd_conn *conn;
+	struct sd_sys **subsys;
+	struct {
+		uint32_t ndim, ndc, nobs, nrpar, nipar;
+	} sys_counts;
+};
 
-static uint32_t  get_n       (sd_net *net)             { return ((netd*)net->ptr)->n; }
-static uint32_t  get_m       (sd_net *net)             { return ((netd*)net->ptr)->m; }
-static uint32_t  get_nnz     (sd_net *net)             { return ((netd*)net->ptr)->nnz; }
-static uint32_t *get_or      (sd_net *net)             { return ((netd*)net->ptr)->Or; }
-static uint32_t  get_or_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Or[i]; }
-static uint32_t *get_ic      (sd_net *net)             { return ((netd*)net->ptr)->Ic; }
-static uint32_t  get_ic_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ic[i]; }
-static double *  get_w       (sd_net *net)             { return ((netd*)net->ptr)->w; }
-static double    get_w_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->w[i]; }
-static double *  get_d       (sd_net *net)             { return ((netd*)net->ptr)->d; }
-static double    get_d_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->d[i]; }
-static uint32_t  get_ns      (sd_net *net)             { return ((netd*)net->ptr)->ns; }
-static uint32_t  get_ne      (sd_net *net)             { return ((netd*)net->ptr)->ne; }
-static bool      cn_is_null  (sd_net *net)             { return ((netd*)net->ptr)->cn == NULL; }
-static uint32_t  get_Ms_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ms[i]; }
-static uint32_t  get_Ma_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Ma[i]; }
-static uint32_t  get_Me_i    (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->Me[i]; }
-static uint32_t  get_M_i     (sd_net *net, uint32_t i) { return ((netd*)net->ptr)->M[i]; }
-static sd_sys *  get_models_i(sd_net *net, uint32_t i) { return ((netd*)net->ptr)->models[i]; }
-static bool      get__init1  (sd_net *net)             { return ((netd*)net->ptr)->_init1; }
-
-static sd_stat apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
+void data_free(struct data *d)
 {
-	sd_stat stat;
-	uint32_t l, j;
-	netd *d = sys->ptr;
-	sd_sys **sysi = d->models;
-	sd_sys_in in_l = *in;
-	sd_sys_out out_l = *out;
-	/* TODO compute (sparse) inputs */
-	for (l=0; l<d->ne; l++) 
-	{
-		if (0)
-			for (d->cn[l]=0.0, j=d->Or[l]; j<d->Or[l+1]; j++)
-				d->cn[l] += in->i[d->vi2i[d->Ic[j]]] * d->w[j];
-
-		double sum = 0.0;
-		double *ij = in->i + d->Or[l];
-		double *wj = d->w + d->Or[l];
-		uint32_t j=0, n=d->Or[l+1] - d->Or[l];
-
-		while (j++ < n)
-			sum += *ij++ * *wj++;
-
-		d->cn[l] = sum;
-	}
-	/* TODO i & o need to be large enough for max Ma/Me*/
-	in_l.i = out_l.o = d->cn;
-	for (l = 0; l < d->n; l++)
-	{
-		uint32_t ml = d->M[l];
-		if ((stat = (*sysi)->apply(*sysi, &in_l, &out_l)) != SD_OK)
-			return stat;
-		in_l.id = l;
-		in_l.x += d->Ms[ml];
-		out_l.f += d->Ms[ml];
-		out_l.g += d->Ms[ml];
-		/* TODO */
-		in_l.i += d->Ma[ml];
-		out_l.o += d->Me[ml];
-	}
-	/* compute outputs */
-	for (l=0; l<d->nnz; l++)
-		out->o[l] = d->cn[d->Ic[l]];
-	return SD_OK;
-}
-// new(sys, conn)
-sd_net *sd_net_new_hom(uint32_t n, sd_sys *sys,
-		uint32_t ns, uint32_t na, uint32_t ne,
-		uint32_t nnz, 
-		uint32_t * restrict Or, 
-		uint32_t * restrict Ic, 
-		double * restrict w,
-		double * restrict d)
-{
-	uint32_t i, *M, *Ms, *Me, *Ma;
-	sd_sys **models;
-	char *errmsg;
-	sd_net *net;
-	M = Ms = Me = Ma = NULL;
-	models = NULL;
-	if ((M = sd_malloc (sizeof(uint32_t) * n))==NULL
-	 || (Ms = sd_malloc (sizeof(uint32_t)))==NULL
-	 || (Ma = sd_malloc (sizeof(uint32_t)))==NULL
-	 || (Me = sd_malloc (sizeof(uint32_t)))==NULL
-	 || (models = sd_malloc (sizeof(sd_sys*)))==NULL)
-	{
-		errmsg = "failed to allocate net init1 storage.";
-		goto fail;
-	}
-	Ms[0] = ns;
-	Ma[0] = na;
-	Me[0] = ne;
-	for(i=0; i<n; i++)
-		M[i] = 0;
-	models[0] = sys;
-	if ((net = sd_net_new_het(n, 1, M, Ms, Ma, Me, models, 
-			        nnz, Or, Ic, w, d)) == NULL)
-	{
-		errmsg = "net initn failed.";
-		goto fail;
-	}
-	((netd*)net->ptr)->_init1 = true;
-	return net;
-fail:
-	if (M!=NULL) sd_free(M);
-	if (Ms!=NULL) sd_free(Ms);
-	if (Me!=NULL) sd_free(Me);
-	if (Ma!=NULL) sd_free(Ma);
-	if (models!=NULL) sd_free(models);
-	sd_err("%s", errmsg);
-	return NULL;
-}
-
-static void free_ptr(netd *d)
-{
-	if (d->_init1) {
-		sd_free(d->M);
-		sd_free(d->Ms);
-		sd_free(d->Me);
-		sd_free(d->Ma);
-		sd_free(d->models);
-		sd_free(d->cn);
-	}
+	sd_free(d->subsys);
+	sd_free(d->aff);
 	sd_free(d);
 }
 
-static void free_net(sd_net *net) { free_ptr(net->ptr); }
-static void free_sys(sd_sys *sys) { free_ptr(sys->ptr); }
-
-static	uint32_t sys_ndim(sd_sys*sys) { return ((netd*)sys->ptr)->ns; }
-static	uint32_t sys_ndc(sd_sys*sys)  { return ((netd*)sys->ptr)->nnz; }
-static	uint32_t sys_nobs(sd_sys*sys) { return ((netd*)sys->ptr)->ne; }
-static	uint32_t sys_nrpar(sd_sys*sys){ (void) sys; return 0; }
-static	uint32_t sys_nipar(sd_sys*sys){ (void) sys; return 0; }
-
-static sd_sys net_sys_defaults = {
-	.ndim = &sys_ndim,
-	.ndc = &sys_ndc,
-	.nobs = &sys_nobs,
-	.nrpar = &sys_nrpar,
-	.nipar = &sys_nipar,
-	.apply = &apply,
-	.free = &free_sys,
-	.ptr = NULL
-};
-
-static sd_sys *net_to_sys(sd_net *net) { return &(((netd*)net->ptr)->sys_if); }
-
-static sd_net net_defaults = {
-	.ptr = NULL,
-	.sys = &net_to_sys,
-	.get_n = &get_n,
-	.get_m = &get_m,
-	.get_nnz = &get_nnz,
-	.get_or = &get_or,
-	.get_or_i = &get_or_i,
-	.get_ic = &get_ic,
-	.get_ic_i = &get_ic_i,
-	.get_w = &get_w,
-	.get_w_i = &get_w_i,
-	.get_d = &get_d,
-	.get_d_i = &get_d_i,
-	.get_ns = &get_ns,
-	.get_ne = &get_ne,
-	.cn_is_null = &cn_is_null,
-	.get_Ms_i = &get_Ms_i,
-	.get_Ma_i = &get_Ma_i,
-	.get_Me_i = &get_Me_i,
-	.get_M_i = &get_M_i,
-	.get_models_i = &get_models_i,
-	.get__init1 = &get__init1,
-	.free = &free_net
-};
-
-sd_net *
-sd_net_new_het(uint32_t n, uint32_t m, 
-	uint32_t * restrict M, uint32_t * restrict Ms, 
-	uint32_t * restrict Ma, uint32_t * restrict Me,
-	sd_sys **models,
-	uint32_t nnz, 
-	uint32_t * restrict Or,
-	uint32_t * restrict Ic,
-	double * restrict w,
-	double * restrict d)
+static void update_sys_counts(struct data *d)/*{{{*/
 {
-	uint32_t i;
-	netd *net = sd_malloc(sizeof(netd));
-	if (net == NULL)
+	d->sys_counts.nobs = 0;
+	d->sys_counts.ndc = 0;
+	d->sys_counts.ndim = 0;
+	d->sys_counts.nrpar = 0;
+	d->sys_counts.nipar = 0;
+	for (uint32_t i=0; i<d->n_node; i++)
 	{
-		sd_err("net alloc failed.");
-		return NULL;
+		struct sd_sys *s = d->subsys[d->node_subsys_map[i]];
+		d->sys_counts.nobs += s->nobs(s);
+		d->sys_counts.ndc += s->ndc(s);
+		d->sys_counts.ndim += s->ndim(s);
+		d->sys_counts.nrpar += s->nrpar(s);
+		d->sys_counts.nipar += s->nipar(s);
 	}
-	net->net_if = net_defaults;
-	net->sys_if = net_sys_defaults;
-	net->net_if.ptr = net->sys_if.ptr = net;
-	net->n = n;
-	net->m = m;
-	net->nnz = nnz;
-	net->M = M;
-	net->Ms = Ms;
-	net->Ma = Ma;
-	net->Me = Me;
-	net->models = models;
-	net->Or = Or;
-	net->Ic = Ic; /* TODO ? same as Ie ? */
-	net->w = w;
-	net->d = d;
-	/* intialize based on passed attributes: Ie, cne, cna */
-	net->ns = 0;
-	net->ne = 0;
-	for (i=0; i<n; i++) {
-		net->ns += net->Ms[net->M[i]];
-		net->ne += net->Me[net->M[i]];
-	}
-	if ((net->cn = sd_malloc (sizeof(double) * net->ne))==NULL)
-	{
-		sd_err("failed to allocate memory for network.");
-		return NULL;
-	}
-	net->_init1 = 0;
-	net->vi2i = NULL;
-	return &(net->net_if);
+}/*}}}*/
+
+/* accessors {{{ */
+static struct sd_sys * net_sys(struct sd_net *net)
+{
+	return &((struct data *) net->ptr)->sys;
 }
 
+static struct sd_conn * net_get_conn(struct sd_net *net)
+{
+	return ((struct data *) net->ptr)->conn;
+}
 
+static void net_free(struct sd_net *net)
+{
+	data_free(net->ptr);
+}
+
+static uint32_t net_get_n_node(struct sd_net *net)
+{
+	return ((struct data *) net->ptr)->n_node;
+}
+
+static uint32_t net_get_n_sub_sys(struct sd_net *net)
+{
+	return ((struct data *) net->ptr)->n_subsys;
+}
+
+static struct sd_sys * net_get_subsys(struct sd_net *net, uint32_t i)
+{
+	return ((struct data *) net->ptr)->subsys[i];
+}
+
+static enum sd_stat net_set_subsys(struct sd_net *net, uint32_t i_sys, struct sd_sys *sys)
+{
+	struct data *data = net->ptr;
+	data->subsys[i_sys] = sys;
+	update_sys_counts(data);
+	return SD_OK;
+}
+
+static uint32_t net_get_node_subsys(struct sd_net *net, uint32_t i_node)
+{
+	return ((struct data *) net->ptr)->node_subsys_map[i_node];
+}
+
+static enum sd_stat net_set_node_subsys(struct sd_net *net, uint32_t i_node, uint32_t i_sys)
+{
+	struct data *data = net->ptr;
+	data->node_subsys_map[i_node] = i_sys;
+	update_sys_counts(data);
+	return SD_OK;
+}
+/* }}} */
+
+/* sys impl {{{ */
+#define GET_COUNT(name) \
+static uint32_t sys_ ## name(struct sd_sys *sys) \
+{ \
+	return ((struct data *) sys->ptr)->sys_counts.name;\
+}
+
+GET_COUNT(ndim)
+GET_COUNT(ndc)
+GET_COUNT(nobs)
+GET_COUNT(nrpar)
+GET_COUNT(nipar)
+
+#undef GET_COUNT
+
+static void sys_free(struct sd_sys *sys)
+{
+	data_free(sys->ptr);
+}
+
+/* }}} */
+
+/* sys apply impl {{{ */
+
+static enum sd_stat sys_apply(struct sd_sys *sys, 
+		struct sd_sys_in *in, struct sd_sys_out *out)
+{
+	struct data *data = sys->ptr;
+	struct sd_conn *conn = data->conn;
+	struct sd_sys_in in_i = *in;
+	struct sd_sys_out out_i = *out;
+	/* apply weights to delayed data, use result as input to subsystems */
+	conn->row_wise_weighted_sum(conn, in->i, data->aff);
+	in_i.i = data->aff;
+	/* apply each subsys to its section */
+	for (uint32_t i_node=0; i_node<data->n_node; i_node++)
+	{
+		struct sd_sys *subsys = data->subsys[data->node_subsys_map[i_node]];
+		enum sd_stat stat = subsys->apply(subsys, &in_i, &out_i);
+		if (stat != SD_OK)
+			return stat;
+		uint32_t ndim = subsys->ndim(subsys);
+		in_i.x += ndim;
+		out_i.f += ndim;
+		out_i.g += ndim;
+		in_i.i += subsys->ndc(subsys);
+		out_i.o += subsys->nobs(subsys);
+	}
+	return SD_OK;
+}
+
+/* }}} */
+
+/* initialization {{{ */
+
+static bool incompat_subsys_and_conn(struct data *data, struct sd_conn *conn)
+{
+	uint32_t ndc  = data->sys_counts.ndc
+	       , nobs = data->sys_counts.nobs
+	       , n_rows = conn->n_rows(conn)
+	       , n_cols = conn->n_cols(conn)
+	       ;
+
+	if (ndc != n_rows || nobs != n_cols)
+	{
+		sd_log_info("ndc=%d != n_rows=%d || nobs=%d != n_cols=%d",
+			    ndc, n_rows, nobs, n_cols);
+		return false;
+	}
+	return true;
+}
+
+/* TODO refactor */
+static uint32_t count_aff(uint32_t n, uint32_t *node_subsys_map, struct sd_sys **subsys)
+{
+	uint32_t aff = 0;
+	for (uint32_t i=0; i<n; i++)
+	{
+		struct sd_sys *sub = subsys[node_subsys_map[i]];
+		aff += sub->ndc(sub);
+	}
+	return aff;
+}
+
+struct sd_net *
+sd_net_new(uint32_t n_node, uint32_t n_subsys, uint32_t *node_subsys_map, 
+	   struct sd_sys **subsys,
+	   struct sd_conn *conn)
+{
+	struct data *data, zero = {0};
+	uint32_t n_aff = count_aff(n_node, node_subsys_map, subsys);
+	if ((data = sd_malloc(sizeof(struct data))) == NULL
+	 || (*data = zero, 0)
+	 || (data->aff = sd_malloc(sizeof(double)*n_aff)) == NULL
+	 )
+	{
+		if (data!=NULL)
+			sd_free(data);
+		sd_err("alloc net failed.");
+		return NULL;
+	}
+	data->n_node = n_node;
+	data->n_subsys = n_subsys;
+	data->sys = {&sys_ndim, &sys_ndc, &sys_nobs, &sys_nrpar, &sys_nipar,
+		     &sys_apply, &sys_free, data};
+	data->net = {data, &net_sys, &net_get_conn, &net_free,
+		     &net_get_n_node, &net_get_n_sub_sys, &net_get_subsys,
+		     &net_set_subsys, &net_get_node_subsys, &net_set_node_subsys};
+	data->conn = conn;
+	update_sys_counts(&data->sys);
+	return &data->net;
+}
+
+/* }}} */
+
+/* vim: foldmethod=marker
+ */
