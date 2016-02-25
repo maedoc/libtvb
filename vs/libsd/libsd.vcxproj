@@ -20,13 +20,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>Intel C++ Compiler 16.0</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -45,6 +45,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\include;</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>libSDDEKit</TargetName>
+    <TargetExt>.dll</TargetExt>
+    <OutDir>$(SolutionDir)..</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -61,6 +66,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);SD_API_EXPORT</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4146;4244;4996;4267</DisableSpecificWarnings>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OptimizationDiagnosticLevel>Level5</OptimizationDiagnosticLevel>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -68,36 +77,52 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\prelude.h" />
     <ClInclude Include="..\..\src\randomkit.h" />
     <ClInclude Include="..\..\src\sddekit.h" />
     <ClInclude Include="..\..\src\sddekit.hpp" />
+    <ClInclude Include="..\..\src\sddekit_api.h" />
+    <ClInclude Include="..\..\src\sddekit_simple.h" />
+    <ClInclude Include="..\..\src\sys_gen2d.h" />
+    <ClInclude Include="..\..\src\sys_gen2d_pars.h" />
+    <ClInclude Include="..\..\src\sys_hmje.h" />
+    <ClInclude Include="..\..\src\sys_hmje_pars.h" />
+    <ClInclude Include="..\..\src\sys_rww.h" />
+    <ClInclude Include="..\..\src\sys_rww_pars.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\arith.c" />
     <ClCompile Include="..\..\src\conn.c" />
+    <ClCompile Include="..\..\src\err.c" />
+    <ClCompile Include="..\..\src\hist.c" />
+    <ClCompile Include="..\..\src\hrfs.c" />
+    <ClCompile Include="..\..\src\log.c" />
+    <ClCompile Include="..\..\src\malloc.c" />
     <ClCompile Include="..\..\src\out_cb.c" />
+    <ClCompile Include="..\..\src\out_conv.c" />
     <ClCompile Include="..\..\src\out_file.c" />
+    <ClCompile Include="..\..\src\out_ign.c" />
     <ClCompile Include="..\..\src\out_mem.c" />
     <ClCompile Include="..\..\src\out_sfilt.c" />
     <ClCompile Include="..\..\src\out_tavg.c" />
     <ClCompile Include="..\..\src\out_tee.c" />
     <ClCompile Include="..\..\src\out_until.c" />
     <ClCompile Include="..\..\src\randomkit.c" />
+    <ClCompile Include="..\..\src\rng.c" />
+    <ClCompile Include="..\..\src\scheme.c" />
     <ClCompile Include="..\..\src\sch_cb.c" />
-    <ClCompile Include="..\..\src\sd_err.c" />
-    <ClCompile Include="..\..\src\sd_hist.c" />
-    <ClCompile Include="..\..\src\sd_log.c" />
-    <ClCompile Include="..\..\src\sd_malloc.c" />
-    <ClCompile Include="..\..\src\sd_rng.c" />
-    <ClCompile Include="..\..\src\sd_scheme.c" />
-    <ClCompile Include="..\..\src\sd_solv.c" />
-    <ClCompile Include="..\..\src\sd_sparse.c" />
-    <ClCompile Include="..\..\src\sd_test.c" />
-    <ClCompile Include="..\..\src\sd_util.c" />
+    <ClCompile Include="..\..\src\solv.c" />
+    <ClCompile Include="..\..\src\sparse.c" />
     <ClCompile Include="..\..\src\sys_cb.c" />
     <ClCompile Include="..\..\src\sys_exc.c" />
+    <ClCompile Include="..\..\src\sys_gen2d.c" />
+    <ClCompile Include="..\..\src\sys_hmje.c" />
     <ClCompile Include="..\..\src\sys_net.c" />
     <ClCompile Include="..\..\src\sys_regmap.c" />
+    <ClCompile Include="..\..\src\sys_rww.c" />
     <ClCompile Include="..\..\src\sys_wc.c" />
+    <ClCompile Include="..\..\src\test.c" />
+    <ClCompile Include="..\..\src\util.c" />
     <ClCompile Include="..\..\src\ver.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

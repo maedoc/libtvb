@@ -10,7 +10,7 @@ static uint32_t ntest=0, nfail=0, tests_len=0;
 
 static char *cpstr(const char *str)
 {
-	uint32_t nc = strlen(str) + 1;
+	uint32_t nc = (uint32_t) (strlen(str) + 1);
 	char *out = sd_malloc(sizeof(char) * nc);
 	memcpy(out, str, sizeof(char) * nc);
 	return out;

@@ -3,6 +3,10 @@
 #include "sddekit.h"
 #include <time.h>
 
+#ifdef _MSC_VER
+#include "windows.h"
+#endif
+
 /* output graph {{{
  *
  * raw -> ignore c -> lfp tavg -> tee -> file
@@ -59,6 +63,11 @@ void out_init(double dt, double tf, char *lfp_fname, char *bold_fname)
 
 int main(int argc, char *argv[])
 {
+#ifdef _MSC_VER
+	char buf[1024];
+	GetCurrentDirectory(1024, buf);
+	sd_log_info("cwd is %s\n", buf);
+#endif
 	/* defaults, can read from args if required */
     uint32_t seed=42;
 	double dt=0.1, tf=10e3, I=0.3, G=0.0, w=1.0, sigma=0.0042;

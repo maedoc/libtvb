@@ -36,6 +36,33 @@
     <ClInclude Include="..\..\src\sddekit.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\prelude.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sddekit_api.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sddekit_simple.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sys_gen2d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sys_gen2d_pars.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sys_hmje.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sys_hmje_pars.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sys_rww.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\sys_rww_pars.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\randomkit.c">
@@ -44,7 +71,13 @@
     <ClCompile Include="..\..\src\out_cb.c">
       <Filter>Source Files\out</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\out_conv.c">
+      <Filter>Source Files\out</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\out_file.c">
+      <Filter>Source Files\out</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\out_ign.c">
       <Filter>Source Files\out</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\out_mem.c">
@@ -62,10 +95,22 @@
     <ClCompile Include="..\..\src\out_until.c">
       <Filter>Source Files\out</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\sch_cb.c">
+      <Filter>Source Files\sch</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\scheme.c">
+      <Filter>Source Files\sch</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\sys_cb.c">
       <Filter>Source Files\sys</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\sys_exc.c">
+      <Filter>Source Files\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sys_gen2d.c">
+      <Filter>Source Files\sys</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\sys_hmje.c">
       <Filter>Source Files\sys</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\sys_net.c">
@@ -74,43 +119,46 @@
     <ClCompile Include="..\..\src\sys_regmap.c">
       <Filter>Source Files\sys</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\sys_rww.c">
+      <Filter>Source Files\sys</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\sys_wc.c">
       <Filter>Source Files\sys</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sch_cb.c">
-      <Filter>Source Files\sch</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\sd_scheme.c">
-      <Filter>Source Files\sch</Filter>
+    <ClCompile Include="..\..\src\arith.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\conn.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_err.c">
+    <ClCompile Include="..\..\src\err.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_hist.c">
+    <ClCompile Include="..\..\src\hist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_log.c">
+    <ClCompile Include="..\..\src\hrfs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_malloc.c">
+    <ClCompile Include="..\..\src\log.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_rng.c">
+    <ClCompile Include="..\..\src\malloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_solv.c">
+    <ClCompile Include="..\..\src\rng.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_sparse.c">
+    <ClCompile Include="..\..\src\solv.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_test.c">
+    <ClCompile Include="..\..\src\sparse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\sd_util.c">
+    <ClCompile Include="..\..\src\test.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\ver.c">

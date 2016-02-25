@@ -122,22 +122,31 @@ static void get(sd_hist *hist, double t, double *aff)
 {
 	uint32_t i;
 	hist_data *h = hist->ptr;
+	uint32_t *vi2i = h->vi2i;
+	uint32_t *pos = h->pos;
+	uint32_t *len = h->len;
+	uint32_t *lim = h->lim;
+	double *buf = h->buf;
+	double *del = h->del;
+	double h_t = h->t, h_dt = h->dt;
 
 	if (h==NULL)
 		return;
 
+	double inv_dt = 1.0 / h_dt;
+
 	for (i = 0; i < h->nd; i++)
 	{
-		uint32_t ui = h->vi2i[h->vi[i]] /* unique variable index */
-		       ,  p = h->pos[ui]        /* rel pos in ui's var buf */
-		       ,  l = h->len[ui]        /* len of ui's var buf */
-		       ,  o = h->lim[ui];       /* offset of ui's buf in h->buf */
+		uint32_t ui = vi2i[h->vi[i]] /* unique variable index */
+		       ,  p = pos[ui]        /* rel pos in ui's var buf */
+		       ,  l = len[ui]        /* len of ui's var buf */
+		       ,  o = lim[ui];       /* offset of ui's buf in h->buf */
 
 		/* TODO the following dt is not sol dt or hist dt, find better name */
-		double dt = (t - h->del[i]) - (h->t - (l - 2)*h->dt);
+		double dt = (t - del[i]) - (h_t - (l - 2)*h_dt);
 
 		/* relative buffer indices */
-		int64_t i0 = (int64_t) ceil((l - 2) - dt / h->dt);
+		int64_t i0 = (int64_t) ceil((l - 2) - dt * inv_dt);
 		if (i0 < 0)
 			i0 += l;
 		int64_t i1 = i0 > 0 ? ((uint32_t) i0) - 1 : l - 1;
@@ -155,10 +164,10 @@ static void get(sd_hist *hist, double t, double *aff)
                                      i1_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__ );
 #endif
 
-		double y0 = h->buf[i0_] /* consider sse read */
-		     , y1 = h->buf[i1_]
-		     ,  m = (y1 - y0) / h->dt
-		     , dx = (t - h->del[i]) - (h->t - i0*h->dt);
+		double y0 = buf[i0_] /* consider sse read */
+		     , y1 = buf[i1_]
+		     ,  m = (y1 - y0) * inv_dt
+		     , dx = (t - del[i]) - (h_t - i0*h_dt);
 
 		aff[i] = m * dx + y0;
 	}

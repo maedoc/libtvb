@@ -10,14 +10,14 @@
 /* }}} */
 
 /* -DSD_API_EXPORT dllexport {{{ */
+#if defined(_MSC_VER)
 #ifdef SD_API_EXPORT
 #define SD_API __declspec(dllexport)
 #else
-#ifdef SD_API_IMPORT
 #define SD_API __declspec(dllimport)
+#endif
 #else
 #define SD_API
-#endif
 #endif
 /* }}} */
 

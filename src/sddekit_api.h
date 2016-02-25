@@ -1674,7 +1674,7 @@ sd_sparse_from_dense(
  */
 typedef int (*sd_log_msg_fp)(const char *fmt, ...);
 
-extern sd_log_msg_fp sd_log_msg;
+SD_API extern sd_log_msg_fp sd_log_msg;
 
 /**
  * Get function pointer handling messages.
