@@ -3,6 +3,7 @@ addons:
   packages:
   - valgrind
   - python-numpy
+  - ocl-icd-opencl-dev
 before_install:
   - pip install --user cpp-coveralls cython
 language: c
