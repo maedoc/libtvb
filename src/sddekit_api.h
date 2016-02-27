@@ -171,6 +171,7 @@ sd_conn_new_files(
 
 /* Forward declare interface type for explicit use in signatures. */
 typedef struct sd_rng sd_rng;
+typedef struct sd_prng sd_prng;
 
 /**
  * Random number generator (RNG) interface.
@@ -190,7 +191,7 @@ struct sd_rng {
         /**
          * Generate a single sample on U(0, 1).
          */
-        double (*uniform)(sd_rng*);
+    double (*uniform)(sd_rng*);
 	/**
 	 * Generate and fill an array with samples from N(0, 1).
 	 */
@@ -206,10 +207,50 @@ struct sd_rng {
 };
 
 /**
+ * Random number generator (RNG) interface using OpenCL and RANLUX.
+ * To replace sd_rng in future.
+ * TODO save to file.
+ */
+struct sd_prng {
+	void *ptr;
+	/**
+	 * Seed the RNG.
+	 */
+	void (*seed)(sd_prng*, uint32_t seed);
+	/**
+	 * Generate a single sample from N(0, 1).
+	 */
+//TODO	double (*norm)(sd_prng*);
+    /**
+     * Generate a single sample on U(0, 1).
+     */
+//TODO    double (*uniform)(sd_prng*);
+    /**
+     * Generate and fill an array with samples from U(0, 1).
+     */
+    void (*fill_uniform)(sd_prng*, uint32_t n, float *x);
+	/**
+	 * Generate and fill an array with samples from N(0, 1).
+	 */
+	void (*fill_norm)(sd_prng*, uint32_t n, float *x);
+	/**
+	 * Number of bytes used by this object.
+	 */
+	uint32_t (*nbytes)(sd_prng*);
+	/**
+	 * Free memory allocated for this RNG.
+	 */
+	void (*free)(sd_prng*);
+};
+
+/**
  * Construct a new RNG from default implementation.
  */
 SD_API sd_rng *
 sd_rng_new_default();
+
+SD_API sd_prng *
+sd_prng_new_default();
 
 /* rng }}} */
 

@@ -4,9 +4,6 @@
 #include "sddekit.h"
 
 #include "parallel/iuncl.h"
-//#include "parallel/ranluxcl.cl"
-
-/*
 
 typedef struct{
 	float
@@ -20,9 +17,7 @@ typedef struct{
 	float dummy; //Causes struct to be a multiple of 128 bits
 	int in24;
 	int stepnr;
-} ranluxcl_state_t;
-
-*/
+} prng_data;
 
 /* 
  * Automatically set the number of work-groups and the number of work-items per
@@ -70,8 +65,7 @@ static void setup(size_t *wg_size, size_t *wg_num,
 	cl_kernel kernel_init, kernel_prn;
 
 	char bopt[1024] = " -I .";
-	#endif
-	
+		
 	if(no_warm){
 		sprintf(&bopt[strlen(bopt)], " -D RANLUXCL_NO_WARMUP");
 	}
@@ -95,18 +89,18 @@ static void setup(size_t *wg_size, size_t *wg_num,
 
 	size_t wi_tot = *wg_size * *wg_num;
 	printf("Setting up generator."
-			"\n%*s %d\n%*s %d\n%*s %zu\n%*s %zu\n%*s %zu\n\n",
-		-PAD, "gen_per_it:", gen_per_it,
-		-PAD, "Luxury:", lux,
-		-PAD, "Work-items:", wi_tot,
-		-PAD, "Work-group size:", *wg_size,
-		-PAD, "Work-groups:", *wg_num);
+			"\n%s %d\n%s %d\n%s %zu\n%s %zu\n%s %zu\n\n",
+			 "gen_per_it:", gen_per_it,
+			 "Luxury:", lux,
+			 "Work-items:", wi_tot,
+			 "Work-group size:", *wg_size,
+			 "Work-groups:", *wg_num);
 
 	*buff_prns = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
 			gen_per_it * wi_tot * sizeof(cl_float4), NULL, &err);
 	IUNCLERR( err );
 	*buff_state = clCreateBuffer(context, CL_MEM_READ_WRITE,
-			sizeof(ranluxcl_state_t) * wi_tot, NULL, &err);
+			sizeof(prng_data) * wi_tot, NULL, &err);
 	IUNCLERR( err );
 
 	IUNCLERR( clSetKernelArg(kernel_init, 0, sizeof(ins), &ins) );
@@ -121,7 +115,7 @@ static void setup(size_t *wg_size, size_t *wg_num,
 	IUNCLERR( clFinish(queue) );
 }
 
-static void filler(int lux, ) {
+static void filler(int lux, bool no_warm, bool legacy) {
 	cl_uint pid=0, did=0;	//Setting to 0 for now
 	size_t wg_size, wg_num, gen_per_it;
 	size_t wr_bytes;
@@ -133,41 +127,32 @@ static void filler(int lux, ) {
 
 	iunclGetSingleDeviceContext(pid, did, &context, &queue, 1);
 
-	setup(&wg_size, &wg_num, lux, gen_per_it, chk,
+	setup(&wg_size, &wg_num, lux, gen_per_it, no_warm, legacy,
 		&buff_state, &buff_prns,
 		&program, context, queue);
 
 }
 
-static void rng_seed(sd_prng *r, uint32_t seed)
+static void prng_seed(sd_prng *r, uint32_t seed)
 {
 	struct ranluxcl_state_t *d = r->ptr;
-	d->seed = seed;
-	d->ncall = 0;
-	rk_seed(seed, &d->rks);
+
 }
 
-static double rng_norm(sd_prng *r)
-{
-	struct rng_data *d = r->ptr;
-	return rk_gauss(&(d->rks));
-}
 
-static double rng_uniform(sd_prng *r)
-{
-	struct rng_data *d = r->ptr;
-	return rk_random(&(d->rks)) * 1.0 / RK_MAX;
-}
-
-static void rng_fill_norm(sd_prng *r, uint32_t n, double *x)
+static void prng_fill_uniform(sd_prng *r, uint32_t n, float *x)
 {
 	uint32_t i;
-	struct prng_data *d = r->ptr;
-	for (i=0; i<n; i++)
-		x[i] = rk_gauss(&d->rks);
+
 }
 
-static void rng_free(sd_prng *r)
+static void prng_fill_norm(sd_prng *r, uint32_t n, float *x)
+{
+	uint32_t i;
+
+}
+
+static void prng_free(sd_prng *r)
 {
 	sd_free(r->ptr);
 	sd_free(r);
@@ -176,14 +161,15 @@ static void rng_free(sd_prng *r)
 static uint32_t prng_nbytes(sd_prng *r)
 {
 	(void) r;
-	return sizeof(struct ranluxcl_state_t) + sizeof(sd_prng);
+	return sizeof(prng_data) + sizeof(sd_prng);
 }
 
 static sd_prng prng_default = {
 	.ptr = NULL,
 	.seed = &prng_seed,
-	.norm = &prng_norm,
-	.uniform = &prng_uniform,
+//	.norm = &prng_norm,
+//	.uniform = &prng_uniform,
+	.fill_uniform = &prng_fill_uniform,
 	.fill_norm = &prng_fill_norm,
 	.nbytes = &prng_nbytes,
 	.free = &prng_free
@@ -194,10 +180,10 @@ sd_prng *sd_prng_new_default()
 	sd_prng *r;
     if ((r = sd_malloc (sizeof(sd_prng))) == NULL
 	 || (*r = prng_default, 0)
-	 || (r->ptr = sd_malloc (sizeof(struct ranluxcl_state_t))) == NULL)
+	 || (r->ptr = sd_malloc (sizeof(prng_data))) == NULL)
 	{
 		sd_free(r);
-		sd_err("alloc rng failed.");
+		sd_err("alloc prng failed.");
 		return NULL;
 	}
 	return r;
