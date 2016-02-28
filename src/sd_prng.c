@@ -5,6 +5,7 @@
 
 #include "parallel/iuncl.h"
 
+/*
 typedef struct{
 	float
 		s01, s02, s03, s04,
@@ -18,12 +19,18 @@ typedef struct{
 	int in24;
 	int stepnr;
 } prng_data;
+*/
+
+typedef struct prng_data{
+	uint32_t seed;
+	//For now
+} prng_data;
 
 /* 
  * Automatically set the number of work-groups and the number of work-items per
  * work-group if not specified by the user.
  */
-static void autoSetWgNumAndSize(cl_kernel kernel, cl_command_queue queue, 
+static void autoSetWgNumAndSize(uint32_t n, size_t gen_per_it, cl_kernel kernel, cl_command_queue queue, 
 		size_t *wg_size, size_t *wg_num)
 {
 	cl_uint max_cu;
@@ -48,6 +55,8 @@ static void autoSetWgNumAndSize(cl_kernel kernel, cl_command_queue queue,
 		printf("WARNING: Could not quiery preferred work-group size.\n");
 		*wg_size = 64;
 		#endif
+		//TODO, temporary fix
+		*wg_size = ((*wg_num) * gen_per_it * 4)/ n + 1;
 	}
 }
 
@@ -55,12 +64,13 @@ static void autoSetWgNumAndSize(cl_kernel kernel, cl_command_queue queue,
  * Perform various setup tasks like compiling the kernels, setting the number
  * of work-items and initializing the generator.
  */
-static void setup(size_t *wg_size, size_t *wg_num,
-	int lux, int gen_per_it, bool no_warm, bool legacy,
+static void stimulate(sd_prng *r, bool isnorm, uint32_t n, float *x, size_t *wg_size,
+	size_t *wg_num, int lux, size_t gen_per_it, bool no_warm, bool legacy,
 	cl_mem *buff_state, cl_mem *buff_prns,
 	cl_program *program, cl_context context, cl_command_queue queue)
-{
-	cl_uint ins = 0;
+{	
+	struct prng_data *d = r->ptr;
+	cl_uint ins = d->seed;
 	cl_int err;
 	cl_kernel kernel_init, kernel_prn;
 
@@ -73,23 +83,26 @@ static void setup(size_t *wg_size, size_t *wg_num,
 		sprintf(&bopt[strlen(bopt)], " -D RANLUXCL_USE_LEGACY_INITIALIZATION");
 	}
 	sprintf(&bopt[strlen(bopt)], " -D RANLUXCL_LUX=%d", lux);
-	sprintf(&bopt[strlen(bopt)], " -D GEN_PER_IT=%d", gen_per_it);
+	sprintf(&bopt[strlen(bopt)], " -D GEN_PER_IT=%zu", gen_per_it);
 
 	iunclCompileKernel("ranluxcl-test_kernels.cl", bopt, context, program, 1);
 	printf("\n"); //Add newline since Nvidia's compiler likes to spit out stuff.
 
 	kernel_init = clCreateKernel(*program, "kernelInit", &err);
 	IUNCLERR( err );
-
-	kernel_prn = clCreateKernel(*program, "kernelPrn", &err);
+	if(isnorm) {
+		kernel_prn = clCreateKernel(*program, "kernelPnrn", &err);
+	} else {
+		kernel_prn = clCreateKernel(*program, "kernelPurn", &err);
+	}
 	IUNCLERR( err );
 
 	//Auto set work-group size and number if not specified
-	autoSetWgNumAndSize(kernel_prn, queue, wg_size, wg_num);
+	autoSetWgNumAndSize(n, gen_per_it, kernel_prn, queue, wg_size, wg_num);
 
 	size_t wi_tot = *wg_size * *wg_num;
 	printf("Setting up generator."
-			"\n%s %d\n%s %d\n%s %zu\n%s %zu\n%s %zu\n\n",
+			"\n%s %zu\n%s %d\n%s %zu\n%s %zu\n%s %zu\n\n",
 			 "gen_per_it:", gen_per_it,
 			 "Luxury:", lux,
 			 "Work-items:", wi_tot,
@@ -108,17 +121,31 @@ static void setup(size_t *wg_size, size_t *wg_num,
 
 	IUNCLERR( clSetKernelArg(kernel_prn, 0, sizeof(*buff_state), buff_state) );
 	IUNCLERR( clSetKernelArg(kernel_prn, 1, sizeof(*buff_prns), buff_prns) );
-
 	//Initialize the generator.
 	IUNCLERR( clEnqueueNDRangeKernel(queue, kernel_init, 1, NULL, &wi_tot,
 				wg_size, 0, NULL, NULL) );
 	IUNCLERR( clFinish(queue) );
+
+
+	IUNCLERR( clEnqueueReadBuffer(queue, *buff_prns, CL_TRUE, 0,
+		n * sizeof(*x), x, 0, NULL, NULL) );
+
+	IUNCLERR( clFinish(queue) );
+
 }
 
-static void filler(int lux, bool no_warm, bool legacy) {
-	cl_uint pid=0, did=0;	//Setting to 0 for now
-	size_t wg_size, wg_num, gen_per_it;
-	size_t wr_bytes;
+/* isnorm = false for uniform, and true for norm
+	lux = luxery value, the higher the slower and more chaotic
+	no_warm = 1 for not warming up
+	legacy = to use legacy initializer, otherwise Uses a 64-bit xorshift PRNG by George Marsaglia
+
+	*/
+static void filler(sd_prng *r, bool isnorm, int lux, bool no_warm,
+		 bool legacy, uint32_t n, float *x)
+{
+	cl_uint pid=0, did=0;	//Setting to 0 for now, TODO
+	size_t wg_size, wg_num;	//TODO 
+	size_t gen_per_it = 1000;		//TODO, setting manually
 
 	cl_mem buff_state, buff_prns;
 	cl_program program;
@@ -127,29 +154,38 @@ static void filler(int lux, bool no_warm, bool legacy) {
 
 	iunclGetSingleDeviceContext(pid, did, &context, &queue, 1);
 
-	setup(&wg_size, &wg_num, lux, gen_per_it, no_warm, legacy,
-		&buff_state, &buff_prns,
+	stimulate(r, isnorm, n, x, &wg_size, &wg_num, lux, gen_per_it,
+		no_warm, legacy, &buff_state, &buff_prns,
 		&program, context, queue);
 
 }
 
-static void prng_seed(sd_prng *r, uint32_t seed)
+static void prng_seed(sd_prng *r, uint32_t sed)
 {
-	struct ranluxcl_state_t *d = r->ptr;
+	struct prng_data *d = r->ptr;
+	d->seed = sed;
 
 }
 
 
-static void prng_fill_uniform(sd_prng *r, uint32_t n, float *x)
+static void prng_fill_uniform(sd_prng *r, size_t n, float *x)
 {
-	uint32_t i;
+	//Setting to default for now, TODO
+	int lux = 4;
+	bool no_warm = 0;
+	bool legacy = 0;
 
+	filler(r, 0, lux, no_warm, legacy, n, x);
 }
 
-static void prng_fill_norm(sd_prng *r, uint32_t n, float *x)
+static void prng_fill_norm(sd_prng *r, size_t n, float *x)
 {
-	uint32_t i;
-
+	//Setting to default for now, TODO
+	int lux = 4;
+	bool no_warm = 0;
+	bool legacy = 0;
+	
+	filler(r, 1, lux, no_warm, legacy, n, x);
 }
 
 static void prng_free(sd_prng *r)

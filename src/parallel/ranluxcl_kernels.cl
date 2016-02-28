@@ -9,7 +9,7 @@ __kernel void kernelInit(
 	ranluxcl_initialization(ins, ranluxcltab);
 }
 
-__kernel void kernelPrn(
+__kernel void kernelPurn(
 	global ranluxcl_state_t *ranluxcltab,
 	global float4 *prns)
 {
@@ -26,19 +26,19 @@ __kernel void kernelPrn(
 	ranluxcl_upload_seed(&ranluxclstate, ranluxcltab);
 }
 
-__kernel void kernelPrnLight(
+__kernel void kernelPnrn(
 	global ranluxcl_state_t *ranluxcltab,
 	global float4 *prns)
 {
+	//Downloading ranluxcltab. The state of RANLUXCL is stored in ranluxclstate.
 	ranluxcl_state_t ranluxclstate;
 	ranluxcl_download_seed(&ranluxclstate, ranluxcltab);
 
-	float4 randomnr;
+	for(int i=0; i<GEN_PER_IT; i++){
+		prns[get_global_id(0) + i * get_global_size(0)] =
+			ranluxcl32norm(&ranluxclstate);
+	}
 
-	for(int i = 0; i < GEN_PER_IT; i++)
-		randomnr = ranluxcl32(&ranluxclstate);
-
-	prns[get_global_id(0)] = randomnr;
-
+	//Important to upload the state again
 	ranluxcl_upload_seed(&ranluxclstate, ranluxcltab);
 }

@@ -228,11 +228,11 @@ struct sd_prng {
     /**
      * Generate and fill an array with samples from U(0, 1).
      */
-    void (*fill_uniform)(sd_prng*, uint32_t n, float *x);
+    void (*fill_uniform)(sd_prng*, size_t n, float *x);
 	/**
 	 * Generate and fill an array with samples from N(0, 1).
 	 */
-	void (*fill_norm)(sd_prng*, uint32_t n, float *x);
+	void (*fill_norm)(sd_prng*, size_t n, float *x);
 	/**
 	 * Number of bytes used by this object.
 	 */
