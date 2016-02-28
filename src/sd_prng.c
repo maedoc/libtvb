@@ -55,8 +55,10 @@ static void autoSetWgNumAndSize(uint32_t n, size_t gen_per_it, cl_kernel kernel,
 		printf("WARNING: Could not quiery preferred work-group size.\n");
 		*wg_size = 64;
 		#endif
-		//TODO, temporary fix
-		*wg_size = ((*wg_num) * gen_per_it * 4)/ n + 1;
+		//TODO
+		//temporary fix gen_per_it should depend on n, not wg_size.
+		//Kernel process Overflow possibility.
+		*wg_size = n / ((*wg_num) * gen_per_it * 4) + 1;
 	}
 }
 
@@ -132,14 +134,21 @@ static void stimulate(sd_prng *r, bool isnorm, uint32_t n, float *x, size_t *wg_
 
 	IUNCLERR( clFinish(queue) );
 
+	//TODO, add support for persistent kernel memory for further process
+	clReleaseMemObject(*buff_prns);
+	clReleaseMemObject(*buff_state);
+	clReleaseKernel(kernel_init);
+	clReleaseKernel(kernel_prn);
+	clReleaseCommandQueue(queue);
+	clReleaseProgram(*program);
+	clReleaseContext(context);
 }
 
 /* isnorm = false for uniform, and true for norm
 	lux = luxery value, the higher the slower and more chaotic
 	no_warm = 1 for not warming up
 	legacy = to use legacy initializer, otherwise Uses a 64-bit xorshift PRNG by George Marsaglia
-
-	*/
+*/
 static void filler(sd_prng *r, bool isnorm, int lux, bool no_warm,
 		 bool legacy, uint32_t n, float *x)
 {
@@ -175,6 +184,7 @@ static void prng_fill_uniform(sd_prng *r, size_t n, float *x)
 	bool no_warm = 0;
 	bool legacy = 0;
 
+	//TODO, add support for having kernel memory for further process
 	filler(r, 0, lux, no_warm, legacy, n, x);
 }
 
@@ -185,6 +195,7 @@ static void prng_fill_norm(sd_prng *r, size_t n, float *x)
 	bool no_warm = 0;
 	bool legacy = 0;
 	
+	//TODO, add support for having kernel memory for further process
 	filler(r, 1, lux, no_warm, legacy, n, x);
 }
 
