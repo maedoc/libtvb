@@ -5,7 +5,17 @@ LDFLAGS = -lm
 VALFLAGS = --error-exitcode=1 --track-origins=yes --leak-check=full 
 CFLAGS = -fPIC -std=c99 -Isrc
 OBJEXT=o
-SANFLAGS=-fsanitize=address -fsanitize=float-cast-overflow -fsanitize=undefined
+
+cc_asan:=$(shell expr `gcc -dumpversion` \>= 4.8)
+cc_ubsan:=$(shell expr `gcc -dumpversion` \>= 4.9)
+
+ifeq ($(cc_asan),1)
+    SANFLAGS += -fsanitize=address
+endif
+
+ifeq ($(cc_ubsan),1)
+    SANFLAGS += -fsanitize=undefined
+endif
 
 # various build types {{{
 ifeq ($(BUILD),fast)
