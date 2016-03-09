@@ -1,7 +1,7 @@
 # copyright 2016 Apache 2 sddekit authors
 
 CC=gcc
-LDFLAGS = -lm
+LDFLAGS = -lm -lOpenCL
 VALFLAGS = --error-exitcode=1 --track-origins=yes --leak-check=full 
 CFLAGS = -fPIC -std=c99 -Isrc
 OBJEXT=o
@@ -41,8 +41,10 @@ endif
 
 # file lists {{{
 c_lib=$(wildcard src/*.c)
+c_plib+=$(wildcard src/parallel/*.c)
 c_test=$(wildcard test/test_*.c)
 o_lib=$(patsubst src/%.c,%.$(OBJEXT),$(c_lib))
+o_plib=$(patsubst src/parallel/%.c,%.$(OBJEXT),$(c_plib))
 o_test=$(patsubst test/%.c,%.$(OBJEXT),$(c_test))
 # }}}
 
@@ -71,14 +73,14 @@ endif
 help:
 	echo "make tests$(EXE) | bench_net_exc$(EXE) | libSDDEKit.$(DLLEXT) | clean"
 
-tests$(EXE): $(o_lib) $(o_test)
+tests$(EXE): $(o_lib) $(o_plib) $(o_test)
 	$(CC) $(CFLAGS) test/main.c $^ -o tests$(BUILD)$(EXE) $(LDFLAGS)
 
-libSDDEKit.$(DLLEXT): $(o_lib)
+libSDDEKit.$(DLLEXT): $(o_lib) $(o_plib)
 	$(CC) -shared $^ -o libSDDEKit.$(DLLEXT) $(LDFLAGS)
 
 clean:
-	$(RM) $(o_lib) $(o_test) bench_* tests* *.dat *.exe *.$(DLLEXT) *.ilk *.pdb *.gcda callgrind.out.* junit.xml
+	$(RM) $(o_lib) $(o_plib) $(o_test) bench_* tests* *.dat *.exe *.$(DLLEXT) *.ilk *.pdb *.gcda callgrind.out.* junit.xml
 
 gh-pages:
 	git branch -D gh-pages
@@ -93,6 +95,9 @@ gh-pages:
 # generic rules {{{
 
 %.$(OBJEXT): src/%.c
+	$(CC) $(CFLAGS) -c $< $(LDFLAGS) -o $@
+
+%.$(OBJEXT): src/parallel/%.c
 	$(CC) $(CFLAGS) -c $< $(LDFLAGS) -o $@
 
 %.$(OBJEXT): test/%.c

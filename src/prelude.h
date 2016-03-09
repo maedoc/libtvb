@@ -9,6 +9,14 @@
 #include <math.h>
 /* }}} */
 
+/* OpenCL includes {{{ */
+#ifdef __APPLE__
+#include <OpenCL/opencl.h>
+#else
+#include <CL/cl.h>
+#endif
+/* }}} */
+
 /* -DSD_API_EXPORT dllexport {{{ */
 #if defined(_MSC_VER)
 #ifdef SD_API_EXPORT
