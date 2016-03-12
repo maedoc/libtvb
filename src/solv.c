@@ -175,6 +175,6 @@ uhoh:
 		if (sol != NULL)
 			sd_free(sol);
 	}
-	sd_err(errmsg);
+	sd_err("%s", errmsg);
 	return NULL;
 }

@@ -30,7 +30,7 @@ flags = [
 	'-DSKDEBUG',
 ]
 
-cflags = flags + [ '-std=ansi', '-x', 'c', ]
+cflags = flags + [ '-std=c99', '-x', 'c', ]
 cxxflags = flags + [ '-std=c++11', '-x', 'c++' ] 
 
 mex_flags = []

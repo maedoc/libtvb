@@ -2,41 +2,44 @@
 
 #include "sddekit.h"
 
-sd_log_msg_fp sd_log_msg = (sd_log_msg_fp) printf;
+#include <stdarg.h>
+#include <stdio.h>
 
-static bool sd_log_quiet = false;
-static bool sd_log_verbose = true;
-
-sd_log_msg_fp sd_log_get_msg()
+static void fprintf_handler(enum sd_log_level level, char *message)
 {
-	return sd_log_msg;
+	FILE *out;
+	char *s_level;
+	if (level == SD_LOG_ERROR)
+	{
+		out = stderr;
+		s_level = " ERROR";
+	}
+	else
+	{
+		out = stdout;
+		s_level = "";
+	}
+	fprintf(out, "[SDDEKit%s] %s\n", s_level, message); 
 }
 
-void sd_log_set_msg(sd_log_msg_fp fp)
+static sd_log_handler handler = &fprintf_handler;
+
+void sd_log_set_handler(sd_log_handler new_handler)
 {
-	sd_log_msg = fp;
+	handler = new_handler;
 }
 
-bool sd_log_is_quiet()
+sd_log_handler sd_log_get_handler()
 {
-	return sd_log_quiet;
+	return handler;
 }
 
-void sd_log_set_quiet(bool flag)
+void sd_log_handle(enum sd_log_level level, char *format, ...)
 {
-	sd_log_quiet = flag;
-	if (flag)
-		sd_log_verbose = 0;
-}
-
-bool sd_log_is_verbose()
-{
-	return sd_log_verbose;
-}
-
-void sd_log_set_verbose(bool flag)
-{
-	sd_log_verbose = flag;
-	if (flag)
-		sd_log_quiet = 0;
+	char message[2048];
+	va_list args;
+	va_start(args, format);
+	vsnprintf(message, 2048, format, args);
+	va_end(args);
+	handler(level, message);
 }

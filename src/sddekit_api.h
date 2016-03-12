@@ -1663,133 +1663,44 @@ sd_sparse_from_dense(
 
 /* sparse }}} */
 
-/* logging  {{{
+/* logging  {{{ */
+
+enum sd_log_level { SD_LOG_ERROR, SD_LOG_INFO, SD_LOG_DEBUG };
+
+/*! Callback handler log messages */
+typedef void (*sd_log_handler)(enum sd_log_level level, char *message);
+
+/*! Handle log message; low-level: prefer macros below. */
+SD_API void sd_log_handle(enum sd_log_level level, char *format, ...);
+
+/*! Set log message handler pointer used by sd_log_handle. */
+SD_API void sd_log_set_handler(sd_log_handler new_handler);
+
+/*! Get log message handler pointer used by sd_log_handle. */
+SD_API sd_log_handler sd_log_get_handler();
+
+/* insert file, line, function name & new line*/
+#define _sd_log_handle(level, fmt, ...) sd_log_handle(level, "%s:%d (%s) " fmt, __FILE__, __LINE__, __FUNCTION__, ## __VA_ARGS__)
+
+/**
+ * Logging macros user & library code should use.
+ * 
+ * \note a char* argument cannot be handled alone and needs
+ * to be formatted, so 
  *
- * \file sd_log.h implements handlers for information, debugging output
- * and error messages. Messages may be redirected to custom handlers.
+ * char *msg = "foo";
+ * sd_err(msg);
+ *
+ * will not compile and should be written as
+ *
+ * sd_err("%s", msg)
  */
-
-/**
- * Type definition for callback handling formatted messages.
- */
-typedef int (*sd_log_msg_fp)(const char *fmt, ...);
-
-SD_API extern sd_log_msg_fp sd_log_msg;
-
-/**
- * Get function pointer handling messages.
- */
-SD_API sd_log_msg_fp sd_log_get_msg();
-
-/**
- * Set function pointer handling messages.
- */
-SD_API void sd_log_set_msg(sd_log_msg_fp fp);
-
-/**
- * Get status of quiet flag.
- */
-SD_API bool sd_log_is_quiet();
-
-/**
- * Set status of quiet flag.
- */
-SD_API void sd_log_set_quiet(bool flag);
-
-/**
- * Get status of verbose flag.
- */
-SD_API bool sd_log_is_verbose();
-
-/**
- * Set status of verbose flag.
- */
-SD_API void sd_log_set_verbose(bool flag);
-
-/**
- * Define logging macros differently depending on the compiler being used.
- */
-
-/* use color when available */
-#define SD_KNRM  "\x1B[0m"
-#define SD_KRED  "\x1B[31m"
-#define SD_KGRN  "\x1B[32m"
-#define SD_KYEL  "\x1B[33m"
-#define SD_KBLU  "\x1B[34m"
-#define SD_KMAG  "\x1B[35m"
-#define SD_KCYN  "\x1B[36m"
-#define SD_KWHT  "\x1B[37m"
-#define SD_RESET "\033[0m"
-
-#ifdef _MSC_VER
-#ifdef mex_h
-#define sd_log_info(fmt, ...) if (!sd_log_is_quiet()) \
-	sd_log_msg("[INFO] <a href=\"matlab: opentoline('%s', %d)\">%s:%d</a> (%s) " fmt "\n", __FILE__, __LINE__, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#define sd_log_debug(fmt, ...) if (sd_log_is_verbose()) \
-	sd_log_msg("[DEBUG] <a href=\"matlab: opentoline('%s', %d)\">%s:%d</a> (%s) " fmt "\n", __FILE__, __LINE__, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#define sd_log_fail(fmt, ...) \
-	sd_log_msg("[FAIL] <a href=\"matlab: opentoline('%s', %d)\">%s:%d</a> (%s) " fmt "\n", __FILE__, __LINE__, __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#else /* not mex_h */
-#define sd_log_info(fmt, ...) if (!sd_log_is_quiet()) \
-	sd_log_msg("[INFO] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#define sd_log_debug(fmt, ...) if (sd_log_is_verbose()) \
-	sd_log_msg("[DEBUG] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#define sd_log_fail(fmt, ...) \
-	sd_log_msg("[FAIL] %s:%d (%s) " fmt "\n", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#endif /* ifdef mex_h */
-#else /* use GCC double hash to eat final comma */
-#define sd_log_info(fmt, ...) if (!sd_log_is_quiet()) \
-	sd_log_msg(SD_KGRN "[INFO]" SD_KBLU " %s:%d (%s) " SD_RESET fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
-#define sd_log_debug(fmt, ...) if (sd_log_is_verbose()) \
-	sd_log_msg(SD_KYEL "[DEBUG]" SD_KBLU " %s:%d (%s) " SD_RESET fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
-#define sd_log_fail(fmt, ...) \
-	sd_log_msg(SD_KRED "[FAIL]" SD_KBLU " %s:%d (%s) " SD_RESET fmt "\n", __FILE__, __LINE__, __func__, ## __VA_ARGS__)
-#endif
+#define sd_log_info(fmt, ...) _sd_log_handle(SD_LOG_INFO,  fmt, ## __VA_ARGS__)
+#define sd_log_debug(fmt, ...) _sd_log_handle(SD_LOG_DEBUG, fmt, ## __VA_ARGS__)
+#define sd_log_fail(fmt, ...) _sd_log_handle(SD_LOG_ERROR, fmt, ## __VA_ARGS__)
+#define sd_err(fmt, ...) _sd_log_handle(SD_LOG_ERROR, fmt, ## __VA_ARGS__)
 
 /* log }}} */
-
-/* error handling {{{ */
-
-/**
- * Typedef for error handler callback.
- *
- * \param err error number.
- * \param file file name where error originates.
- * \param line line number in file where error originates.
- * \param reason description of error.
- */
-typedef void (*sd_err_handler_fp)(int err, char *file, int line, char *func, char *reason);
-
-/**
- * The default error handler logs the error in the debug log.
- */
-void sd_err_default_handler(int err, char *file, int line, char *func, char *reason);
-
-/**
- * Get the current error handler.
- */
-sd_err_handler_fp sd_err_get_handler();
-
-/**
- * Set the current error handler.
- *
- * \param fp new handler. if NULL, errors will be unhandled.
- */
-void sd_err_set_handler(sd_err_handler_fp fp);
-
-/**
- * Dispatches error to current error handler.
- */
-void sd_err_handler(int err, char *file, int line, char *func, char *reason);
-
-/**
- * Handle an error.
- * 
- * \param reason description of error
- */
-#define sd_err(reason) sd_err_handler(SD_ERR, __FILE__, __LINE__, (char *) __func__, reason);
-
-/* err }}} */
 
 /* vim: foldmethod=marker
  */

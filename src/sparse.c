@@ -58,6 +58,6 @@ fail:
 	if (*sA!=NULL) sd_free(*sA);
 	if (dB!=NULL)
 		if (*sB!=NULL) sd_free(*sB);
-	sd_err(errmsg);
+	sd_err("%s", errmsg);
 	return 1;
 }

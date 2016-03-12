@@ -42,6 +42,5 @@ int main(int argc, char *argv[]) {
 	else
 		run_all();
 
-	sd_log_set_verbose(1);
 	return sd_test_report();
 }

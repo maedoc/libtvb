@@ -3,13 +3,11 @@
  */
 TEST_FOUND(arith, sum)
 TEST_FOUND(dat_read_square, matrix)
-TEST_FOUND(err, basic)
 TEST_FOUND(exc, em)
 TEST_FOUND(exc, emcolor)
 TEST_FOUND(exc, heun)
 TEST_FOUND(hist, basic)
 TEST_FOUND(hist, exact)
-TEST_FOUND(log_custom, handler)
 TEST_FOUND(log, simple)
 TEST_FOUND(net, simple)
 TEST_FOUND(net, matmult)

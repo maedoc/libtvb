@@ -127,7 +127,7 @@ fail:
 	if (Me!=NULL) sd_free(Me);
 	if (Ma!=NULL) sd_free(Ma);
 	if (models!=NULL) sd_free(models);
-	sd_err(errmsg);
+	sd_err("%s", errmsg);
 	return NULL;
 }
 

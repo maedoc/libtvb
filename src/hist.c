@@ -357,7 +357,7 @@ fail:
 	if (h->len!=NULL) sd_free(h->len);
 	if (h->pos!=NULL) sd_free(h->pos);
 	if (h->vi2i!=NULL) sd_free(h->vi2i);
-	sd_err(errmsg);
+	sd_err("%s", errmsg);
 	return SD_ERR;
 }
 
