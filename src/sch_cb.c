@@ -8,19 +8,46 @@ struct data
 {
 	struct sch_base base;
 	void *user_data;
-	sd_stat(*user_apply)(void *, double *t, double *, double *);
+	enum sd_stat (*user_apply)(void *, double *, double *, double *);
 };
 
-static sd_stat apply(struct sd_sch *sch, double *t, double *x, double *c)
+static enum sd_stat apply(struct sd_sch *sd_sch, double *time,
+		          double *state, double *output)
 {
-	struct data *d = sch->ptr;
-	return d->user_apply(d->user_data, t, x, c);
+	struct data *data = sd_sch->data;
+	data->base.time = *time;
+	return data->user_apply(data->user_data, time, state, output);
 }
 
-static void cb_free(struct sd_sch *sch)
+/* obj free n byte copy {{{ */
+
+static void cb_free(struct sd_sch *sd_sch)
 {
-	sd_free(sch->ptr);
+	sd_free(sd_sch->data);
 }
+
+static uint32_t n_byte(struct sd_sch *sd_sch)
+{
+	(void) sd_sch;
+	uint32_t byte_count = sizeof(struct data);
+	return byte_count;
+}
+
+static struct sd_sch *copy(struct sd_sch *sd_sch)
+{
+	struct data *data = sd_sch->data;
+	struct sch_base *base = &data->base;
+	struct sd_sch *copy;
+	copy = sd_sch_new_cb(base->dt, base->sys, base->hist,
+		base->rng, data->user_data, data->user_apply);
+	if (copy == NULL)
+	{
+		sd_err("copy sch cb failed.");
+	}
+	return copy;
+}
+
+/* }}} */
 
 struct sd_sch *
 sd_sch_new_cb(
@@ -29,18 +56,25 @@ sd_sch_new_cb(
 	struct sd_hist *hist,
 	struct sd_rng *rng,
 	void *user_data,
-	sd_stat(*user_apply)(void *, double *t, double *, double *) )
+	enum sd_stat(*user_apply)(void *, double *, double *, double *) )
 {
-	struct data *d;
-	if ((d = sd_malloc(sizeof(struct data))) == NULL)
+	struct data *data;
+	if ((data = sd_malloc(sizeof(struct data))) == NULL)
 	{
 		sd_err("alloc sch cb failed.");
 		return NULL;
 	}
-	sch_base_init(&(d->base), sys->ndim(sys), dt, sys, hist, rng);
-	d->base.sch.ptr = d;
-	d->base.sch.ptr = d;
-	d->user_data = user_data;
-	d->user_apply = user_apply;
-	return &d->base.sch;
+	sch_base_init(&data->base,
+		sys->get_n_dim(sys),
+		sys->get_n_in(sys),
+		sys->get_n_out(sys),
+		dt, sys, hist, rng,
+		&n_byte, &cb_free, &copy, &apply);
+	data->base.sch.data = data;
+	data->user_data = user_data;
+	data->user_apply = user_apply;
+	return &data->base.sch;
 }
+
+/* vim: foldmethod=marker
+ */

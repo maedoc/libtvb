@@ -2,141 +2,196 @@
 
 #include "sddekit.h"
 
-/* auto-allocating array */
-typedef struct mem_data {
-	sd_out out_if;
-	sd_out_mem mem_if;
-	uint32_t n_sample, capacity, nx, nc;
-	double *xs, *cs;
-} mem_data;
-
-static uint32_t 
-mem_get_n_sample(sd_out_mem *out) 
-{ 
-	return ((mem_data*) out->ptr)->n_sample; 
-}
-
-static uint32_t 
-mem_get_nx(sd_out_mem *out) 
-{ 
-	return ((mem_data*) out->ptr)->nx; 
-}
-
-static uint32_t 
-mem_get_nc(sd_out_mem *out) 
-{ 
-	return ((mem_data*) out->ptr)->nc; 
-}
-
-static double *
-mem_get_xs(sd_out_mem *out) 
-{ 
-	return ((mem_data*) out->ptr)->xs; 
-}
-
-static double *
-mem_get_cs(sd_out_mem *out) 
-{ 
-	return ((mem_data*) out->ptr)->cs; 
-}
-
-static sd_out *
-mem_get_out(sd_out_mem *out)
+struct data
 {
-	return &(((mem_data*)out->ptr)->out_if);
+	uint32_t n_sample, capacity, n_dim, n_out;
+	double *states, *outputs;
+	struct sd_out sd_out;
+	struct sd_out_mem sd_out_mem;
+};
+
+/* getters {{{ */
+
+#define GET(type, field) \
+static type \
+get_ ## field(struct sd_out_mem *sd_out_mem) \
+{ \
+	return ((struct data *) sd_out_mem->data)->field; \
 }
 
-static uint32_t
-mem_get_capacity(sd_out_mem *out)
+GET(uint32_t, n_sample)
+GET(double *, states)
+GET(double *, outputs)
+
+#undef GET
+
+static uint32_t get_n_dim(struct sd_out *sd_out)
 {
-	return ((mem_data*)out->ptr)->capacity;
+	return ((struct data *) sd_out->data)->n_dim;
 }
 
-static void 
-mem_free(sd_out *out) 
+static uint32_t get_n_out(struct sd_out *sd_out)
 {
-	mem_data *d = out->ptr;
-	if (d->xs!=NULL)
-		sd_free(d->xs);
-	if (d->cs!=NULL)
-		sd_free(d->cs);
-	sd_free(d);
+	return ((struct data *) sd_out->data)->n_out;
 }
 
-static sd_stat
-mem_apply(sd_out *out, double t, 
-		   uint32_t nx, double * restrict x,
-		   uint32_t nc, double * restrict c)
+static struct sd_out * mem_as_out(struct sd_out_mem *sd_out_mem)
 {
-	mem_data *d = out->ptr;
-	(void) t;
-	if (d->capacity==0) {
-		int err;
-		/* first alloc */
-		d->nx = nx;
-		d->nc = nc;
-		err = (d->xs = sd_malloc (sizeof(double)*nx))==NULL;
-	       	err |= (d->cs = sd_malloc (sizeof(double)*nc))==NULL;
-		if (err) {
-			sd_err("failed to allocate memory.");
-			if (d->xs!=NULL) sd_free(d->xs);
-			if (d->cs!=NULL) sd_free(d->cs);
-			return SD_ERR;
-		}
-		d->capacity = 1;
+	return &(((struct data *)sd_out_mem->data)->sd_out);
+}
+
+/* }}} */
+
+static void data_free(struct data *data) 
+{
+	sd_free(data->states);
+	sd_free(data->outputs);
+	sd_free(data);
+}
+
+static uint32_t data_n_byte(struct data *data)
+{
+	uint32_t byte_count = sizeof(struct data);
+	byte_count += sizeof(double) * (data->capacity * (data->n_dim + data->n_out));
+	return byte_count;
+}
+
+static struct data *data_copy(struct data *data)
+{
+	uint32_t bytes_per_n = data->capacity * sizeof(double);
+	struct data *copy, zero = {0};
+	if ((copy = sd_malloc(sizeof(struct data))) == NULL
+	 || (*copy = zero, 0)
+	 || (copy->states = sd_malloc(bytes_per_n * data->n_dim)) == NULL
+	 || (copy->outputs = sd_malloc(bytes_per_n * data->n_out)) == NULL
+	)
+	{
+		if (copy->states != NULL)
+			sd_free(copy->states);
+		if (copy != NULL)
+			sd_free(copy);
+		sd_err("alloc out mem copy failed.");
+		return NULL;
 	}
-	memcpy(d->xs + d->n_sample*nx, x, sizeof(double)*nx);
-	memcpy(d->cs + d->n_sample*nc, c, sizeof(double)*nc);
-	d->n_sample++;
-	if (d->n_sample==d->capacity) {
-		double *x_, *c_;
-		/* expand buffer */
-		x_ = sd_realloc (d->xs, sizeof(double)*nx*2*d->capacity);
-		if (x_==NULL) {
-			sd_err("failed to allocate memory.");
-			return SD_ERR;
-		} else {
-			/* save new ptr in case c_ realloc fails, free can still
-			 * handle x_ 
-			 */
-			d->xs = x_;
-		}
-		c_ = sd_realloc (d->cs, sizeof(double)*nc*2*d->capacity);
-		if (c_==NULL) {
-			sd_err("failed to allocate memory.");
-			return SD_ERR;
-		}
-		d->capacity *= 2;
-		d->xs = x_;
-		d->cs = c_;
+	copy->n_sample = data->n_sample;
+	copy->capacity = data->capacity;
+	copy->n_dim = data->n_dim;
+	copy->n_out = data->n_out;
+	copy->sd_out = data->sd_out;
+	copy->sd_out_mem = data->sd_out_mem;
+	memcpy(copy->states, data->states, bytes_per_n * copy->n_dim);
+	memcpy(copy->outputs, data->outputs, bytes_per_n * copy->n_out);
+	return copy;
+}
+
+sd_declare_tag_functions(sd_out)
+sd_declare_tag_functions(sd_out_mem)
+
+/* apply impl {{{ */
+
+static enum sd_stat
+setup_buffers(struct data *data, struct sd_out_sample *samp)
+{
+	data->n_dim = samp->n_dim;
+	data->n_out = samp->n_out;
+	if ((data->states = sd_malloc(sizeof(double) * data->n_dim)) == NULL
+	 || (data->outputs = sd_malloc(sizeof(double) * data->n_out)) == NULL
+	)
+	{
+		sd_err("alloc out mem buffers failed.");
+		if (data->states != NULL)
+			sd_free(data->states);
+		return SD_ERR;
+	}
+	data->capacity = 1;
+	return SD_OK;
+}
+
+static void append_sample(struct data *data, struct sd_out_sample *samp)
+{
+	memcpy(data->states + data->n_sample * data->n_dim,
+		samp->state, sizeof(double) * data->n_dim);
+	memcpy(data->states + data->n_sample * data->n_out,
+		samp->output, sizeof(double) * data->n_out);
+	data->n_sample++;
+}
+
+static enum sd_stat
+realloc_buffers(struct data *data)
+{
+	uint32_t new_bytes = sizeof(double) * data->capacity * 2;
+	double *new_states = NULL, *new_outputs = NULL;
+	/* If realloc return is not NULL, we *must* use it */
+	if ((new_states = sd_realloc(data->states, new_bytes * data->n_dim)) != NULL)
+		data->states = new_states;
+	if ((new_outputs = sd_realloc(data->outputs, new_bytes * data->n_out)) != NULL)
+		data->outputs = new_outputs;
+	if (new_states == NULL || new_outputs == NULL)
+	{
+		sd_err("failed to allocate memory.");
+		return SD_ERR;
+	}
+	data->capacity *= 2;
+	return SD_OK;
+}
+
+static enum sd_stat
+apply(struct sd_out *sd_out, struct sd_out_sample *samp)
+{
+	struct data *data = sd_out->data;
+	if (data->capacity==0) {
+		enum sd_stat stat = setup_buffers(data, samp);
+		if (stat != SD_OK)
+			return stat;
+	}
+	append_sample(data, samp);
+	if (data->n_sample == data->capacity)
+	{
+		enum sd_stat stat = realloc_buffers(data);
+		if (stat != SD_OK)
+			return stat;
 	}
 	return SD_CONT;
 }
 
-static sd_out_mem
-mem_defaults = { .out = &mem_get_out, .get_nx=&mem_get_nx, .get_nc=&mem_get_nc,
-	.get_n_sample=&mem_get_n_sample, .get_capacity=&mem_get_capacity,
-	.get_xs=&mem_get_xs, .get_cs=&mem_get_cs
+/* }}} */
+
+/* vtables {{{ */
+
+static struct sd_out_mem sd_out_mem_defaults = {
+	sd_declare_tag_vtable(sd_out_mem),
+	.as_out = &mem_as_out,
+	.get_n_sample = &get_n_sample,
+	.get_states = &get_states,
+	.get_outputs = &get_outputs
 };
 
-static sd_out
-mem_out_defaults = { .free = &mem_free,.apply = &mem_apply };
+static struct sd_out sd_out_defaults = {
+	sd_declare_tag_vtable(sd_out),
+	.get_n_dim = &get_n_dim,
+	.get_n_out = &get_n_out,
+	.apply = &apply
+};
 
-sd_out_mem *
-sd_out_mem_new() 
+/* }}} */
+
+struct sd_out_mem *sd_out_mem_new() 
 {
-	mem_data *d = NULL;
-	if ((d = sd_malloc(sizeof(mem_data))) == NULL)
+	struct data *data, zero = {0};
+	if ((data = sd_malloc(sizeof(struct data))) == NULL)
 	{
-		sd_err("alloc failed for new mem output.");
+		sd_err("alloc out mem failed.");
 		return NULL;
 	}
-	d->xs = NULL;
-	d->cs = NULL;
-	d->n_sample = 0;
-	d->capacity = 0;
-	d->mem_if = mem_defaults;
-	d->out_if = mem_out_defaults;
-	d->out_if.ptr = d->mem_if.ptr = d;
-	return &(d->mem_if);
+	data->states = NULL;
+	data->outputs = NULL;
+	data->n_sample = 0;
+	data->capacity = 0;
+	data->sd_out = sd_out_defaults;
+	data->sd_out_mem = sd_out_mem_defaults;
+	data->sd_out.data = data->sd_out_mem.data = data;
+	return &data->sd_out_mem;
 }
+
+/* vim: foldmethod=marker
+ */

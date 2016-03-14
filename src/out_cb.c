@@ -2,49 +2,70 @@
 
 #include "sddekit.h"
 
-typedef struct data
+struct data
 {
-	sd_out out;
+	struct sd_out out;
 	void *user_data;
-	sd_stat (*user_apply)(void *, double t, 
-	     uint32_t nx, double * restrict x,
-	     uint32_t nc, double * restrict c);
-} data;
+	enum sd_stat (*user_apply)(
+		void *user_data,
+		struct sd_out_sample *sample);
+};
 
-static sd_stat apply(sd_out *out, double t, 
-	     uint32_t nx, double * restrict x,
-	     uint32_t nc, double * restrict c)
+static enum sd_stat apply(struct sd_out *out,
+		          struct sd_out_sample *sample)
 {
-	data *d = out->ptr;
-	return d->user_apply(d->user_data, t, nx, x, nc, c);
+	struct data *d = out->data;
+	return d->user_apply(d->user_data, sample);
 }
 
-static void cb_free(sd_out *out)
+/* obj {{{ */
+
+static void cb_free(struct sd_out *out)
 {
-	sd_free(out->ptr);
+	sd_free(out->data);
 }
 
-static sd_out defaults = {
-	.ptr = NULL,
+static uint32_t n_byte(struct sd_out *out)
+{
+	(void) out;
+	return sizeof(struct sd_out);
+}
+
+static struct sd_out* copy(struct sd_out *out)
+{
+	struct data *data = out->data;
+	struct sd_out *copy;
+	copy = sd_out_new_cb(data->user_data, data->user_apply);
+	if (copy == NULL)
+	{
+		sd_err("out cb copy failed.");
+	}
+	return copy;
+}
+
+/* }}} */
+
+static struct sd_out defaults = {
 	.free = &cb_free,
+	.copy = &copy,
+	.n_byte = &n_byte,
 	.apply = &apply
 };
 
-SD_API sd_out *
+SD_API struct sd_out *
 sd_out_new_cb(void *user_data,
-	sd_stat (*user_apply)(void *, double t, 
-	     uint32_t nx, double * restrict x,
-	     uint32_t nc, double * restrict c))
+	enum sd_stat (*user_apply)(
+		void *, struct sd_out_sample *))
 {
-	data *d;
-        if ((d = sd_malloc(sizeof(data))) == NULL)
+	struct data *data;
+        if ((data = sd_malloc(sizeof(struct data))) == NULL)
 	{
 		sd_err("alloc out cb failed.");
 		return NULL;
 	}
-	d->out = defaults;
-	d->out.ptr = d;
-	d->user_data = user_data;
-	d->user_apply = user_apply;
-	return &(d->out);
+	data->out = defaults;
+	data->out.data = data;
+	data->user_data = user_data;
+	data->user_apply = user_apply;
+	return &(data->out);
 }

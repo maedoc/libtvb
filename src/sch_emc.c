@@ -4,23 +4,54 @@
 
 #include "sch_base.h"
 
-struct data { 
+struct data
+{ 
 	struct sch_base base;
 	bool first_call;
 	double *f, *g, *z, *eps, lam;
 };
 
+/* obj free n byte copy {{{ */
+
 static void
 emc_free(struct sd_sch *sch)
 {
-	struct data *d = sch->ptr;
-	if (d->f!=NULL) sd_free(d->f);
-	if (d->g!=NULL) sd_free(d->g);
-	if (d->z!=NULL) sd_free(d->z);
-	if (d->eps!=NULL) sd_free(d->eps);
+	struct data *d = sch->data;
+	sd_free(d->f);
+	sd_free(d->g);
+	sd_free(d->z);
+	sd_free(d->eps);
 	sd_free(d);
 	sd_free(sch);
 }
+
+static uint32_t
+emc_n_byte(struct sd_sch *sd_sch)
+{
+	struct data *data = sd_sch->data;
+	uint32_t byte_count = sizeof(struct data);
+	byte_count += sizeof(double ) * data->base.n_dim * 4;
+	byte_count += sch_base_pointers_n_byte(&data->base);
+	return byte_count;
+}
+
+static struct sd_sch*
+emc_copy(struct sd_sch *sd_sch)
+{
+	struct data *data = sd_sch->data;
+	struct sch_base *base = &data->base;
+	struct sd_sch *copy;
+	copy = sd_sch_new_emc(base->dt, data->lam, base->sys, base->hist, base->rng);
+	if (copy == NULL)
+	{
+		sd_err("copy emc sch failed.");
+	}
+	return copy;
+}
+
+/* }}} */
+
+/* apply {{{ */
 
 static enum sd_stat emc_apply(struct sd_sch *sch, double *t, double *x, double *c)
 {
@@ -55,17 +86,23 @@ static enum sd_stat emc_apply(struct sd_sch *sch, double *t, double *x, double *
 	return SD_OK;
 }
 
+/* }}} */
+
 struct sd_sch *
-sd_sch_new_emc(double dt, struct sd_sys *sys, struct sd_hist *hist, struct sd_rng *rng, double lam)
+sd_sch_new_emc(double dt, double lam,
+	       struct sd_sys *sys, struct sd_hist *hist, struct sd_rng *rng)
 {
 	struct data *d, z={0};
-	uint32_t nx = sys->ndim(sys);
+	uint32_t n_dim = sys->get_n_dim(sys)
+	       , n_in  = sys->get_n_in(sys)
+	       , n_out = sys->get_n_out(sys)
+	       ;
 	if ((d = sd_malloc(sizeof(struct data))) == NULL
 	 || (*d=z, 0)
-	 || (d->f=sd_malloc(sizeof(double)*nx))==NULL
-	 || (d->g=sd_malloc(sizeof(double)*nx))==NULL
-	 || (d->z=sd_malloc(sizeof(double)*nx))==NULL
-	 || (d->eps=sd_malloc(sizeof(double)*nx))==NULL
+	 || (d->f=sd_malloc(sizeof(double)*n_dim))==NULL
+	 || (d->g=sd_malloc(sizeof(double)*n_dim))==NULL
+	 || (d->z=sd_malloc(sizeof(double)*n_dim))==NULL
+	 || (d->eps=sd_malloc(sizeof(double)*n_dim))==NULL
 	)
 	{
 		if (d->f!=NULL) sd_free(d->f);
@@ -77,9 +114,13 @@ sd_sch_new_emc(double dt, struct sd_sys *sys, struct sd_hist *hist, struct sd_rn
 	}
 	d->first_call = true;
 	d->lam = lam;
-	sch_base_init(&(d->base), nx, dt, sys, hist, rng);
-	d->base.sch.ptr = d;
-	d->base.sch.apply = &emc_apply;
-	d->base.sch.free = &emc_free;
+	sch_base_init(&d->base,
+		n_dim, n_in, n_out, dt, 
+		sys, hist, rng, 
+		emc_n_byte, emc_free, emc_copy, emc_apply);
+	d->base.sch.data = d;
 	return &(d->base.sch);
 }
+
+/* vim: foldmethod=marker
+ */

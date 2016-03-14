@@ -2,6 +2,20 @@
 
 #include "sddekit.h"
 
+void sd_conv_kern_flat(uint32_t n, double *kernel)
+{
+	double value = 1.0 / n;
+	for (uint32_t i=0; i<n; i++)
+		kernel[i] = value;
+}
+
+void sd_conv_kern_hanning(uint32_t n, double *kernel)
+{
+	double inv_n_m_1 = 1.0 / (n - 1.0);
+	for (uint32_t i=0; i<n; i++)
+		kernel[i] = 0.5 * (1.0 - cos(2.0 * M_PI * i * inv_n_m_1));
+}
+
 /* common operation to normalize hrf */
 
 static void normalize(uint32_t n, double *x, double dt)

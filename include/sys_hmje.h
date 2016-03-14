@@ -13,7 +13,7 @@ struct sd_sys_hmje
 	sd_declare_common_members(sd_sys_hmje);
 
 	/*! Get system interface for this instance. */
-	struct sd_sys *(*sys)(struct sd_sys_hmje *);
+	struct sd_sys *(*as_sys)(struct sd_sys_hmje *);
 
 #define PAR(n, v)\
 	double (*get_##n)(struct sd_sys_hmje *hmje);\

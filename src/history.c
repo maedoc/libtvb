@@ -2,19 +2,141 @@
 
 #include "sddekit.h"
 
-typedef struct hist_data
+struct hist_data
 {
 	/*               nu+1   nu    nu    nu   nd, maxvi+1 */
 	uint32_t nd, nu, *lim, *len, *pos, *uvi, *vi, *vi2i, maxvi;
 	/*   sum(len)  nu     nd 		*/
 	double *buf, *maxd, *del, dt, t;
-} hist_data;
+};
 
+/* single delay buffer {{{ */
+
+/* 24-byte overhead, but only 16 for single query. Current CPUs often have
+ * 64-byte cache lines, so this is 25% overhead.
+ */
+struct delay_buffer 
+{
+	/*! Time step between buffer sample points. */
+	float time_step;
+	/*! Time of most recent update to data. */
+	float current_time;
+	/*! Index of output vector which is source of data. */
+	uint32_t source_index;
+	/*! Length of data. */
+       	uint32_t length;
+	/*! Position of most recent update to data. */
+        uint32_t position;
+	/*! Maximum delay for all terms referencing source_index. */
+	float max_delay;
+	/*! Array of delayed data values. */
+	float *data;
+};
+
+/* delay buffer new free copy nbyte {{{ */
+
+static uint32_t
+delay_buffer_n_byte(struct delay_buffer *buf)
+{
+	uint32_t byte_count = sizeof(struct delay_buffer);
+	byte_count += buf->length * sizeof(double);
+	return byte_count;
+}
+
+static struct delay_buffer*
+delay_buffer_new(double time_step, uint32_t source_index, double max_delay)
+{
+	struct delay_buffer *buf, zero = {0};
+	if ((buf = sd_malloc(sizeof(struct delay_buffer))) == NULL
+	 || (*buf = zero, 0)
+	 || (buf->data = sd_malloc(sizeof(double)*
+		(buf->length = (uint32_t) (ceil(max_delay) + 2)))) == NULL
+	 )
+	{
+		if (buf != NULL)
+			sd_free(buf);
+		sd_err("alloc delay buffer failed.");
+		return NULL;
+	}
+	buf->time_step = time_step;
+	buf->source_index = source_index;
+	buf->max_delay = max_delay;
+	buf->current_time = 0.0;
+	buf->position = 0;
+	return buf;
+}
+
+static struct delay_buffer *
+delay_buffer_copy(struct delay_buffer *buf)
+{
+	struct delay_buffer *copy = delay_buffer_new(
+		buf->time_step, buf->source_index, buf->max_delay);
+	if (copy == NULL)
+		{sd_err("alloc delay buffer copy failed.");}
+	else
+		memcpy(copy->data, buf->data, sizeof(double) * buf->length);
+	return copy;
+}
+
+static void
+delay_buffer_free(struct delay_buffer *buffer)
+{
+	sd_free(buffer->data);
+	sd_free(buffer);
+}
+
+/* }}} */
+
+static inline enum sd_stat
+update_delay_buffer(struct delay_buffer *buffer, double time, double *value);
+
+static inline enum sd_stat
+query_delay_buffer(struct delay_buffer *buffer, double time, double *value);
+
+/* }}} */
+
+/* sparse delay set {{{ */
+
+/* Handles a set of delays, non-contiguous source indices 
+ * into system output. 
+ *
+ * Decomposing hist into delay buffer & set provides more refined granularity
+ * and thus better memory use. Short-range delays can be separated from
+ * long-range (even given different time steps), allowing for a sparser
+ * overall structure in both.
+ */
+struct sparse_delay_set
+{
+	/*! Number of delay terms. */
+	uint32_t n_delay;
+	/*! Number of unique sources. */
+	uint32_t n_unique;
+	/*! Maximum source index. */
+	uint32_t max_index;
+	/*! Array of buffers, one per unique source index. */
+	struct delay_buffer *buffers;
+	/*! Delay value per delay term. */
+	double *delays;
+	/*! Index of buffers per delay term. */
+	uint32_t *buf_term_map;
+	/* TODO invert this index so that on a query operation, we can load
+	 * the buffer for a single source once, and fill out all the targets
+	 * per source. Writes are no longer sequential (but weren't a
+	 * bottleneck), but reads are more confined perhaps even to a
+	 * cache line? Parallelize over sources, perhaps better memory use.
+	 * We could furthermore order targets by delay so that reading from
+	 * delay buffer is sequential. Again, this perhaps moves the random
+	 * access from reads to writes.
+	 */
+	uint32_t *inv_buf_term_map;
+};
+
+/* }}} */
 
 static void update_time(struct sd_hist *hist, double new_t)/*{{{*/
 {
 	uint32_t i, n_steps;
-	hist_data *h = hist->ptr;
+	struct hist_data *h = hist->data;
 
 	/* the current time must always be contained between 
 	 * pos and pos-1 in the buffer
@@ -46,7 +168,7 @@ static void update_time(struct sd_hist *hist, double new_t)/*{{{*/
 
 static void hist_free(struct sd_hist *hist)/*{{{*/
 {
-	hist_data *h = hist->ptr;
+	struct hist_data *h = hist->data;
 	sd_free(h->uvi);
 	sd_free(h->del);
 	sd_free(h->vi);
@@ -60,12 +182,12 @@ static void hist_free(struct sd_hist *hist)/*{{{*/
 	sd_free(hist);
 }/*}}}*/
 
-static sd_stat fill(struct sd_hist *hist, sd_hfill *hf)/*{{{*/
+static enum sd_stat fill(struct sd_hist *hist, struct sd_hfill *hf)/*{{{*/
 {
 	uint32_t i, j, ui, o, n, *vi;
 	double *t;
 	char *errmsg;
-	hist_data *h = hist->ptr;
+	struct hist_data *h = hist->data;
 	errmsg = NULL;
 	t = NULL;
 	vi = NULL;
@@ -117,7 +239,7 @@ end:
 static void get(struct sd_hist *hist, double t, double *aff) /* {{{ */
 {
 	uint32_t i;
-	hist_data *h = hist->ptr;
+	struct hist_data *h = hist->data;
 	uint32_t *vi2i = h->vi2i;
 	uint32_t *pos = h->pos;
 	uint32_t *len = h->len;
@@ -131,6 +253,7 @@ static void get(struct sd_hist *hist, double t, double *aff) /* {{{ */
 
 	double inv_dt = 1.0 / h_dt;
 
+	/* TODO iterate over sources, then targets */
 	for (i = 0; i < h->nd; i++)
 	{
 		uint32_t ui = vi2i[h->vi[i]] /* unique variable index */
@@ -160,8 +283,8 @@ static void get(struct sd_hist *hist, double t, double *aff) /* {{{ */
                                      i1_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__ );
 #endif
 
-		double y0 = buf[i0_] /* consider sse read */
-		     , y1 = buf[i1_]
+		double y0 = buf[i0_] /* bottleneck is L1 cache miss */
+		     , y1 = buf[i1_] /* further reads from cache line free */
 		     ,  m = (y1 - y0) * inv_dt
 		     , dx = (t - del[i]) - (h_t - i0*h_dt);
 
@@ -173,7 +296,7 @@ static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
 {
 	uint32_t i, i0, i1;
 	double x0, dx, dt;
-	hist_data *h = hist->ptr;
+	struct hist_data *h = hist->data;
 
 	update_time(hist, t);
 
@@ -196,7 +319,7 @@ static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
 
 #ifdef SDDEBUG
 		if (dt < 0)
-			sd_log_debug( "[sd_hist] unhandled dt<0 at %s:%d\n", __FILE__, __LINE__ );
+			sd_log_debug("unhandled dt<0 at %s:%d\n", __FILE__, __LINE__ );
 #endif
 
 		if (dt > 0) {
@@ -213,8 +336,8 @@ static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
 static uint32_t nbytes(struct sd_hist *hist)/*{{{*/
 {
 	uint32_t nb;
-	hist_data *h = hist->ptr;
-	nb = sizeof(struct sd_hist) + sizeof(hist_data);
+	struct hist_data *h = hist->data;
+	nb = sizeof(struct sd_hist) + sizeof(struct hist_data);
 	nb += sizeof(uint32_t) * ((h->nu+1) + 3*h->nu + h->nd + h->maxvi);
 	nb += sizeof(double) * (h->lim[h->nu] + h->nu + h->nd);
 	return nb;
@@ -223,41 +346,50 @@ static uint32_t nbytes(struct sd_hist *hist)/*{{{*/
 /* accessors {{{ */
 
 static double get_t(struct sd_hist *h) {
-	return ((hist_data*) h->ptr)->t;
+	return ((struct hist_data*) h->data)->t;
 }
 
 static double get_dt(struct sd_hist *h) {
-	return ((hist_data*) h->ptr)->dt;
+	return ((struct hist_data*) h->data)->dt;
 }
 
 static uint32_t get_nd(struct sd_hist *h) {
-	return ((hist_data*) h->ptr)->nd;
+	return ((struct hist_data*) h->data)->nd;
 }
 
 static double get_vi(struct sd_hist *h, uint32_t i) {
-	return ((hist_data*) h->ptr)->vi[i];
+	return ((struct hist_data*) h->data)->vi[i];
 }
 
 static double get_vd(struct sd_hist *h, uint32_t i) {
-	return ((hist_data*) h->ptr)->del[i];
+	return ((struct hist_data*) h->data)->del[i];
 }
 /* }}} */
 
+static struct sd_hist *
+hist_copy(struct sd_hist *hist)
+{
+	(void) hist;
+	/* need a way to distinguish between interp types, etc. */
+	sd_err("Not (yet) implemented.");
+	return NULL;
+}
+
 static struct sd_hist sd_hist_defaults = {/*{{{*/
-	.ptr = NULL,
-	.get_nd = &get_nd,
-	.get_t = &get_t,
-	.get_dt = &get_dt,
-	.get_vd = &get_vd,
-	.get_vi = &get_vi,
 	.free = &hist_free,
+	.n_byte = &nbytes,
+	.copy = &hist_copy,
+	.get_n_delay = &get_nd,
+	.get_time = &get_t,
+	.get_time_step = &get_dt,
+	.get_var_idx = &get_vi,
+	.get_var_del = &get_vd,
 	.fill = &fill,
-	.get = &get,
-	.set = &set,
-	.nbytes = &nbytes,
+	.query = &get,
+	.update = &set
 };/*}}}*/
 
-static sd_stat setup_buffer_structure(hist_data *h, double dt)/*{{{*/
+static enum sd_stat setup_buffer_structure(struct hist_data *h, double dt)/*{{{*/
 {
 	uint32_t i, j, ui;
 	double maxd;
@@ -311,13 +443,14 @@ fail:
 	return SD_ERR;
 }/*}}}*/
 
-struct sd_hist * sd_hist_new_linterp(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)/*{{{*/
+struct sd_hist *
+sd_hist_new_linterp(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)/*{{{*/
 {
 	struct sd_hist *hist;
-	hist_data *h = NULL, zh = { 0 };
+	struct hist_data *h = NULL, zero = { 0 };
 	if ((hist = sd_malloc(sizeof(struct sd_hist))) == NULL
-		|| (h = hist->ptr = sd_malloc(sizeof(hist_data))) == NULL
-		|| (*h = zh, (h->nd = nd) < 1)
+		|| (h = hist->data = sd_malloc(sizeof(struct hist_data))) == NULL
+		|| (*h = zero, (h->nd = nd) < 1)
 		|| sd_util_uniqi(nd, vi, &(h->nu), &(h->uvi)) != SD_OK
 		|| (h->del = sd_malloc(sizeof(double) * nd)) == NULL
 		|| (h->vi = sd_malloc(sizeof(uint32_t) * nd)) == NULL
@@ -342,7 +475,7 @@ struct sd_hist * sd_hist_new_linterp(uint32_t nd, uint32_t *vi, double *vd, doub
 	h->dt = dt;
 	h->t = t0;
 	*hist = sd_hist_defaults;
-	hist->ptr = h;
+	hist->data = h;
 	return hist;
 }/*}}}*/
 
@@ -351,7 +484,7 @@ struct sd_hist * sd_hist_new_linterp(uint32_t nd, uint32_t *vi, double *vd, doub
 static void get_no_delay(struct sd_hist *hist, double t, double *aff)
 {
 	(void) t;
-	struct hist_data *hd = hist->ptr;
+	struct hist_data *hd = hist->data;
 	for (uint32_t i=0; i<hd->nd; i++)
 		aff[i] = hd->buf[hd->vi2i[hd->vi[i]]];
 }
@@ -359,24 +492,19 @@ static void get_no_delay(struct sd_hist *hist, double t, double *aff)
 static void set_no_delay(struct sd_hist *hist, double t, double *eff)
 {
 	(void) t;
-	struct hist_data *hd = hist->ptr;
+	struct hist_data *hd = hist->data;
 	memcpy(hd->buf, eff, sizeof(double) * hd->maxvi);
 }
 
 struct sd_hist *
 sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
 {
-	struct sd_hist *hist = sd_hist_new_default(nd, vi, vd, t0, dt);
+	struct sd_hist *hist = sd_hist_new_linterp(nd, vi, vd, t0, dt);
 	if (hist == NULL)
 	{
 		sd_err("hist no delay init failed.");
 		return NULL;
 	}
-	/*
-	struct hist_data *hd = hist->ptr;
-	sd_free(hd->buf);
-	hd->buf = sd_malloc(sizeof(double) * hd->maxvi);
-	*/
 	hist->get = &get_no_delay;
 	hist->set = &set_no_delay;
 	return hist;
@@ -388,7 +516,7 @@ sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double d
 
 static void convert_delays_to_nearest(struct sd_hist *hist)
 {
-	hist_data *data = (hist_data *) hist->ptr;
+	struct hist_data *data = hist->data;
 	double *rd = data->del;
 	for (uint32_t i=0; i<data->nd; i++, rd++)
 		*rd = round(*rd/data->dt)*data->dt;
@@ -407,36 +535,65 @@ struct sd_hist * sd_hist_new_nearest(
 /* }}} */
 
 /* fill {{{ */
-static sd_stat val_fill_apply(sd_hfill *hf, uint32_t n, double * restrict t,
-			      uint32_t *indices, double * restrict buf)
+static enum sd_stat
+val_fill_apply(struct sd_hfill *hf, 
+	       uint32_t n, double *t,
+	       uint32_t *indices, double *buf)
 {
 	uint32_t i;
-	double value = *((double*)hf->ptr);
-	(void)t; (void)indices;
+	double value = *((double*)hf->data);
+	(void) t; (void) indices;
 	for (i = 0; i < n; i++)
 		buf[i] = value;
 	return SD_OK;
 }
 
-static void val_fill_free(sd_hfill *hf)
+static struct sd_hfill *
+val_fill_copy(struct sd_hfill *hf)
 {
-	sd_free(hf->ptr);
+	struct sd_hfill *copy;
+	copy = sd_hfill_new_val(*((double*) hf->data));
+	if (copy == NULL)
+		sd_err("copy val hfill failed.");
+	return copy;
+}
+
+static uint32_t
+val_fill_n_byte(struct sd_hfill *hf)
+{
+	(void) hf;
+	uint32_t byte_count = sizeof(struct sd_hfill);
+	byte_count += sizeof(double);
+	return byte_count;
+}
+
+static void val_fill_free(struct sd_hfill *hf)
+{
+	sd_free(hf->data);
 	sd_free(hf);
 }
 
-sd_hfill *
+static struct sd_hfill hfill_val_defaults = {
+	.free = &val_fill_free,
+	.copy = &val_fill_copy,
+	.n_byte = &val_fill_n_byte,
+	.apply = &val_fill_apply
+};
+
+struct sd_hfill *
 sd_hfill_new_val(double val)
 {
-	sd_hfill *hf;
-	if ((hf=sd_malloc(sizeof(sd_hfill))) == NULL
-		|| (hf->ptr=sd_malloc(sizeof(double))) == NULL)
+	struct sd_hfill *hf;
+	if ((hf = sd_malloc(sizeof(struct sd_hfill))) == NULL
+	 || (hf->data = sd_malloc(sizeof(double))) == NULL)
 	{
+		if (hf != NULL)
+			sd_free(hf);
 		sd_err("alloc hfill failed.");
-		return hf;
+		return NULL;
 	}
-	*((double*)hf->ptr) = val;
-	hf->free = &val_fill_free;
-	hf->apply = &val_fill_apply;
+	*hf = hfill_val_defaults;
+	*((double*) hf->data) = val;
 	return hf;
 }
 /* }}} */

@@ -4,72 +4,96 @@
 
 #include "randomkit.h"
 
-struct rng_data {
-	uint64_t ncall;
+struct data
+{
 	uint32_t seed;
 	rk_state rks;
+	struct sd_rng sd_rng;
 };
 
-static void rng_seed(sd_rng *r, uint32_t seed)
+/* obj n byte free copy {{{ */
+
+static uint32_t data_n_byte(struct data *data)
 {
-	struct rng_data *d = r->ptr;
+	(void) data;
+	return sizeof(struct data);
+}
+
+static struct data *data_copy(struct data *data)
+{
+	struct data *copy = sd_malloc(sizeof(struct data));
+	if (copy == NULL)
+	{
+		sd_err("alloc rng copy failed.");
+		return NULL;
+	}
+	memcpy(copy, data, sizeof(struct data));
+	return copy;
+}
+
+static void data_free(struct data *data)
+{
+	sd_free(data);
+}
+
+sd_declare_tag_functions(sd_rng)
+
+/* }}} */
+
+/* sd_rng seed norm uniform fill norm {{{ */
+
+static void rng_seed(struct sd_rng *sd_rng, uint32_t seed)
+{
+	struct data *d = sd_rng->data;
 	d->seed = seed;
-	d->ncall = 0;
 	rk_seed(seed, &d->rks);
 }
 
-static double rng_norm(sd_rng *r)
+static double rng_norm(struct sd_rng *sd_rng)
 {
-	struct rng_data *d = r->ptr;
+	struct data *d = sd_rng->data;
 	return rk_gauss(&(d->rks));
 }
 
-static double rng_uniform(sd_rng *r)
+static double rng_uniform(struct sd_rng *sd_rng)
 {
-	struct rng_data *d = r->ptr;
+	struct data *d = sd_rng->data;
 	return rk_random(&(d->rks)) * 1.0 / RK_MAX;
 }
 
-static void rng_fill_norm(sd_rng *r, uint32_t n, double *x)
+static void rng_fill_norm(struct sd_rng *sd_rng, uint32_t n, double *x)
 {
 	uint32_t i;
-	struct rng_data *d = r->ptr;
+	struct data *d = sd_rng->data;
 	for (i=0; i<n; i++)
 		x[i] = rk_gauss(&d->rks);
 }
 
-static void rng_free(sd_rng *r)
-{
-	sd_free(r->ptr);
-	sd_free(r);
-}
+/* }}} */
 
-static uint32_t rng_nbytes(sd_rng *r)
-{
-	(void) r;
-	return sizeof(struct rng_data) + sizeof(sd_rng);
-}
-
-static sd_rng rng_default = {
-	.ptr = NULL,
+static struct sd_rng sd_rng_defaults = {
+	sd_declare_tag_vtable(sd_rng),
 	.seed = &rng_seed,
 	.norm = &rng_norm,
 	.uniform = &rng_uniform,
 	.fill_norm = &rng_fill_norm,
-	.nbytes = &rng_nbytes,
-	.free = &rng_free
 };
 
-sd_rng *sd_rng_new_default()
+struct sd_rng *
+sd_rng_new_mt(uint32_t seed)
 {
-	sd_rng *r;
-    if ((r = sd_malloc (sizeof(sd_rng))) == NULL
-	 || (*r = rng_default, 0)
-	 || (r->ptr = sd_malloc (sizeof(struct rng_data))) == NULL)
+	struct data *data;
+	if ((data = sd_malloc(sizeof(struct data))) == NULL)
 	{
-		sd_free(r);
 		sd_err("alloc rng failed.");
 		return NULL;
 	}
-	return r;
+	data->seed = seed;
+	data->sd_rng = sd_rng_defaults;
+	data->sd_rng.data = data;
+	rk_seed(seed, &data->rks);
+	return &data->sd_rng;
 }
+
+/* vim: foldmethod=marker
+ */

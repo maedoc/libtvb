@@ -106,12 +106,6 @@ sd_free(void *ptr);
 
 /* TODO organize a performance primitive section, e.g. sd_pp_* */
 
-SD_API double
-sd_arith_sum0(uint32_t n, double *x);
-
-SD_API double
-sd_arith_sum1(uint32_t n, double *x);
-
 /**
  * Obtain unique sorted integers.
  * \note Caller must free uints when done.
@@ -206,19 +200,52 @@ SD_API void sd_log_handle(enum sd_log_level level, char *format, ...);
 
 /* interface/object-oriented API {{{ */
 
-/*! Declare common interface members. */
+/* Common interface members. {{{ */
 #define sd_declare_common_members(tag) \
 	void *data; \
 	struct tag* (*copy)(struct tag *obj); \
 	uint32_t (*n_byte)(struct tag *obj); \
 	void (*free)(struct tag *obj)
 
+/* For every interface an object implements,
+ * it likely needs to have a single implementation of the actual object
+ * methods (free, n_byte, copy) and then forward calls in the different
+ * interfaces to these methods.
+ *
+ * Note that these assume that you've define a struct data & your
+ * methods are data_{free,n_byte,copy}.
+ */
+
+#define sd_declare_tag_free(tag) \
+static void tag ## _free(struct tag *tag) { data_free(tag->data); }
+
+#define sd_declare_tag_n_byte(tag) \
+static uint32_t tag ## _n_byte(struct tag *tag) { return data_n_byte(tag->data); }
+
+#define sd_declare_tag_copy(tag) \
+static struct tag *tag ## _ ## copy(struct tag *tag) \
+{ \
+	struct data *data = data_copy(tag->data); \
+	return &data->tag; \
+}
+
+#define sd_declare_tag_functions(tag) \
+sd_declare_tag_free(tag) \
+sd_declare_tag_n_byte(tag) \
+sd_declare_tag_copy(tag)
+
+#define sd_declare_tag_vtable(tag) \
+	.free = &tag ## _free, \
+	.n_byte = &tag ## _n_byte, \
+	.copy = &tag ## _copy
+
+/* }}} */
+
 /* connectivity {{{ */
 struct sd_conn
 {
 	sd_declare_common_members(sd_conn);
 
-	/* TODO candidate for perf prim (vec mult + local sum) */
 	/*! Row-wise weighted sum w/ non-zeros of other sparse * mat w/ sparsity structure. */
 	void (*row_wise_weighted_sum)(struct sd_conn *conn, double *values, double *sums);
 
@@ -238,12 +265,13 @@ struct sd_conn
 	enum sd_stat (*set_delay_scale)(struct sd_conn *, double);
 
 	/*! Get the number of rows or targets in this connectivity. */
-	uint32_t (*n_row)(struct sd_conn *conn);
+	uint32_t (*get_n_row)(struct sd_conn *conn);
 
 	/*! Get the number of rows or targets in this connectivity. */
-	uint32_t (*n_col)(struct sd_conn *conn);
+	uint32_t (*get_n_col)(struct sd_conn *conn);
 };
 
+/*! Construct a new connectivity from the given sparse data & structure. */
 SD_API struct sd_conn *
 sd_conn_new_sparse(
 	uint32_t n_row, uint32_t n_col, uint32_t n_nonzero,
@@ -251,6 +279,7 @@ sd_conn_new_sparse(
 	double *weights, double *delays
 );
 
+/*! Construct a new connectivity from dense data set. */
 SD_API struct sd_conn *
 sd_conn_new_dense(uint32_t n_row, uint32_t n_col, double * weights, double * delays);
 
@@ -278,14 +307,11 @@ struct sd_rng
 
 	/*! Generate and fill an array with samples from N(0, 1). */
 	void (*fill_norm)(struct sd_rng*, uint32_t n, double *x);
-
-	/*! Number of bytes used by this object. */
-	uint32_t (*nbytes)(struct sd_rng*);
 };
 
-/*! Construct a new RNG from default implementation. */
+/*! Construct a new Mersenne Twister RNG. */
 SD_API struct sd_rng *
-sd_rng_new_default();
+sd_rng_new_mt(uint32_t seed);
 
 /* rng }}} */
 
@@ -331,28 +357,28 @@ struct sd_hist
 	sd_declare_common_members(sd_hist);
 
 	/*! Get number of delays in history. */
-	uint32_t (*get_nd)(struct sd_hist *h);
+	uint32_t (*get_n_delay)(struct sd_hist *h);
 
 	/*! Get current time in history. */
-	double (*get_t)(struct sd_hist *h);
+	double (*get_time)(struct sd_hist *h);
 
 	/*! Get time step of history buffer. */
-	double (*get_dt)(struct sd_hist *h);
+	double (*get_time_step)(struct sd_hist *h);
 
 	/*! Get i'th variable index. */
-	double (*get_vi)(struct sd_hist *h, uint32_t i);
+	double (*get_var_idx)(struct sd_hist *h, uint32_t i);
 
 	/*! Get i'th variable delay. */
-	double (*get_vd)(struct sd_hist *h, uint32_t i);
+	double (*get_var_del)(struct sd_hist *h, uint32_t i);
 
 	/*! Fill history buffer with some user defined function of time. */
 	enum sd_stat (*fill)(struct sd_hist *h, struct sd_hfill *filler);
 
 	/*! Get aff[i] = eff[vi[i]](t - vd[i]). */
-	void (*get)(struct sd_hist *h, double t, double *aff);
+	void (*query)(struct sd_hist *h, double t, double *aff);
 
 	/*! Update history buffer with new data. */
-	void (*set)(struct sd_hist *h, double t, double *eff);
+	void (*update)(struct sd_hist *h, double t, double *eff);
 };
 
 /**
@@ -370,18 +396,28 @@ struct sd_hist
  * \return initialized history instance or NULL if error occurs.
  */
 SD_API struct sd_hist *
-sd_hist_new_linterp(uint32_t nd, uint32_t *vi, 
-		    double *vd, double t0, double dt);
+sd_hist_new_linterp(
+	uint32_t n_delay,
+	uint32_t *var_idx, 
+	double *var_del, 
+	double init_time, double time_step);
 
 /** 
  * Construct a history object uses nearest interpolation.
  *
  * \note Nearest interpolation can introduce artifacts unless
  * the quantization error due to rounding is near zero.
+ *
+ * \note The current implementation is for compatibility with
+ * other software and does not optimize for this case. Delay
+ * values are rounded to nearest integer multiple of time step.
  */
 SD_API struct sd_hist *
-sd_hist_new_nearest(uint32_t nd, uint32_t *vi, 
-		    double *vd, double t0, double dt);
+sd_hist_new_nearest(
+	uint32_t n_delay,
+	uint32_t *var_idx, 
+	double *var_del, 
+	double init_time, double time_step);
 
 /**
  * Construct a history object which conforms to the history interface
@@ -389,7 +425,11 @@ sd_hist_new_nearest(uint32_t nd, uint32_t *vi,
  * delay coupled terms.
  */ 
 SD_API struct sd_hist *
-sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt);
+sd_hist_new_no_delays(
+	uint32_t n_delay,
+	uint32_t *var_idx, 
+	double *var_del, 
+	double init_time, double time_step);
 
 /* history }}} */
 
@@ -416,19 +456,19 @@ struct sd_sys
 	sd_declare_common_members(sd_sys);
 
 	/*! Get the dimension of the system's state space. */
-	uint32_t (*n_dim)(struct sd_sys *sys);
+	uint32_t (*get_n_dim)(struct sd_sys *sys);
 
 	/*! Get the number of delayed coupling terms used in the system definition. */
-	uint32_t (*n_in)(struct sd_sys *sys);
+	uint32_t (*get_n_in)(struct sd_sys *sys);
 
 	/*! Get the number of observable terms defined by system. */
-	uint32_t (*n_out)(struct sd_sys *sys);
+	uint32_t (*get_n_out)(struct sd_sys *sys);
 
 	/*! Get the number of real valued parameters used by system. */
-	uint32_t (*n_rpar)(struct sd_sys *sys);
+	uint32_t (*get_n_rpar)(struct sd_sys *sys);
 
 	/*! Get the number of integer valued parameters used by system. */
-	uint32_t (*n_ipar)(struct sd_sys *sys);
+	uint32_t (*get_n_ipar)(struct sd_sys *sys);
 
 	/**
 	 * Apply system definition to state and input, calculating drift,
@@ -523,9 +563,16 @@ sd_sys_roi_new(uint32_t n, uint32_t *map);
 
 #include "output.h"
 
-/* sch {{{ */
+/* schemes {{{ */
 
-/*! Interface to time-stepping schemes. */
+/**
+ * Interface to time-stepping schemes.
+ *
+ * \note Schemes create internal data structures which are cleaned
+ * up during a call to the free method, however, the history, 
+ * rng and sys structures are considered external and will not
+ * be freed when the scheme is freed.
+ */
 struct sd_sch
 {
 	sd_declare_common_members(sd_sch);

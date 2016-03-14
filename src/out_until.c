@@ -2,43 +2,84 @@
 
 #include "sddekit.h"
 
-typedef struct data
+struct data
 {
-	sd_out out;
+	uint32_t n_dim, n_out;
 	double time;
-} data;
+	struct sd_out sd_out;
+};
 
-static sd_stat apply(sd_out *out, double t, 
-	     uint32_t nx, double * restrict x,
-	     uint32_t nc, double * restrict c)
+/* out n dim n out apply {{{ */
+
+static uint32_t
+out_n_dim(struct sd_out *sd_out)
 {
-	(void) nx; (void) x; (void) nc; (void) c;
-	data *d = out->ptr;
-	return t < d->time ? SD_CONT : SD_STOP;
+	return ((struct data *) sd_out)->n_dim;
 }
 
-static void cb_free(sd_out *out)
+static uint32_t
+out_n_out(struct sd_out *sd_out)
 {
-	sd_free(out->ptr);
+	return ((struct data *) sd_out)->n_out;
 }
 
-static sd_out defaults = {
-	.ptr = NULL,
-	.free = &cb_free,
+static enum
+sd_stat apply(struct sd_out *sd_out, struct sd_out_sample *samp)
+{
+	struct data *data = sd_out->data;
+	data->n_dim = samp->n_dim;
+	data->n_out = samp->n_out;
+	return samp->time < data->time ? SD_CONT : SD_STOP;
+}
+
+/* }}} */
+
+/* ojb free n byte copy {{{ */
+
+static void data_free(struct sd_out *sd_out)
+{
+	sd_free(sd_out->data);
+}
+
+static uint32_t data_n_byte(struct data *data)
+{
+	(void) data;
+	return sizeof(struct data);
+}
+
+static struct data *data_copy(struct data *data)
+{
+	struct data *copy = sd_out_new_until(data->time)->data;
+	if (copy == NULL)
+		sd_err("copy out until failed.");
+	return copy;
+}
+
+sd_declare_tag_functions(sd_out)
+
+/* }}} */
+
+static struct sd_out sd_out_defaults = {
+	sd_declare_tag_vtable(sd_out),
+	.get_n_dim = &out_n_dim,
+	.get_n_out = &out_n_out,
 	.apply = &apply
 };
 
-SD_API sd_out *
+SD_API struct sd_out *
 sd_out_new_until(double time)
 {
-	data *d;
-        if ((d = sd_malloc(sizeof(data))) == NULL)
+	struct data *data, zero = {0};
+	if ((data = sd_malloc(sizeof(struct data))) == NULL)
 	{
 		sd_err("alloc out until failed.");
 		return NULL;
 	}
-	d->out = defaults;
-	d->out.ptr = d;
-	d->time = time;
-	return &(d->out);
+	data->time = time;
+	data->sd_out = sd_out_defaults;
+	data->sd_out.data = data;
+	return &(data->sd_out);
 }
+
+/* vim: foldmethod=marker
+ */

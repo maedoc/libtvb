@@ -4,52 +4,88 @@
 
 struct data
 {
-	bool ignore_x, ignore_c;
-	struct sd_out * next;
-	struct sd_out this;
+	bool ignore_state, ignore_output;
+	uint32_t n_dim, n_out;
+	struct sd_out *receiver;
+	struct sd_out sd_out;
 };
 
-static sd_stat apply(sd_out *out, double t, 
-		uint32_t nx, double * restrict x,
-		uint32_t nc, double * restrict c)
+static enum sd_stat apply(struct sd_out *sd_out, struct sd_out_sample *samp)
 {
-	struct data *d = (struct data *) out->ptr;
-	uint32_t nx_=nx, nc_=nc;
-	double * restrict x_=x, * restrict c_=c;
-	if (d->ignore_x)
+	struct data *data = sd_out->data;
+	struct sd_out_sample samp_out = *samp;
+	if (data->ignore_state)
 	{
-		nx_ = 0;
-		x_ = NULL;
+		samp_out.n_dim = 0;
+		samp_out.state = NULL;
 	}
-	if (d->ignore_c)
+	if (data->ignore_output)
 	{
-		nc_ = 0;
-		c_ = NULL;
+		samp_out.n_out = 0;
+		samp_out.output = NULL;
 	}
-	return d->next->apply(d->next, t, nx_, x_, nc_, c_);
+	data->n_dim = samp_out.n_dim;
+	data->n_out = samp_out.n_out;
+	return data->receiver->apply(data->receiver, &samp_out);
 }
 
-static void _free(sd_out *out) { sd_free(out->ptr); }
+static void data_free(struct sd_out *sd_out)
+{
+	sd_free(sd_out->data);
+}
+
+static uint32_t data_n_byte(struct sd_out *sd_out)
+{
+	return sizeof(struct data);
+}
+
+static struct sd_out *data_copy(struct sd_out *sd_out)
+{
+	struct data *data = sd_out->data;
+	struct sd_out *copy = sd_out_new_ign(
+		data->ignore_state,
+		data->ignore_output,
+		data->receiver);
+	if (copy == NULL)
+		sd_err("copy out ign failed.");
+	return copy;
+}
+
+static uint32_t get_n_dim(struct sd_out *sd_out)
+{
+	return ((struct data *) sd_out->data)->n_dim;
+}
+
+static uint32_t get_n_out(struct sd_out *sd_out)
+{
+	return ((struct data *) sd_out->data)->n_out;
+}
+
+static struct sd_out sd_out_defaults = {
+	.free = &data_free,
+	.n_byte = &data_n_byte,
+	.copy = &data_copy,
+	.apply = &apply,
+	.get_n_dim = &get_n_dim,
+	.get_n_out = &get_n_out
+};
 
 struct sd_out *
-sd_out_new_ign(bool ignore_x, bool ignore_c, struct sd_out *next)
+sd_out_new_ign(bool ignore_state, bool ignore_output, struct sd_out *receiver)
 {
-	struct data *d;
-	if (next==NULL)
+	struct data *data, zero = {0};
+	if ((data = sd_malloc(sizeof(struct data))) == NULL
+	 || (*data = zero, receiver == NULL)
+	)
 	{
-		sd_err("NULL next.");
+		if (data != NULL) sd_free(data);
+		sd_err("alloc ign out failed or NULL receiver.");
 		return NULL;
 	}
-	if ((d = sd_malloc(sizeof(struct data))) == NULL)
-	{
-		sd_err("alloc ign data failed.");
-		return NULL;
-	}
-	d->ignore_x = ignore_x;
-	d->ignore_c = ignore_c;
-	d->next = next;
-	d->this.ptr = d;
-	d->this.free = &_free;
-	d->this.apply = &apply;
-	return &(d->this);
+	data->ignore_state = ignore_state;
+	data->ignore_output = ignore_output;
+	data->receiver = receiver;
+	data->sd_out = sd_out_defaults;
+	data->sd_out.data = data;
+	return &(data->sd_out);
 }

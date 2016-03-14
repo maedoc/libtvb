@@ -27,7 +27,10 @@ struct sd_out_sample
 struct sd_out
 {
 	sd_declare_common_members(sd_out);
-
+	/*! Get length of state vector handled by this output. */
+	uint32_t (*get_n_dim)(struct sd_out *out);
+	/*! Get length of output vector handled by this output. */
+	uint32_t (*get_n_out)(struct sd_out *out);
 	/**
 	 * Apply output to current state.
 	 * \param data user data for output function such as simulation length.
@@ -39,35 +42,33 @@ struct sd_out
 
 /* }}} */
 
-/*! Create new out based on user provided data & callback. */
+/* callback out {{{ */
+/**
+ * Create new out based on user provided data & callback.
+ *
+ * \note The n_byte & copy methods cannot be aware of the contents of
+ * user_data and so operate superficially.
+ */
 SD_API struct sd_out *
 sd_out_new_cb(void *user_data,
 	enum sd_stat (*user_apply)(
 		void *user_data,
 		struct sd_out_sample *sample));
 
+/* }}} */
+
 /*! Interface for auto-allocating array output. {{{ */
 struct sd_out_mem
 {
 	sd_declare_common_members(sd_out_mem);
-
 	/*! Get interface for output. */
 	struct sd_out *(*as_out)(struct sd_out_mem *mem);
-
-	/*! Get number of state variables in memory buffer. */
-	uint32_t (*get_n_dim)(struct sd_out_mem *mem);
-
-	/*! Get number of coupling variables in memory buffer. */
-	uint32_t (*get_n_out)(struct sd_out_mem *mem);
-
 	/*! Get number of samples in memory buffer. */
 	uint32_t (*get_n_sample)(struct sd_out_mem *mem);
-
 	/*! Get state variable buffer. */
-	double *(*get_state)(struct sd_out_mem *mem);
-
+	double *(*get_states)(struct sd_out_mem *mem);
 	/*! Get coupling variable buffer. */
-	double *(*get_output)(struct sd_out_mem *mem);
+	double *(*get_outputs)(struct sd_out_mem *mem);
 };
 
 /*! Create new output memory buffer. */
@@ -76,63 +77,26 @@ sd_out_mem_new();
 
 /* }}} */
 
-/*! Interface for splitter output {{{ */
-struct sd_out_tee
+/*! Interface for fork output {{{ */
+struct sd_out_fork
 {
-	sd_declare_common_members(sd_out_tee);
-
+	sd_declare_common_members(sd_out_fork);
 	/*! Get out interface for this instance. */
-	struct sd_out *(*as_out)(struct sd_out_tee *tee);
-
-	/*! Get number of outputs for splitter. */
-	uint32_t (*get_n_out)(struct sd_out_tee *tee);
-
-	/*! Get i'th output callback. */
-	struct sd_out *(*get_out_i)(struct sd_out_tee *, uint32_t i);
+	struct sd_out *(*as_out)(struct sd_out_fork *fork);
+	/*! Get number of receivers. */
+	uint32_t (*get_n_receiver)(struct sd_out_fork *fork);
+	/*! Get i'th receiver. */
+	struct sd_out *(*get_receiver)(struct sd_out_fork *fork, uint32_t i);
 };
 
 /*! Create instance of output splitter. */
-SD_API struct sd_out_tee *
-sd_out_tee_new(uint32_t n_out, struct sd_out **outs);
-
-/* }}} */
-
-/*! Interface for temporal average out. {{{ */
-struct sd_out_tavg
-{
-	sd_declare_common_members(sd_out_tavg);
-
-	/*! Get interface for output. */
-	struct sd_out *(*as_out)(struct sd_out_tavg *tavg);
-
-	/*! Get number of samples used for temporal average output. */
-	uint32_t (*get_len)(struct sd_out_tavg *tavg);
-
-	/*! Get current positon in buffer of temporal average output. */
-	uint32_t (*get_pos)(struct sd_out_tavg *tavg);
-
-	/*! Get current time in buffer of temporal average output. */
-	double (*get_t)(struct sd_out_tavg *tavg);
-
-	/*! Get out which receives this temporal average. */
-	struct sd_out * (*get_receiver)(struct sd_out_tavg *tavg);
-
-	/*! Get average state variables of temporal average output. */
-	double *(*get_x)(struct sd_out_tavg *tavg);
-
-	/*! Get average coupling variables of temporal average output. */
-	double *(*get_c)(struct sd_out_tavg *tavg);
-};
-
-/*! Create instance of temporal average output. */
-SD_API struct sd_out_tavg *
-sd_out_tavg_new(uint32_t len, struct sd_out *receiver);
-
-/* TODO Hanning window tavg, improved freq accuracy */
+SD_API struct sd_out_fork *
+sd_out_fork_new(uint32_t n_receiver, struct sd_out **receivers);
 
 /* }}} */
 
 /*! Temporal convolution output. {{{ */
+
 struct sd_out_conv
 {
 	sd_declare_common_members(sd_out_conv);
@@ -141,16 +105,13 @@ struct sd_out_conv
 	struct sd_out *(*as_out)(struct sd_out_conv *conv);
 
 	/*! Get current position in buffers. */
-	uint32_t (*get_pos)(struct sd_out_conv *conv);
+	uint32_t (*get_position)(struct sd_out_conv *conv);
 
 	/*! Get length of filter / kernel. */
-	uint32_t (*get_len)(struct sd_out_conv *conv);
+	uint32_t (*get_length)(struct sd_out_conv *conv);
 
 	/*! Get subsampling factor. */
-	uint32_t (*get_skip)(struct sd_out_conv *conv);
-
-	/*! Get number of samples consumed before next sample produced. */
-	uint32_t (*get_skip_count)(struct sd_out_conv *conv);
+	uint32_t (*get_n_skip)(struct sd_out_conv *conv);
 
 	/*! Get sd_out instance to which samples are passed. */
 	struct sd_out *(*get_receiver)(struct sd_out_conv *conv);
@@ -165,10 +126,16 @@ struct sd_out_conv
  * \return instance of sd_out_conv or NULL if error occurred.
  */
 SD_API struct sd_out_conv *
-sd_out_conv_new(uint32_t len, double *filt, 
-		uint32_t skip, struct sd_out *receiver);
+sd_out_conv_new(uint32_t length, double *kernel, 
+		uint32_t n_skip, struct sd_out *receiver);
 
 /* Various convolution kernels */
+
+/*! Flat window (for e.g. temporal averaging). */
+SD_API void sd_conv_kern_flat(uint32_t n, double *kernel);
+
+/*! Hanning window (for e.g. spectral analysis). */
+SD_API void sd_conv_kern_hanning(uint32_t n, double *kernel);
 
 /**
  * Glover 1999 double-gamma HRF kernel, based on NiPy.
@@ -177,7 +144,7 @@ sd_out_conv_new(uint32_t len, double *filt,
  * \param[in] dt time step between HRF samples.
  * \param[out] x values of HRF at time points in t.
  */
-SD_API void sd_hrf_glover(uint32_t n, double dt, double *hrf);
+SD_API void sd_conv_kern_hrf_glover(uint32_t n, double dt, double *hrf);
 
 /**
  * First-order Volterra HRF kernel, based on TVB.
@@ -186,48 +153,60 @@ SD_API void sd_hrf_glover(uint32_t n, double dt, double *hrf);
  * \param[in] dt time step between HRF samples.
  * \param[out] x values of HRF at time points in t.
  */
-SD_API void sd_hrf_volt1(uint32_t n, double dt, double *hrf);
+SD_API void sd_conv_kern_hrf_volt1(uint32_t n, double dt, double *hrf);
 
 /* }}} */
 
-/*! Interface for spatial filter bank output. {{{ */
-struct sd_out_sfilt
+/*! Interface for linear operator output. {{{ */
+struct sd_out_linop
 {
-	sd_declare_common_members(sd_out_sfilt);
+	sd_declare_common_members(sd_out_linop);
 
 	/*! Get out interface for this instance. */
-	struct sd_out *(*as_out)(struct sd_out_sfilt *sfilt);
+	struct sd_out *(*as_out)(struct sd_out_linop *linop);
 
-	/*! Get number of filters of spatial filter output. */
-	uint32_t (*get_n_filter)(struct sd_out_sfilt *sfilt);
+	/*! True if linop applies to state vector, otherwise false. */
+	bool (*get_on_state)(struct sd_out_linop *linop);
 
-	/*! Get length of filters of spatial filter output. */
-	uint32_t (*get_filter_length)(struct sd_out_sfilt *sfilt);
+	/*! Get number of rows in linear operator matrix. */
+	uint32_t (*get_n_row)(struct sd_out_linop *linop);
 
-	/*! Get coefficients of state vector filters. */
-	double *(*get_state_filters)(struct sd_out_sfilt *sfilt);
+	/*! Get number of columns in linear operator matrix. */
+	uint32_t (*get_n_col)(struct sd_out_linop *linop);
 
-	/*! Get coefficients of output vector filters. */
-	double *(*get_output_filters)(struct sd_out_sfilt *sfilt);
+	/*! Get elements of linear operator matrix. */
+	double *(*get_matrix)(struct sd_out_linop *linop);
 
 	/*! Get output callback of spatial filter output. */
-	struct sd_out *(*get_receiver)(struct sd_out_sfilt *sfilt);
+	struct sd_out *(*get_receiver)(struct sd_out_linop *linop);
 };
 
 /**
- * Create instance of spatial filter output.
+ * Create instance of linear operator (matrix) output, which applies
+ * either to states or outputs.
  *
- * \param nfilt number of spatial filters
- * \param filtlen length of filter coefficients.
- * \param xfilts filter coefficients for state variablex.
- * \param cfilts filter coefficients for coupling variables.
- * \param out output callback to pass filtered data to.
+ * Let L be filled from elements in the matrix array, and v the 
+ * selected vector of state or output. This computes L' * v
+ * in MATLAB syntax and L.dot(v) in NumPy syntax. In other words,
+ * the matrix is addressed in row-major order and left-multiplies
+ * the vector.
+ *
+ * If on_states is true, then matrix is applied to the state vector,
+ * and the output vector is ignored and the receiver sees n_out = 0
+ * and output = NULL. If on_states is false, the inverse holds.
+ *
+ * \note An internal copy of matrix is made during the constructor.
+ *
+ * TODO variant with stride or index on state/output vector.
  */
-SD_API struct sd_out_sfilt *
-sd_out_sfilt_new(
-	uint32_t n_filter, uint32_t filter_length, 
-	double *state_filters, double *output_filters, 
-	struct sd_out *receiver);
+SD_API struct sd_out_linop *
+sd_out_linop_new(
+	bool on_state,
+	uint32_t n_row,
+	uint32_t n_col,
+	double *matrix,
+	struct sd_out *receiver
+	);
 
 /* }}} */
 
