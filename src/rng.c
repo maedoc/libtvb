@@ -2,7 +2,7 @@
 
 #include "sddekit.h"
 
-#include "randomkit.h"
+#include "extern/randomkit.h"
 
 struct data
 {

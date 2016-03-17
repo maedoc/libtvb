@@ -1,6 +1,7 @@
 /* copyright 2016 Apache 2 sddekit authors */
 
 #include "sddekit.h"
+#include <math.h>
 
 struct hist_data
 {
@@ -505,8 +506,8 @@ sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double d
 		sd_err("hist no delay init failed.");
 		return NULL;
 	}
-	hist->get = &get_no_delay;
-	hist->set = &set_no_delay;
+	hist->update = &get_no_delay;
+	hist->query = &set_no_delay;
 	return hist;
 }
 

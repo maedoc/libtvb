@@ -1,0 +1,45 @@
+/* I completely misunderstood this file, until reading this
+
+    http://stackoverflow.com/questions/30046411
+    
+   In fact, the tasks are proxied to external command, e.g.
+   a Makefile should have different stuff configuring, then
+   the tasks listed here hit make to run that.
+   
+*/
+
+{
+    "version": "0.1.0",
+    "command": "python",
+    "args": [
+        "tasks.py"
+    ],
+    "tasks": 
+    [
+        {
+            "taskName": "cmake_configure",
+            "isBuildCommand": false,
+            "isTestCommand": false
+        },
+        {
+            "taskName": "cmake_clean"
+        }
+        {
+            "taskName": "cmake_build",
+            "isBuildCommand": true,
+            "isTestCommand": false,
+            "problemMatcher": {
+                "owner": "c",
+                "fileLocation": ["absolute"],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }        
+            } 
+        }      
+    ]
+}

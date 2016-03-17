@@ -68,9 +68,6 @@ endif
 
 # artifacts {{{
 
-help:
-	echo "make tests$(EXE) | bench_net_exc$(EXE) | libSDDEKit.$(DLLEXT) | clean"
-
 tests$(EXE): $(o_lib) $(o_test)
 	$(CC) $(CFLAGS) test/main.c $^ -o tests$(BUILD)$(EXE) $(LDFLAGS)
 
@@ -89,6 +86,12 @@ gh-pages:
 	rm -rf docs
 
 # }}}
+
+cmake_configure:
+	mkdir -p build && cd build && cmake ..
+    
+cmake_build:
+	cd build && make
 
 # generic rules {{{
 
