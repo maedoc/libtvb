@@ -6,11 +6,15 @@
 #include "test.h"
 
 TEST(malloc, reg0) {
+	uint32_t tic;
 
 	sd_malloc_reg_init();
 
+	tic = sd_malloc_total_nbytes();
+
 	int *foo = sd_malloc(sizeof(int));
 
+	EXPECT_EQ( (uint32_t)sizeof(int) + tic, sd_malloc_total_nbytes() );
 	EXPECT_EQ( SD_OK, sd_malloc_reg_query(foo) );
 
 	sd_free(foo);
@@ -56,14 +60,20 @@ TEST(malloc, reg2) {
 	for (i=0; i<10; i++)
 		EXPECT_EQ( SD_OK, sd_malloc_reg_query( bar[i] + (i % 4) ) );
 
+	uint32_t tic = sd_malloc_total_nbytes();
 	/* realloc a part of them for test */
 	for (i=3; i<8; i++)
 		bar[i] = sd_realloc(bar[i], sizeof(char)*10);
 
+	EXPECT_EQ( (uint32_t)(sizeof(char)*6*5) + tic, sd_malloc_total_nbytes() );
+
+    tic = sd_malloc_total_nbytes();
 	/* free part of them */
 	for (i=0; i<3; i++)
 		sd_free(bar[i]);
 
+	EXPECT_EQ( tic - (uint32_t)(sizeof(char)*4*3), sd_malloc_total_nbytes() );
+	
 	/* freed part returns err, part still in memory or the one reallocated is ok */
 	for (i=0; i<10; i++)
 	{

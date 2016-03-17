@@ -25,6 +25,9 @@ static bool reg_active = false;
 /* Required register starting and ending nodes */
 static mem_register *mem_reg_base = NULL, *mem_reg_end = NULL;
 
+/* Total registered bytes stored. */
+static uint32_t total_reg_bytes = 0;
+
 /*  }}} */
 
 /*  fuctions {{{ */
@@ -51,7 +54,13 @@ void sd_malloc_reg_stop() {
 	(*_sd_free)(temp);
 	mem_reg_base = NULL;
 	mem_reg_end = NULL;
+	total_reg_bytes = 0;
 	reg_active = false;
+}
+
+/* Return total registered bytes stored. */
+uint32_t sd_malloc_total_nbytes() {
+       return total_reg_bytes;
 }
 
 /* Search for an object in register 
@@ -102,6 +111,7 @@ static void reg_push(void *new_ptr, size_t size) {
 		mem_reg_end->next = n;
 		mem_reg_end = n;
 	}
+	total_reg_bytes += (uint32_t)size;
 }
 
 /* Deletes record of a chunk of memory from register */
@@ -127,6 +137,7 @@ static void reg_pop(void *ptr) {
 		if(temp == mem_reg_end)
 			mem_reg_end = temp2;
 	}
+	total_reg_bytes -= (uint32_t)( (char*)(temp->upto) - (char*)(temp->start) );
 	(*_sd_free)(temp);
 }
 
