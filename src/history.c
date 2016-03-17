@@ -338,7 +338,7 @@ static uint32_t nbytes(struct sd_hist *hist)/*{{{*/
 	uint32_t nb;
 	struct hist_data *h = hist->data;
 	nb = sizeof(struct sd_hist) + sizeof(struct hist_data);
-	nb += sizeof(uint32_t) * ((h->nu+1) + 3*h->nu + h->nd + h->maxvi);
+	nb += sizeof(uint32_t) * ((h->nu+1) + 3*h->nu + h->nd + h->maxvi + 1);
 	nb += sizeof(double) * (h->lim[h->nu] + h->nu + h->nd);
 	return nb;
 }/*}}}*/
@@ -397,9 +397,9 @@ static enum sd_stat setup_buffer_structure(struct hist_data *h, double dt)/*{{{*
 	/* alloc */
 	if (
 		(h->maxd = sd_malloc (sizeof(double) * h->nu))==NULL ||
-		(h->lim = sd_malloc (sizeof(double) * (h->nu + 1)))==NULL ||
-		(h->len = sd_malloc (sizeof(double) * h->nu))==NULL ||
-		(h->pos = sd_malloc (sizeof(double) * h->nu))==NULL
+		(h->lim = sd_malloc (sizeof(uint32_t) * (h->nu + 1)))==NULL ||
+		(h->len = sd_malloc (sizeof(uint32_t) * h->nu))==NULL ||
+		(h->pos = sd_malloc (sizeof(uint32_t) * h->nu))==NULL
 	   ) {
 		errmsg = "failed to alloc internal storage.";
 		goto fail;
