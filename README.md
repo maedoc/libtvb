@@ -10,6 +10,9 @@ scientific library, and only preliminary sets of mathematical components are
 implemented; as such, it is not for general use until the 
 upcoming v0.1 release.
 
+The shared library can be built with `python tasks.py cmake_build`. We're currently
+rewriting the test & benchmark suite using upcoming Python bindings.
+
 See our [docs](doc/README.md) for more information.
 
 Many thanks to our contributors

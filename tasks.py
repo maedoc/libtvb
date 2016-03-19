@@ -275,6 +275,16 @@ def cmake_clean(redo):
     proc.wait()
     print ('done')
 
+def gh_pages(redo):
+    """
+	git branch -D gh-pages
+	git init docs
+	doxygen
+	cd docs && git add html/* && git mv html/* ./ && git commit -m "add doxygen html"
+	git fetch docs master:gh-pages
+	rm -rf docs
+    """
+
 if __name__ == '__main__':
     allcmds = ['generate_fn_ptr_field_wrapper_files', 'preprocessed_header',
                'cmake_build', 'cmake_configure', 'cmake_clean']

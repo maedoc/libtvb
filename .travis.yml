@@ -1,18 +1,6 @@
-addons:
- apt:
-  packages:
-  - valgrind
-  - python-numpy
-  - ocl-icd-opencl-dev
-before_install:
-  - pip install --user cpp-coveralls cython
-language: c
 install:
-  - make SANFLAGS= tests
+  - mkdir build
+  - cd build
+  - cmake ..
 script:
-  - valgrind --error-exitcode=1 --track-origins=yes --leak-check=full ./tests
-#  - cd python && make test && cd ..
-after_success:
-  - make -B BUILD=cov tests
-  - ./testscov
-  - coveralls --gcov-options '-o ./ src/*.c'
+  - make
