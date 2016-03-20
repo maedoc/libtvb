@@ -20,7 +20,7 @@ rwws_cfun(
 	{
 		double sum = 0.0;
 		for (uint32_t j=conn->row_offsets[i]; j<conn->row_offsets[i+1]; j++)
-			sum += conn->weights[j] * cf(pre[j], post[j]);
+			sum += conn->weights[j] * cf(pre[j], post[i]);
 		sums[i] = sum;
 	}
 }
