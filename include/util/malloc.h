@@ -41,11 +41,14 @@ SD_API void
 sd_malloc_reg_stop();
 
 /**
- * return SD_OK if valid pointer, SD_ERR if invalid, SD_UNKNOWN if we dont' know
+ * return SD_OK if valid pointer, SD_ERR if invalid, SD_UNKNOWN if we don't know
  * (because register inactive for example) 
  */
 SD_API enum sd_stat
 sd_malloc_reg_query(void *);
+
+/*! Return total number of bytes allocated in library data structures. */
+uint32_t sd_malloc_total_nbytes();
 
 /**
  * Free memory using current allocator.
