@@ -11,6 +11,9 @@ struct sd_conn
 
 	/*! Get the number of non-zero elements in weights. */
 	uint32_t (*get_n_nonzero)(struct sd_conn *);
+    
+    /*! Get indices of non-zero elements. */
+    uint32_t *(*get_nonzero_indices)(struct sd_conn *sd_conn);
 
 	/*! Get vector of non-zero weights. */
 	double *(*get_weights)(struct sd_conn *);

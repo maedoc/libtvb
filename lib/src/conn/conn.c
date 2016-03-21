@@ -35,6 +35,11 @@ static double * get_delays(struct sd_conn *c) { return ((struct conn*) c->data)-
 
 static uint32_t get_n_nonzero(struct sd_conn *sd_conn) { return ((struct conn*) sd_conn->data)->nnz; }
 
+static uint32_t *get_nonzero_indices(struct sd_conn *sd_conn)
+{
+    return ((struct conn *) sd_conn->data)->col_indices;
+}
+
 static uint32_t get_n_row(struct sd_conn *sd_conn) { return ((struct conn*) sd_conn->data)->n_row; }
 
 static uint32_t get_n_col(struct sd_conn *sd_conn) { return ((struct conn*) sd_conn->data)->n_col; }
@@ -84,6 +89,7 @@ static struct sd_conn sd_conn_defaults = {
 	.free = &conn_free,
 	.row_wise_weighted_sum = &row_wise_weighted_sum,
 	.get_n_nonzero = &get_n_nonzero,
+    .get_nonzero_indices = &get_nonzero_indices,
 	.get_weights = &get_weights,
 	.get_delays = &get_delays,
 	.get_delay_scale = &get_delay_scale,
