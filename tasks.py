@@ -257,7 +257,7 @@ build_dir = os.path.join(HERE, 'lib', 'build')
 
 def cmake_configure(redo):
     if not os.path.exists(build_dir):
-        echo "build directory (%r) doesn't exist, making" % (build_dir, )
+        print "build directory (%r) doesn't exist, making" % (build_dir, )
         os.mkdir(build_dir)
     proc = subprocess.Popen(['cmake', '..'], cwd=build_dir)
     proc.wait()
