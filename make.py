@@ -9,8 +9,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 INCLUDES = ['-Ilib/include']
 
 COMPILE = {
-    '.c': ['gcc', '-std=c99'] + ['-Ilib/include'],
-    '.cpp': ['g++'] + ['-Ilib/include']
+    '.c': ['gcc', '-std=c99'] + INCLUDES,
+    '.cpp': ['g++'] + INCLUDES
 }
 
 DLL_EXT = '.so'
@@ -25,7 +25,6 @@ if sys.platform == 'darwin':
 
 def compile_file(source_file):
     cmd = COMPILE[os.path.splitext(source_file)[1]][:]
-    cmd += ['-Ilib/include']
     obj_file = tempfile.NamedTemporaryFile(suffix='.o')
     cmd += ['-c', source_file, '-o', obj_file.name]
     proc = subprocess.check_call(cmd)
