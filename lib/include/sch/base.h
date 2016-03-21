@@ -45,6 +45,14 @@ sch_base_pointers_copy(struct sch_base *base, struct sch_base *copy)
 	memcpy(copy->output, base->output, sizeof(double) * copy->n_dim);
 }
 
+static void
+sch_base_pointers_free(struct sch_base *base)
+{
+    sd_free(base->state);
+    sd_free(base->input);
+    sd_free(base->output);
+}
+
 /* }}} */
 
 /* common set up for sys in out {{{ */
@@ -68,10 +76,23 @@ sch_base_sys_out(struct sch_base *b, double *drift, double *diffusion)
 	};
 	return out;
 }
-/* }}} */
+
+static inline struct sd_out_sample
+sch_base_sample(struct sch_base *b)
+{
+    struct sd_out_sample sample = {
+        .time = b->time,
+        .n_dim = b->n_dim,
+        .n_out = b->n_out,
+        .state = b->state,
+        .output = b->output
+    };
+    return sample;
+}
+
 
 /* common init sets base fields + sch getters  {{{ */
-static inline void
+static inline enum sd_stat
 sch_base_init(struct sch_base *base,
 	double time, double dt,
 	uint32_t n_dim, uint32_t n_in, uint32_t n_out,
@@ -81,14 +102,26 @@ sch_base_init(struct sch_base *base,
 	uint32_t (*n_byte)(struct sd_sch*),
 	void (*free)(struct sd_sch*),
 	struct sd_sch*(*copy)(struct sd_sch*),
-	enum sd_stat(*apply)(struct sd_sch*)
+	enum sd_stat(*apply)(struct sd_sch*),
+    struct sd_out_sample(*sample)(struct sd_sch*)
 )
 {
 	base->n_dim = n_dim;
 	base->n_in = n_in;
 	base->n_out = n_out;
-	base->time = time;
 	base->dt = dt;
+	base->time = time;
+    base->state = base->input = NULL;
+    if ((base->state = sd_malloc(sizeof(double) * n_dim)) == NULL
+     || (base->input = sd_malloc(sizeof(double) * n_in)) == NULL
+     || (base->output = sd_malloc(sizeof(double) * n_out)) == NULL
+    )
+    {
+        if (base->state) sd_free(base->state);
+        if (base->input) sd_free(base->input);
+        sd_err("alloc sch base failed.");
+        return SD_OK;
+    }
 	base->sys = sys;
 	base->hist = hist;
 	base->rng = rng;
@@ -101,9 +134,6 @@ sch_base_init(struct sch_base *base,
 	sch->n_byte = n_byte;
 	sch->copy = copy;
 	sch->apply = apply;
+    sch->sample = sample;
+    return SD_OK;
 }
-
-/* }}} */
-
-/* vim: foldmethod=marker
- */

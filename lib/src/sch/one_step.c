@@ -15,6 +15,7 @@ struct data
 void one_step_free(struct sd_sch *sch)
 {
 	struct data *d = sch->data;
+    sch_base_pointers_free(&d->base);
 	sd_free(d->f);
 	sd_free(d->g);
 	sd_free(d->z);
@@ -107,7 +108,11 @@ copy(struct sd_sch *sd_sch)
 	return copy;
 }
 
-/* }}} */
+static struct sd_out_sample sample(struct sd_sch *sd_sch)
+{
+    struct data *data = sd_sch->data;
+    return sch_base_sample(&data->base);
+}
 
 /* constructors {{{ */
 
@@ -125,23 +130,25 @@ new_one_step(double time, double dt,
 	 || (d->f = sd_malloc(sizeof(double)*n_dim)) == NULL
 	 || (d->g = sd_malloc(sizeof(double)*n_dim)) == NULL
 	 || (d->z = sd_malloc(sizeof(double)*n_dim)) == NULL
+     || sch_base_init(&d->base,
+            time, dt,
+            n_dim, n_in, n_out,
+            sys, hist, rng,
+            n_byte,
+            one_step_free,
+            copy,
+            one_step_apply,  &sample) != SD_OK
 		)
 	{
 		if (d->f!=NULL) sd_free(d->f);
 		if (d->g!=NULL) sd_free(d->g);
-		if (d != NULL) sd_free(d);
+		if (d->z!=NULL) sd_free(d->z);
+        if (d != NULL) sd_free(d);
 		sd_err("alloc scheme failed.");
 		return NULL;
 	}
 	d->sqrt_dt = sqrt(dt);
-	sch_base_init(&d->base,
-        time, dt,
-        n_dim, n_in, n_out,
-        sys, hist, rng,
-        n_byte,
-        one_step_free,
-        copy,
-        one_step_apply);
+	
 	d->base.sch.data = d;
 	d->base.sch.copy = &copy;
 	d->base.sch.n_byte = &n_byte;

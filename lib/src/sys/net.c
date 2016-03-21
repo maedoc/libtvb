@@ -206,10 +206,12 @@ sd_net_new(uint32_t n_node, uint32_t n_subsys, uint32_t *node_subsys_map,
 	if ((data = sd_malloc(sizeof(struct data))) == NULL
 	 || (*data = zero, 0)
 	 || (data->aff = sd_malloc(sizeof(double)*n_aff)) == NULL
-     || (data->subsys = sd_malloc(sizeof(struct sd_sys *)*n_subsys)) == NULL
+     || (data->node_subsys_map = sd_malloc(sizeof(uint32_t) * n_node)) == NULL
+     || (data->subsys = sd_malloc(sizeof(struct sd_sys *) * n_subsys)) == NULL
 	 )
 	{
         if (data->aff != NULL) sd_free(data->aff);
+        if (data->node_subsys_map != NULL) sd_free(data->node_subsys_map);
 		if (data != NULL) sd_free(data);
 		sd_err("alloc net failed.");
 		return NULL;

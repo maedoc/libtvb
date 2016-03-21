@@ -14,6 +14,7 @@ struct data
 static void heun_free(struct sd_sch *sch)
 {
 	struct data *d = sch->data;
+    sch_base_pointers_free(&d->base);
 	sd_free(d->fl);;
 	sd_free(d->fr);;
 	sd_free(d->gl);;
@@ -85,7 +86,16 @@ static enum sd_stat heun_apply(struct sd_sch *sch)
 		b->state[i] += 0.5 * (b->dt*(d->fl[i] + d->fr[i]) 
 				+ d->sqrt_dt*(d->gl[i] + d->gr[i])*d->z[i]);
 	b->hist->update(b->hist, in.time, b->output);
+    
+    /* update time */
+    b->time += b->dt;
 	return SD_OK;
+}
+
+static struct sd_out_sample sample(struct sd_sch *sd_sch)
+{
+    struct data *data = sd_sch->data;
+    return sch_base_sample(&data->base);
 }
 
 struct sd_sch *
@@ -105,22 +115,23 @@ sd_sch_new_heun(double time, double dt,
 	 || (d->gr=sd_malloc(sizeof(double)*n_dim))==NULL
 	 || (d->z=sd_malloc(sizeof(double)*n_dim))==NULL
 	 || (d->xr=sd_malloc(sizeof(double)*n_dim))==NULL
+     || sch_base_init(&d->base,
+            time, dt,
+            n_dim, n_in, n_out,
+            sys, hist, rng, 
+            n_byte, heun_free, copy, heun_apply, &sample) != SD_OK
 	)
 	{
-		if (d->fl!=NULL) sd_free(d->fl);;
-		if (d->fr!=NULL) sd_free(d->fr);;
-		if (d->gl!=NULL) sd_free(d->gl);;
-		if (d->gr!=NULL) sd_free(d->gr);;
-		if (d->z!=NULL) sd_free(d->z);;
+		if (d->fl!=NULL) sd_free(d->fl);
+		if (d->fr!=NULL) sd_free(d->fr);
+		if (d->gl!=NULL) sd_free(d->gl);
+		if (d->gr!=NULL) sd_free(d->gr);
+		if (d->z!=NULL) sd_free(d->z);
+		if (d->xr!=NULL) sd_free(d->xr);
 		if (d != NULL) sd_free(d);
 		sd_err("alloc for heun scheme failed.");
 		return NULL;
-	} 
-	sch_base_init(&d->base,
-		time, dt,
-		n_dim, n_in, n_out,
-		sys, hist, rng, 
-		n_byte, heun_free, copy, heun_apply);
+	}
 	d->base.sch.data = d;
 	return &(d->base.sch);
 }

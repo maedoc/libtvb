@@ -39,7 +39,7 @@ struct sd_sch
 	double *(*get_output)(struct sd_sch *sch);
     
     /*! Sample current state. */
-    struct sd_out_sample *(*sample)(struct sd_sch *sch);
+    struct sd_out_sample (*sample)(struct sd_sch *sch);
 
 	/*! Get this scheme's hist instance. */
 	struct sd_hist *(*get_hist)(struct sd_sch *);

@@ -17,6 +17,7 @@ static void
 emc_free(struct sd_sch *sch)
 {
 	struct data *d = sch->data;
+    sch_base_pointers_free(&d->base);
 	sd_free(d->f);
 	sd_free(d->g);
 	sd_free(d->z);
@@ -53,7 +54,11 @@ emc_copy(struct sd_sch *sd_sch)
 	return copy;
 }
 
-/* }}} */
+static struct sd_out_sample sample(struct sd_sch *sd_sch)
+{
+    struct data *data = sd_sch->data;
+    return sch_base_sample(&data->base);
+}
 
 /* apply {{{ */
 
@@ -104,22 +109,23 @@ sd_sch_new_emc(double time, double dt, double lam,
 	 || (d->g=sd_malloc(sizeof(double)*n_dim))==NULL
 	 || (d->z=sd_malloc(sizeof(double)*n_dim))==NULL
 	 || (d->eps=sd_malloc(sizeof(double)*n_dim))==NULL
+     || sch_base_init(&d->base,
+            time, dt,
+            n_dim, n_in, n_out,
+            sys, hist, rng, 
+            emc_n_byte, emc_free, emc_copy, emc_apply, &sample) != SD_OK
 	)
 	{
 		if (d->f!=NULL) sd_free(d->f);
 		if (d->g!=NULL) sd_free(d->g);
 		if (d->z!=NULL) sd_free(d->z);
+		if (d->eps!=NULL) sd_free(d->eps);
 		if (d != NULL) sd_free(d);
 		sd_err("alloc for emc scheme failed.");
 		return NULL;
 	}
 	d->first_call = true;
 	d->lam = lam;
-	sch_base_init(&d->base,
-		time, dt,
-		n_dim, n_in, n_out,
-		sys, hist, rng, 
-		emc_n_byte, emc_free, emc_copy, emc_apply);
 	d->base.sch.data = d;
 	return &(d->base.sch);
 }

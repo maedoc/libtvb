@@ -50,7 +50,8 @@ static enum sd_stat cont(struct sd_sol *sol)
 			sd_err("scheme application failed.");
 			return SD_ERR;
 		}
-		data->cont = out->apply(out, sch->sample(sch));
+        struct sd_out_sample sample = sch->sample(sch);
+		data->cont = out->apply(out, &sample);
     } while (data->cont == SD_CONT);
 	clock_t toc = clock();
 	double walltime = (double) (toc - tic) / CLOCKS_PER_SEC;

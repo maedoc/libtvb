@@ -3,6 +3,7 @@ import os
 import os.path
 import tempfile
 import subprocess
+import multiprocessing
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,29 +14,44 @@ COMPILE = {
     '.cpp': ['g++'] + INCLUDES
 }
 
+def append_flags(*flags):
+    for flag in flags:
+        COMPILE['.c'].append(flag)
+        COMPILE['.cpp'].append(flag)
+
 DLL_EXT = '.so'
 
 if sys.platform != 'win32':
-    COMPILE['.c'].append('-fPIC')
-    COMPILE['.cpp'].append('-fPIC')
+    append_flags('-fPIC')
+else:
     DLL_EXT = '.dll'
 
 if sys.platform == 'darwin':
     DLL_EXT = '.dylib'
 
+if '-g' in sys.argv:
+    append_flags('-g')
+else:
+    append_flags('-O3')
+
+if '-pg' in sys.argv:
+    append_flags('-pg')
+
+def sh(cmd):
+    print ' '.join(cmd)
+    subprocess.check_call(cmd)
+
 def compile_file(source_file, debug=False):
     cmd = COMPILE[os.path.splitext(source_file)[1]][:]
-    obj_file = tempfile.NamedTemporaryFile(suffix='.o')
+    obj_file = tempfile.NamedTemporaryFile(suffix='.o', delete=False)
     if debug:
         cmd.append('-g')
     cmd += ['-c', source_file, '-o', obj_file.name]
-    proc = subprocess.check_call(cmd)
-    return obj_file
+    sh(cmd)
+    return obj_file.name
 
 def assemble_shared_lib(object_files):
-    names = [file.name for file in object_files]
-    cmd = ['gcc', '-shared', '-lm'] + names + ['-o', 'libSDDEKit' + DLL_EXT]
-    proc = subprocess.check_call(cmd)
+    sh(COMPILE['.c'] + ['-shared', '-lm'] + object_files + ['-o', 'libSDDEKit' + DLL_EXT])
     
 def source_files():
     path = os.path.join(HERE, 'lib', 'src' + os.path.sep)
@@ -45,11 +61,21 @@ def source_files():
             if ext in ('.c', '.cpp'):
                 yield os.path.join(root, file)
 
-def build_shared_lib(debug=False):
+def build_shared_lib():
     obj_files = []
-    for file in source_files():
-        obj_files.append(compile_file(file, debug=debug))
+    pool = multiprocessing.Pool()
+    obj_files = pool.map(compile_file, list(source_files()))
+    pool.close()
     assemble_shared_lib(obj_files)
+
+def build_benchmarks():
+    benchmarks = ['bench_net_gen2d']
+    for benchmark in benchmarks:
+        source = os.path.join(HERE, 'lib', 'bench', benchmark)
+        cmd = COMPILE['.c'] + ['-L./', '-lSDDEKit']
+        cmd += [source + '.c', '-o', benchmark]
+        sh(cmd)
     
 if __name__ == '__main__':
-    build_shared_lib(debug='-g' in sys.argv)
+    build_shared_lib()
+    build_benchmarks()

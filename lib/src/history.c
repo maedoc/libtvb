@@ -586,6 +586,7 @@ sd_hfill_new_val(double val)
 {
 	struct sd_hfill *hf;
 	if ((hf = sd_malloc(sizeof(struct sd_hfill))) == NULL
+     || (*hf = hfill_val_defaults, 0)
 	 || (hf->data = sd_malloc(sizeof(double))) == NULL)
 	{
 		if (hf != NULL)
@@ -593,7 +594,6 @@ sd_hfill_new_val(double val)
 		sd_err("alloc hfill failed.");
 		return NULL;
 	}
-	*hf = hfill_val_defaults;
 	*((double*) hf->data) = val;
 	return hf;
 }

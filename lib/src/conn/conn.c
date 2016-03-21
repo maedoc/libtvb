@@ -113,8 +113,8 @@ struct sd_conn * sd_conn_new_sparse(
 	 || (*conn = zero, 0)
 	 || (conn->row_offsets = sd_malloc(sizeof(uint32_t)*(n_rows + 1))) == NULL
 	 || (conn->col_indices = sd_malloc(sizeof(uint32_t)*n_nonzero)) == NULL
-	 || (conn->weights = sd_malloc(sizeof(uint32_t)*n_nonzero)) == NULL
-	 || (conn->delays = sd_malloc(sizeof(uint32_t)*n_nonzero)) == NULL
+	 || (conn->weights = sd_malloc(sizeof(double)*n_nonzero)) == NULL
+	 || (conn->delays = sd_malloc(sizeof(double)*n_nonzero)) == NULL
 	)
 	{
 		if (conn->row_offsets!=NULL) sd_free(conn->row_offsets);
@@ -127,10 +127,10 @@ struct sd_conn * sd_conn_new_sparse(
 	conn->n_row = n_rows;
 	conn->n_col = n_cols;
 	conn->nnz = n_nonzero;
-	conn->row_offsets = row_offsets;
-	conn->col_indices = col_indices;
-	conn->weights = weights;
-	conn->delays = delays;
+	memcpy(conn->row_offsets, row_offsets, sizeof(uint32_t) * n_nonzero);
+	memcpy(conn->col_indices, col_indices, sizeof(uint32_t) * n_nonzero);
+	memcpy(conn->weights, weights, sizeof(double) * n_nonzero);
+	memcpy(conn->delays, delays, sizeof(double) * n_nonzero);
 	conn->delay_scale = 1.0;
 	conn->sd_conn = sd_conn_defaults;
 	conn->sd_conn.data = conn;

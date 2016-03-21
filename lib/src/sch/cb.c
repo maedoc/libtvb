@@ -20,6 +20,8 @@ static enum sd_stat apply(struct sd_sch *sd_sch)
 
 static void cb_free(struct sd_sch *sd_sch)
 {
+    struct data *data = sd_sch->data;
+    sch_base_pointers_free(&data->base);
 	sd_free(sd_sch->data);
 }
 
@@ -43,7 +45,11 @@ static struct sd_sch *copy(struct sd_sch *sd_sch)
 	return copy;
 }
 
-/* }}} */
+static struct sd_out_sample sample(struct sd_sch *sd_sch)
+{
+    struct data *data = sd_sch->data;
+    return sch_base_sample(&data->base);
+}
 
 struct sd_sch *
 sd_sch_new_cb(
@@ -54,19 +60,21 @@ sd_sch_new_cb(
 	void *user_data,
 	enum sd_stat(*user_apply)(void *))
 {
-	struct data *data;
-	if ((data = sd_malloc(sizeof(struct data))) == NULL)
+	struct data *data = NULL;
+	if ((data = sd_malloc(sizeof(struct data))) == NULL
+     || sch_base_init(&data->base,
+            time, dt,
+            sys->get_n_dim(sys),
+            sys->get_n_in(sys),
+            sys->get_n_out(sys),
+            sys, hist, rng,
+            &n_byte, &cb_free, &copy, &apply, &sample) != SD_OK
+    )
 	{
+        if (data != NULL) sd_free(data);
 		sd_err("alloc sch cb failed.");
 		return NULL;
 	}
-	sch_base_init(&data->base,
-		time, dt,
-		sys->get_n_dim(sys),
-		sys->get_n_in(sys),
-		sys->get_n_out(sys),
-		sys, hist, rng,
-		&n_byte, &cb_free, &copy, &apply);
 	data->base.sch.data = data;
 	data->user_data = user_data;
 	data->user_apply = user_apply;
