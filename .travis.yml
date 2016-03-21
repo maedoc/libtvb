@@ -1,6 +1,2 @@
-install:
-  - mkdir build
-  - cd build
-  - cmake ..
 script:
-  - python tasks.py cmake_build
+  - python make.py
