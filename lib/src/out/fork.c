@@ -116,7 +116,7 @@ sd_out_fork_new(uint32_t n_receiver, struct sd_out **receivers)
 	/* alloc & error check {{{ */
 	if ((data = sd_malloc(sizeof(struct data))) == NULL
 	 || (*data = zero, n_receiver == 0 || receivers == NULL)
-	 || (data->receivers = sd_malloc(sizeof(struct sd_out *) * n_receiver))
+	 || (data->receivers = sd_malloc(sizeof(struct sd_out *) * n_receiver)) == NULL
 	)
 	{
 		if (data != NULL) sd_free(data);
