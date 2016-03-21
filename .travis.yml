@@ -3,4 +3,4 @@ install:
   - cd build
   - cmake ..
 script:
-  - make
+  - python tasks.py cmake_build
