@@ -30,6 +30,8 @@ junit.xml
 *.js
 *.html
 *.so
+*.dylib
+*.dll
 *.bc.
 *.dSYM
 .DS_Store
