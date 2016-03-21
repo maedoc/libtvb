@@ -251,23 +251,24 @@ def generate_fn_ptr_field_wrapper_files(path=None, redo=False, filename='fn_ptr_
         for line in wrappers.source_lines:
             fd.write(line)
 
+# build shared lib
+
+build_dir = os.path.join(HERE, 'lib', 'build')
+
 def cmake_configure(redo):
-    build_dir = os.path.join(HERE, 'build')
     if not os.path.exists(build_dir):
-        os.mkdir('build')
+        os.mkdir(build_dir)
     proc = subprocess.Popen(['cmake', '..'], cwd=build_dir)
     proc.wait()
 
 def cmake_build(redo):
-    build_dir = os.path.join(HERE, 'build')
     if not os.path.exists(build_dir):
         print 'build dir not found, configuring first..'
-        cmake_configure()
+        cmake_configure(redo)
     proc = subprocess.Popen(['make'], cwd=build_dir)
     proc.wait()
 
 def cmake_clean(redo):
-    build_dir = os.path.join(HERE, 'build')
     if not os.path.exists(build_dir):
         print 'build dir not found, configuring first..'
         cmake_configure()
