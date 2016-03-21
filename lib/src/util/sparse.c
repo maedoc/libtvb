@@ -3,7 +3,7 @@
 #include <math.h>
 #include "sddekit.h"
 
-enum sd_stat sd_sparse_from_dense(uint32_t m, uint32_t n, 
+enum sd_stat sd_util_sparse_from_dense(uint32_t m, uint32_t n, 
 		double *dA, double *dB, double eps,
 		uint32_t *nnz, uint32_t **Or, uint32_t **Ic, 
 		double **sA, double **sB)
