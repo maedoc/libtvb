@@ -37,6 +37,8 @@ else:
 if '-pg' in sys.argv:
     append_flags('-pg')
 
+KEEP_OBJ = '-g' in sys.argv or '-pg' in sys.argv
+
 def sh(cmd):
     print ' '.join(cmd)
     subprocess.check_call(cmd)
@@ -52,6 +54,9 @@ def compile_file(source_file, debug=False):
 
 def assemble_shared_lib(object_files):
     sh(COMPILE['.c'] + ['-shared', '-lm'] + object_files + ['-o', 'libSDDEKit' + DLL_EXT])
+    if not KEEP_OBJ:
+        for file_name in object_files:
+            os.remove(file_name)
     
 def source_files():
     path = os.path.join(HERE, 'lib', 'src' + os.path.sep)
