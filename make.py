@@ -33,7 +33,7 @@ def compile_file(source_file):
 
 def assemble_shared_lib(object_files):
     names = [file.name for file in object_files]
-    cmd = ['gcc', '-shared', '-lm'] + names + ['-o', 'libSDDEKit.so']
+    cmd = ['gcc', '-shared', '-lm'] + names + ['-o', 'libSDDEKit' + DLL_EXT]
     proc = subprocess.check_call(cmd)
     
 def source_files():
