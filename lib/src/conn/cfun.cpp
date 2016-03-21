@@ -1,3 +1,4 @@
+
 /* copyright 2016 Apache 2 sddekit authors */
 
 /* TODO clang++ doesn't like restrict in c++11 mode? */
@@ -6,6 +7,7 @@
 #include "sddekit.h"
 #include <math.h>
 #include "conn/data.h"
+#include "conn/rwws.h"
 
 template <class cfun> static void
 rwws_cfun(
