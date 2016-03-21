@@ -23,9 +23,11 @@ if sys.platform != 'win32':
 if sys.platform == 'darwin':
     DLL_EXT = '.dylib'
 
-def compile_file(source_file):
+def compile_file(source_file, debug=False):
     cmd = COMPILE[os.path.splitext(source_file)[1]][:]
     obj_file = tempfile.NamedTemporaryFile(suffix='.o')
+    if debug:
+        cmd.append('-g')
     cmd += ['-c', source_file, '-o', obj_file.name]
     proc = subprocess.check_call(cmd)
     return obj_file
@@ -43,11 +45,11 @@ def source_files():
             if ext in ('.c', '.cpp'):
                 yield os.path.join(root, file)
 
-def build_shared_lib():
+def build_shared_lib(debug=False):
     obj_files = []
     for file in source_files():
-        obj_files.append(compile_file(file))
+        obj_files.append(compile_file(file, debug=debug))
     assemble_shared_lib(obj_files)
     
 if __name__ == '__main__':
-    build_shared_lib()
+    build_shared_lib(debug='-g' in sys.argv)
