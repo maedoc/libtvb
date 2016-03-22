@@ -1,2 +1,2 @@
 script:
-  - python make.py build
+  - python -m dev build
