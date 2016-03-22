@@ -1,86 +1,109 @@
 import sys
 import os
 import os.path
-import tempfile
+import shutil
 import subprocess
 import multiprocessing
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-INCLUDES = ['-Ilib/include']
+def configure():
+    includes = ['-Ilib/include']
+    
+    compile = {
+        '.c': ['gcc', '-std=c99'] + includes,
+        '.cpp': ['g++'] + includes
+    }
+    
+    def append_flags(*flags):
+        for flag in flags:
+            compile['.c'].append(flag)
+            compile['.cpp'].append(flag)
+            
+    dll_ext = '.so'
+    
+    if sys.platform != 'win32':
+        append_flags('-fPIC')
+    else:
+        dll_ext = '.dll'
 
-COMPILE = {
-    '.c': ['gcc', '-std=c99'] + INCLUDES,
-    '.cpp': ['g++'] + INCLUDES
-}
+    if sys.platform == 'darwin':
+        dll_ext = '.dylib'
 
-def append_flags(*flags):
-    for flag in flags:
-        COMPILE['.c'].append(flag)
-        COMPILE['.cpp'].append(flag)
+    if '-g' in sys.argv:
+        append_flags('-g', '-Wall', '-Wextra')
+    else:
+        append_flags('-O3', '-flto')
 
-DLL_EXT = '.so'
+    if '-pg' in sys.argv:
+        append_flags('-pg')
 
-if sys.platform != 'win32':
-    append_flags('-fPIC')
-else:
-    DLL_EXT = '.dll'
+    # directory for build artifacts
+    build_dir = 'build'
+    if not os.path.exists(build_dir):
+        os.mkdir(build_dir)
+    return includes, compile, dll_ext, build_dir
 
-if sys.platform == 'darwin':
-    DLL_EXT = '.dylib'
-
-if '-g' in sys.argv:
-    append_flags('-g')
-else:
-    append_flags('-O3')
-
-if '-pg' in sys.argv:
-    append_flags('-pg')
-
-KEEP_OBJ = '-g' in sys.argv or '-pg' in sys.argv
+INCLUDES, COMPILE, DLL_EXT, BUILD_DIR = configure()
 
 def sh(cmd):
     print ' '.join(cmd)
     subprocess.check_call(cmd)
 
 def compile_file(source_file, debug=False):
-    cmd = COMPILE[os.path.splitext(source_file)[1]][:]
-    obj_file = tempfile.NamedTemporaryFile(suffix='.o', delete=False)
-    if debug:
-        cmd.append('-g')
-    cmd += ['-c', source_file, '-o', obj_file.name]
+    name, ext = os.path.splitext(source_file)
+    cmd = COMPILE[ext][:]
+    obj_file = os.path.join(BUILD_DIR, 
+        '_'.join(name.split(os.path.sep)[2:]) + '.o')
+    cmd += ['-c', source_file, '-o', obj_file]
     sh(cmd)
-    return obj_file.name
+    return obj_file
 
 def assemble_shared_lib(object_files):
-    sh(COMPILE['.c'] + ['-shared', '-lm'] + object_files + ['-o', 'libSDDEKit' + DLL_EXT])
-    if not KEEP_OBJ:
-        for file_name in object_files:
-            os.remove(file_name)
+    cmd = COMPILE['.c'] + ['-shared', '-lm']
+    cmd += object_files
+    cmd += ['-o', os.path.join(BUILD_DIR, 'libSDDEKit') + DLL_EXT]
+    sh(cmd)
     
 def source_files():
-    path = os.path.join(HERE, 'lib', 'src' + os.path.sep)
+    path = os.path.join('lib', 'src')
     for root, folders, files in os.walk(path):
         for file in files:
             name, ext = os.path.splitext(file)
             if ext in ('.c', '.cpp'):
                 yield os.path.join(root, file)
 
-def build_shared_lib():
-    obj_files = []
-    pool = multiprocessing.Pool()
-    obj_files = pool.map(compile_file, list(source_files()))
-    pool.close()
-    assemble_shared_lib(obj_files)
+def build_objects(parallel=False):
+    sources = list(source_files())
+    if parallel:
+        pool = multiprocessing.Pool()
+        object_files = pool.map(compile_file, sources)
+        pool.close()
+    else:
+        object_files = list(map(compile_file, sources))
+    return object_files
 
-def build_benchmarks():
+def build_benchmarks(object_files, use_shared=False):
     benchmarks = ['bench_net_gen2d']
     for benchmark in benchmarks:
-        source = os.path.join(HERE, 'lib', 'bench', benchmark)
-        cmd = COMPILE['.c'] + ['-L./', '-lSDDEKit']
-        cmd += [source + '.c', '-o', benchmark]
+        source = os.path.join('lib', 'bench', benchmark)
+        cmd = COMPILE['.c'][:]
+        if use_shared:
+            cmd += ['-L' + os.path.abspath(BUILD_DIR), '-lSDDEKit']
+        else:
+            cmd += object_files
+        cmd += [source + '.c', '-lm', '-o', os.path.join(BUILD_DIR, benchmark)]
         sh(cmd)
+
+def clean():
+    shutil.rmtree(BUILD_DIR)
+    
     
 if __name__ == '__main__':
-    build_shared_lib()
-    build_benchmarks()
+    task = sys.argv[1]
+    if task == 'build':
+        object_files = build_objects()
+        assemble_shared_lib(object_files)
+        build_benchmarks(object_files)
+    elif task == 'clean':
+        clean()
