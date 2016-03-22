@@ -44,17 +44,13 @@ Keep in mind that if you 'subclass' an existing interface, some methods like
 Profiling the code means compiling it with specific flags and running benchmarks
 or test code to generate information on how much time each part of the code takes.
 
-The quickest way to start is to build tests or benchmarks with GCC coverage/profiling.
-
-```$
-```
-
-But Valgrind's callgrind tool provides more detail (line-by-line profiling) at greater
-runtime cost. The makefile can build callgrind-compatible binaries like so
+Valgrind's callgrind tool provides good detail (line-by-line profiling) at some
+runtime cost
 ```bash
-make -B -j SANFLAGS= BUILD=fast FDO=callgrind bench_vmb
+python make.py build -g
+valgrind --tool=cachegrind build/bench_net_gen2d
+kcachegrind  cachegrind.out.*
 ```
-
 
 ## What is SD_API?
 
