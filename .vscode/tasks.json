@@ -25,6 +25,12 @@
             "taskName": "clean",
             "isBuildCommand": false,
             "isTestCommand": false
+        },
+        {
+            "taskName": "execfile",
+            "isBuildCommand": false,
+            "isTestCommand": false,
+            "args" : ["${file}"]
         }
     ]
 }

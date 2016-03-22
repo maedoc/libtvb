@@ -12,3 +12,9 @@ def main(argv):
 
     elif task == 'clean':
         build.clean()
+    
+    elif task == 'execfile':
+        import sys, subprocess, os
+        env = os.environ.copy()
+        env['PYTHONPATH'] = './'
+        subprocess.Popen([sys.executable, argv[2]], env=env).wait()
