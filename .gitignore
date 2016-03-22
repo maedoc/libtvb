@@ -37,3 +37,4 @@ junit.xml
 .DS_Store
 *.ipynb
 .ipynb_checkpoints
+cachegrind.out.*
