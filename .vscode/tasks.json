@@ -1,13 +1,3 @@
-/* I completely misunderstood this file, until reading this
-
-    http://stackoverflow.com/questions/30046411
-    
-   In fact, the tasks are proxied to external command, e.g.
-   a Makefile should have different stuff configuring, then
-   the tasks listed here hit make to run that.
-   
-*/
-
 {
     "version": "0.1.0",
     "command": "python",

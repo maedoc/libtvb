@@ -21,8 +21,6 @@ docs
 *.c.gcov
 gmon.out
 val.out
-python/sddekit.c
-run_tests
 junit.xml
 *.bc
 *.html.map
