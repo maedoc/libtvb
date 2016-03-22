@@ -14,13 +14,13 @@ struct data
 static uint32_t
 out_n_dim(struct sd_out *sd_out)
 {
-	return ((struct data *) sd_out)->n_dim;
+	return ((struct data *) sd_out->data)->n_dim;
 }
 
 static uint32_t
 out_n_out(struct sd_out *sd_out)
 {
-	return ((struct data *) sd_out)->n_out;
+	return ((struct data *) sd_out->data)->n_out;
 }
 
 static enum
