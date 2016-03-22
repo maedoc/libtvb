@@ -35,6 +35,8 @@ def preprocess_header():
         fd.write(header)
 
 def header_ast():
+    if not os.path.exists(PPFNAME):
+        preprocess_header()
     with open(PPFNAME, 'r') as fd:
         src = fd.read()
     cp = pycparser.CParser()
