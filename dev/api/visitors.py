@@ -6,6 +6,7 @@ from pycparser's parse tree of SDDEKit's header.
 
 """
 
+import collections
 import pycparser
 
 class BaseVisitor(pycparser.c_ast.NodeVisitor):
@@ -56,7 +57,7 @@ class FuncInfo(BaseVisitor):
         self.argtypes = [TypeInfo.apply(child) for _, child in node.args.children()]
 
 
-class VisitStructFnPtrFields(BaseVisitor):
+class MethodsVisitor(BaseVisitor):
     """
     Visits function pointers which are fields of structs.
 
@@ -91,103 +92,55 @@ class VisitStructFnPtrFields(BaseVisitor):
         self.struct -= 1
 
 
-class GenFnPtrFieldWrappers(VisitStructFnPtrFields):
-    """
-    Visits function pointer in struct declarations to extract
-    type and name information in order to generate header and implementation
-    of regular functions which wrap the function pointer.
+class InterfaceMethods(MethodsVisitor):
 
-    """
-
-    _h_template = "{restype} {struct_name}_{field_name}({arg_types});\n"
-
-    _c_template = "{restype} {struct_name}_{field_name}({arg_type_names})\n{{\n\treturn {first_arg}->{field_name}({arg_names});\n}}\n\n"
-
-    def __init__(self):
-        super(GenFnPtrFieldWrappers, self).__init__()
-        self.header_lines = []
-        self.source_lines = []
+    Method = collections.namedtuple('Method',
+        'restype struct_name field_name arg_types arg_names'.split())
+    
+    def  __init__(self):
+        super(InterfaceMethods, self).__init__()
+        self.interfaces = {}
+    
+    def _add_method(self, method):
+        struct_name = self.struct_name[-1]
+        if method.struct_name not in self.interfaces:
+            self.interfaces[method.struct_name] = []
+        self.interfaces[method.struct_name].append(method)
 
     def visit_FuncDecl(self, node):
         if self.struct and self.ptr:
             fi = FuncInfo.apply(node)
             arg_names, arg_types = [], []
             for i, arg in enumerate(fi.argtypes):
-                arg_names.append('a%d' % (i, ))
-                arg_types.append(arg.typenames + ('*' * arg.ptr))
-            data = {
-                'restype': fi.restype.typenames + ('*' * fi.restype.ptr),
-                'struct_name': self.struct_name[-1],
-                'field_name': fi.name,
-                'arg_types': ', '.join(arg_types),
-                'arg_names': ', '.join(arg_names),
-                'arg_type_names': ', '.join('%s %s' % (t, n) for n, t in zip(arg_names, arg_types)),
-                'first_arg': arg_names[0],
-            }
-            self.header_lines.append(self._h_template.format(**data))
-            self.source_lines.append(self._c_template.format(**data))
-
-# ast visitors }}}
-
-def generate_fn_ptr_field_wrapper_files(path=None, redo=False, filename='fn_ptr_field_wrappers'):
-    """
-    Generates a header and source file containing regular functions wrapping
-    all struct fields which are function pointers.
-
-    Parameters
-    ----------
-    path : string
-        Path to write files to.
-    filename : string
-        Name to give header and source files.
-
-    """
-    import api
-    path = path or './'
-    hpath = join(path, filename + '.h')
-    cpath = hpath[:-1] + 'c'
-    if exists(hpath) and exists(cpath) and redo is False:
-        return
-    wrappers = GenFnPtrFieldWrappers.apply(api.header_ast())
-    license = ''
-    with open('LICENSE', 'r') as fd:
-        license = fd.readline().strip()
-    with open(hpath, 'w') as fd:
-        fd.write('/* {license} */\n\n')
-        for line in wrappers.header_lines:
-            fd.write(line)
-    with open(cpath, 'w') as fd:
-        fd.write('''/* copyright 2016 Apache 2 sddekit authors */\n
-/* This file was automatically generated based on src/sddekit_simple.h */\n
-#include "sddekit.h"\n
-''')
-        for line in wrappers.source_lines:
-            fd.write(line)
+                arg_names.append('a%d' % (i, )) # TODO
+                arg_types.append((arg.typenames, arg.ptr))
+            method = self.Method(
+                restype=fi.restype.typenames + ('*' * fi.restype.ptr),
+                struct_name=self.struct_name[-1],
+                field_name=fi.name,
+                arg_types=arg_types,
+                arg_names=arg_names
+            )
+            self._add_method(method)
 
 
 class Enums(BaseVisitor):
 
-	def __init__(self):
-		self.enums = {}
+    def __init__(self):
+        super(Enums, self).__init__()
+        self.enums = {}
 
-	def visit_Enum(self, node):
-		self.enums[node.name] = []
-		(_, elist), = node.children()
-		for _, val in elist.children():
-			self.enums[node.name].append(val.name)
+    def visit_Enum(self, node):
+        if node.name not in self.enums:
+            self.enums[node.name] = []
+        children = node.children()
+        if children:
+            (_, elist), = children
+            for _, val in elist.children():
+                self.enums[node.name].append(val.name)
 
-class Structs(VisitStructFields):
 
-	def __init__(self):
-		super(Structs, self).__init__()
-		self.structs = {}
-
-	def _add_field(self, field, replace_last=False):
-		struct_name = self.struct_name[-1]
-		if struct_name not in self.structs:
-			self.structs[struct_name] = []
-		self.structs[struct_name].append(field)
-
-	def visit_FuncDecl(self, node):
-		if self.struct:
-			self._add_field(api.FuncInfo.apply(node))
+import dev.api.preprocess
+api = dev.api.preprocess.header_ast()
+for method in InterfaceMethods.apply(api).interfaces['sd_hist']:
+    print method
