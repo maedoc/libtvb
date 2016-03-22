@@ -105,7 +105,17 @@ def build_benchmarks(object_files, use_shared=False):
 
 def clean():
     shutil.rmtree(BUILD_DIR)
-    
+ 
+def gh_pages(redo):
+    """
+	git branch -D gh-pages
+	git init docs
+	doxygen
+	cd docs && git add html/* && git mv html/* ./ && git commit -m "add doxygen html"
+	git fetch docs master:gh-pages
+	rm -rf docs
+    """
+   
     
 if __name__ == '__main__':
     task = sys.argv[1]
