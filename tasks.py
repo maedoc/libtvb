@@ -87,10 +87,6 @@ def header_ast(src=None, ppfname=PPFNAME):
     ast = cp.parse(src, ppfname)
     return ast
 
-# preprocess simple header }}}
-
-# ast vistors {{{
-
 class App(c_ast.NodeVisitor):
     """
     Subclass of NodeVisitor with simple class method to build instance,
@@ -247,31 +243,36 @@ def generate_fn_ptr_field_wrapper_files(path=None, redo=False, filename='fn_ptr_
         for line in wrappers.source_lines:
             fd.write(line)
 
-# build shared lib
+def dump_ast(node):
+	return {'class': node.__class__.__name__,
+		'attrs': {key: getattr(node, key) for key in node.attr_names},
+		'children': {name: dump_ast(child)
+			for name, child in node.children()}}
 
-build_dir = os.path.join(HERE, 'lib', 'build')
+class Enums(api.App):
+	def __init__(self):
+		self.enums = {}
+	def visit_Enum(self, node):
+		self.enums[node.name] = []
+		(_, elist), = node.children()
+		for _, val in elist.children():
+			self.enums[node.name].append(val.name)
 
-def cmake_configure(redo):
-    if not os.path.exists(build_dir):
-        print "build directory (%r) doesn't exist, making" % (build_dir, )
-        os.mkdir(build_dir)
-    proc = subprocess.Popen(['cmake', '..'], cwd=build_dir)
-    proc.wait()
+class Structs(api.VisitStructFields):
 
-def cmake_build(redo):
-    if not os.path.exists(build_dir):
-        print 'build dir not found, configuring first..'
-        cmake_configure(redo)
-    proc = subprocess.Popen(['make'], cwd=build_dir)
-    proc.wait()
+	def __init__(self):
+		super(Structs, self).__init__()
+		self.structs = {}
 
-def cmake_clean(redo):
-    if not os.path.exists(build_dir):
-        print 'build dir not found, configuring first..'
-        cmake_configure()
-    proc = subprocess.Popen(['make', 'clean'], cwd=build_dir)
-    proc.wait()
-    print ('done')
+	def _add_field(self, field, replace_last=False):
+		struct_name = self.struct_name[-1]
+		if struct_name not in self.structs:
+			self.structs[struct_name] = []
+		self.structs[struct_name].append(field)
+
+	def visit_FuncDecl(self, node):
+		if self.struct:
+			self._add_field(api.FuncInfo.apply(node))
 
 def gh_pages(redo):
     """
