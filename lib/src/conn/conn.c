@@ -2,11 +2,18 @@
 
 #include "sddekit.h"
 #include "conn/data.h"
-#include "conn/rwws.h"
 
 static void row_wise_weighted_sum(struct sd_conn *sd_conn, double *values, double *sums)
 {
-    rwws_pre(sd_conn, values, NULL, sums);
+	struct conn *conn = sd_conn->data;
+    /* TODO omp parallel */
+	for (uint32_t i=0; i<conn->n_row; i++)
+	{
+		double sum = 0.0;
+		for (uint32_t j=conn->row_offsets[i]; j<conn->row_offsets[i+1]; j++)
+			sum += conn->weights[j] * values[j];
+		sums[i] = sum;
+	}
 }
 
 /* set / get */
