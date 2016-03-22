@@ -34,7 +34,7 @@ struct sd_net *net;
 enum sd_stat
 setup_net(struct sd_sys *node_sys, struct sd_conn *conn)
 {
-    uint32_t n_node, *sys_map = sd_malloc(76 * sizeof(uint32_t));
+    uint32_t *sys_map = sd_malloc(76 * sizeof(uint32_t));
     struct sd_sys *sys[1];
     for (uint32_t i=0; i<76; i++)
         sys_map[i] = 0;
