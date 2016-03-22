@@ -12,7 +12,7 @@ upcoming v0.1 release.
 
 Build the library & benchmark with
 ```bash
-python make.py build
+python -m dev build
 ```
 We're currently rewriting the test & benchmark suite using upcoming Python bindings.
 
