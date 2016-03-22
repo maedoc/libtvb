@@ -67,8 +67,6 @@ static struct sd_sys * as_sys(struct sd_net *net) { return &((struct data *) net
 
 static struct sd_conn * net_get_conn(struct sd_net *net) { return ((struct data *) net->data)->conn; }
 
-static void net_free(struct sd_net *net) { data_free(net->data); }
-
 static uint32_t net_get_n_node(struct sd_net *net) { return ((struct data *) net->data)->n_node; }
 
 static uint32_t net_get_n_sub_sys(struct sd_net *net) { return ((struct data *) net->data)->n_subsys; }
@@ -208,10 +206,12 @@ sd_net_new(uint32_t n_node, uint32_t n_subsys, uint32_t *node_subsys_map,
 	 || (data->aff = sd_malloc(sizeof(double)*n_aff)) == NULL
      || (data->node_subsys_map = sd_malloc(sizeof(uint32_t) * n_node)) == NULL
      || (data->subsys = sd_malloc(sizeof(struct sd_sys *) * n_subsys)) == NULL
+     || incompat_subsys_and_conn(data, conn)
 	 )
 	{
         if (data->aff != NULL) sd_free(data->aff);
         if (data->node_subsys_map != NULL) sd_free(data->node_subsys_map);
+        if (data->subsys != NULL) sd_free(data->subsys);
 		if (data != NULL) sd_free(data);
 		sd_err("alloc net failed.");
 		return NULL;
