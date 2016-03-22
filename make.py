@@ -1,3 +1,11 @@
+# copyright 2016 Apache 2 sddekit authors
+
+"""
+This is the build script for SDDEKit, producing the object files,
+shared library & benchmark executables.
+
+"""
+
 import sys
 import os
 import os.path

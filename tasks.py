@@ -1,14 +1,10 @@
 # copyright 2016 Apache 2 sddekit authors
 
 """
-This module helps with certain development tasks related to
-SDDEKit, such as building the shared library with CMake
-and generating binding code for higher-level languages.
+This module helps with a few tasks related to development.
 
 Currently the supported workflow is as follows
 
-- cmake_configure()
-- cmake_build()
 - generate a preprocessed_header()
 - generate_fn_ptr_field_wrapper_files()
 

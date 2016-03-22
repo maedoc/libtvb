@@ -11,21 +11,11 @@
 {
     "version": "0.1.0",
     "command": "python",
-    "args": [
-        "tasks.py"
-    ],
+    "args": ["make.py"],
     "tasks": 
     [
         {
-            "taskName": "cmake_configure",
-            "isBuildCommand": false,
-            "isTestCommand": false
-        },
-        {
-            "taskName": "cmake_clean"
-        }
-        {
-            "taskName": "cmake_build",
+            "taskName": "build",
             "isBuildCommand": true,
             "isTestCommand": false,
             "problemMatcher": {
@@ -40,6 +30,11 @@
                     "message": 5
                 }        
             } 
-        }      
+        },
+        {
+            "taskName": "clean",
+            "isBuildCommand": false,
+            "isTestCommand": false
+        }
     ]
 }
