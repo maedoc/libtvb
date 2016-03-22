@@ -1,7 +1,7 @@
 {
     "version": "0.1.0",
     "command": "python",
-    "args": ["make.py"],
+    "args": ["-m", "dev"],
     "tasks": 
     [
         {

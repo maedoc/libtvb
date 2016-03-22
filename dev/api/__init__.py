@@ -9,7 +9,6 @@ import os.path
 import warnings
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
 LOG = logging.getLogger(__name__)
 
 if os.path.exists('dev/pycparser/pycparser'):
