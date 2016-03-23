@@ -68,9 +68,11 @@ def handler(level, message):
 		LOG.info(message)
 	elif level == sd_log_level.ERROR:
 		LOG.error(message)
+		raise Exception(message)
 	else:
 		fmt = 'unhandled SDDEKit log level %r for message %r'
 		LOG.warn(fmt, level, message)
+
 
 sd_log_set_handler(handler)
 #}}}
@@ -86,31 +88,31 @@ def _common_fields(type):
 		('free', fp(None, ptr))
 	]
 
-def make_fp_members(struct, **members):
+def make_fp_members(struct, *members):
 	_fields_ = _common_fields(struct.__name__)
 	ptr = ctypes.POINTER(struct)
-	for name, sig in members.items():
+	for name, sig in members:
 		sig = (sig[0], ptr) + sig[1:]
 		_fields_.append((name, ctypes.CFUNCTYPE(*sig)))
 	struct._fields_ = _fields_
 
-def make_struct(name, **members):
+def make_struct(name, *members):
 	struct = type(name, (ctypes.Structure, ), {})
-	make_fp_members(struct, **members)
+	make_fp_members(struct, *members)
 	return struct
 #}}}
 
 # conn/base.h {{{
 sd_conn = make_struct('sd_conn',
-	row_wise_weighted_sum=(None, f64p, f64p),
-	get_n_nonzeros=(u32, ),
-	get_nonzero_indices=(u32p, ),
-	get_weights=(f64p, ),
-	get_delays=(f64p, ),
-	get_delay_scale=(f64, ),
-	set_delay_scale=(sd_stat, f64),
-	get_n_row=(u32, ),
-	get_n_col=(u32, )
+	('row_wise_weighted_sum', (None, f64p, f64p)),
+	('get_n_nonzeros', (u32, )),
+	('get_nonzero_indices', (u32p, )),
+	('get_weights', (f64p, )),
+	('get_delays', (f64p, )),
+	('get_delay_scale', (f64, )),
+	('set_delay_scale', (sd_stat, f64)),
+	('get_n_row', (u32, )),
+	('get_n_col', (u32, ))
 )
 
 sd_conn_p = ctypes.POINTER(sd_conn)
@@ -120,6 +122,7 @@ sd_conn_new_sparse = make_func('sd_conn_new_sparse',
 
 sd_conn_new_dense = make_func('sd_conn_new_dense',
 	sd_conn_p, u32, u32, f64p, f64p)
+
 #}}}
 
 import numpy as np
@@ -127,7 +130,13 @@ W = np.random.randn(50, 50)
 W = (W > 2.0) * W
 D = np.ones((50, 50))
 conn = sd_conn_new_dense(50, 50, W.ctypes.data_as(f64p), D.ctypes.data_as(f64p))
-print conn
-print conn.contents.get_n_row(conn)
+c = conn.contents
+scale = 42.42
+assert c.set_delay_scale(conn, scale) == sd_stat.OK
+assert c.get_delay_scale(conn) == scale
+assert c.get_n_row(conn) == 50 and c.get_n_col(conn) == 50
+assert c.get_n_nonzeros(conn) == (W!=0.0).sum()
+
+print c.set_delay_scale(conn, -42.42)
 
 # vim: foldmethod=marker
