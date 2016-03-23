@@ -15,8 +15,8 @@
  */
 SD_API enum sd_stat 
 sd_util_uniqi(uint32_t n,
-	      uint32_t * restrict ints, 
-	      uint32_t * restrict nuniq, 
+	      uint32_t *ints, 
+	      uint32_t *nuniq, 
 	      uint32_t **uints);
 
 /**
