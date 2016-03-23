@@ -14,6 +14,8 @@ Build the library & benchmark with
 ```bash
 python -m dev build
 ```
+(if you work in Bash, you may want to `alias dev='python -m dev '`).
+
 We're currently rewriting the test & benchmark suite using upcoming Python bindings.
 
 See our [docs](doc/README.md) for more information.
