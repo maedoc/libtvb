@@ -100,6 +100,8 @@ def build_benchmarks(object_files, use_shared=False):
         else:
             cmd += object_files
         cmd += [source + '.c', '-lm', '-o', os.path.join(BUILD_DIR, benchmark)]
+        if 'LD_LIBRARY_PATH' in os.environ:
+            cmd += ['-L' + os.environ['LD_LIBRARY_PATH']]
         cmd += ['-lOpenCL']
         sh(cmd)
 
