@@ -7,7 +7,7 @@
 struct data
 {
 	uint32_t seed;
-	rk_state rks;
+	sd_rng_mt_state rks;
 	struct sd_rng sd_rng;
 };
 
@@ -46,19 +46,19 @@ static void rng_seed(struct sd_rng *sd_rng, uint32_t seed)
 {
 	struct data *d = sd_rng->data;
 	d->seed = seed;
-	rk_seed(seed, &d->rks);
+	sd_rng_mt_seed(seed, &d->rks);
 }
 
 static double rng_norm(struct sd_rng *sd_rng)
 {
 	struct data *d = sd_rng->data;
-	return rk_gauss(&(d->rks));
+	return sd_rng_mt_gauss(&(d->rks));
 }
 
 static double rng_uniform(struct sd_rng *sd_rng)
 {
 	struct data *d = sd_rng->data;
-	return rk_random(&(d->rks)) * 1.0 / RK_MAX;
+	return sd_rng_mt_random(&(d->rks)) * 1.0 / RK_MAX;
 }
 
 static void rng_fill_norm(struct sd_rng *sd_rng, uint32_t n, double *x)
@@ -66,7 +66,7 @@ static void rng_fill_norm(struct sd_rng *sd_rng, uint32_t n, double *x)
 	uint32_t i;
 	struct data *d = sd_rng->data;
 	for (i=0; i<n; i++)
-		x[i] = rk_gauss(&d->rks);
+		x[i] = sd_rng_mt_gauss(&d->rks);
 }
 
 /* }}} */
@@ -91,7 +91,7 @@ sd_rng_new_mt(uint32_t seed)
 	data->seed = seed;
 	data->sd_rng = sd_rng_defaults;
 	data->sd_rng.data = data;
-	rk_seed(seed, &data->rks);
+	sd_rng_mt_seed(seed, &data->rks);
 	return &data->sd_rng;
 }
 

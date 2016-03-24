@@ -3,7 +3,7 @@
 /*
  * Copyright (c) 2003-2005, Jean-Sebastien Roy (js@jeannot.org)
  *
- * The rk_random and rk_seed functions algorithms and the original design of
+ * The sd_rng_mt_random and sd_rng_mt_seed functions algorithms and the original design of
  * the Mersenne Twister RNG:
  *
  *   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
@@ -36,11 +36,11 @@
  *   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  *   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Original algorithm for the implementation of rk_interval function from
+ * Original algorithm for the implementation of sd_rng_mt_interval function from
  * Richard J. Wagner's implementation of the Mersenne Twister RNG, optimised by
  * Magnus Jonsson.
  *
- * Constants used in the rk_double implementation by Isaku Wada.
+ * Constants used in the sd_rng_mt_double implementation by Isaku Wada.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -128,17 +128,17 @@
 #define RK_DEV_RANDOM "/dev/random"
 #endif
 
-char *rk_strerror[RK_ERR_MAX] =
+char *sd_rng_mt_strerror[RK_ERR_MAX] =
 {
     "no error",
     "random device unvavailable"
 };
 
 /* static functions */
-static unsigned long rk_hash(unsigned long key);
+static unsigned long sd_rng_mt_hash(unsigned long key);
 
 void
-rk_seed(unsigned long seed, rk_state *state)
+sd_rng_mt_seed(unsigned long seed, sd_rng_mt_state *state)
 {
     int pos;
     seed &= 0xffffffffUL;
@@ -156,7 +156,7 @@ rk_seed(unsigned long seed, rk_state *state)
 
 /* Thomas Wang 32 bits integer hash function */
 unsigned long
-rk_hash(unsigned long key)
+sd_rng_mt_hash(unsigned long key)
 {
     key += ~(key << 15);
     key ^=  (key >> 10);
@@ -167,8 +167,8 @@ rk_hash(unsigned long key)
     return key;
 }
 
-rk_error
-rk_randomseed(rk_state *state)
+sd_rng_mt_error
+sd_rng_mt_randomseed(sd_rng_mt_state *state)
 {
 #ifndef _WIN32
     struct timeval tv;
@@ -177,7 +177,7 @@ rk_randomseed(rk_state *state)
 #endif
     int i;
 
-    if (rk_devfill(state->key, sizeof(state->key), 0) == RK_NOERR) {
+    if (sd_rng_mt_devfill(state->key, sizeof(state->key), 0) == RK_NOERR) {
         /* ensures non-zero key */
         state->key[0] |= 0x80000000UL;
         state->pos = RK_STATE_LEN;
@@ -193,11 +193,11 @@ rk_randomseed(rk_state *state)
 
 #ifndef _WIN32
     gettimeofday(&tv, NULL);
-    rk_seed(rk_hash(getpid()) ^ rk_hash(tv.tv_sec) ^ rk_hash(tv.tv_usec)
-            ^ rk_hash(clock()), state);
+    sd_rng_mt_seed(sd_rng_mt_hash(getpid()) ^ sd_rng_mt_hash(tv.tv_sec) ^ sd_rng_mt_hash(tv.tv_usec)
+            ^ sd_rng_mt_hash(clock()), state);
 #else
     _FTIME(&tv);
-    rk_seed(rk_hash(tv.time) ^ rk_hash(tv.millitm) ^ rk_hash(clock()), state);
+    sd_rng_mt_seed(sd_rng_mt_hash(tv.time) ^ sd_rng_mt_hash(tv.millitm) ^ sd_rng_mt_hash(clock()), state);
 #endif
 
     return RK_ENODEV;
@@ -212,7 +212,7 @@ rk_randomseed(rk_state *state)
 
 /* Slightly optimised reference implementation of the Mersenne Twister */
 unsigned long
-rk_random(rk_state *state)
+sd_rng_mt_random(sd_rng_mt_state *state)
 {
     unsigned long y;
 
@@ -244,23 +244,23 @@ rk_random(rk_state *state)
 }
 
 long
-rk_long(rk_state *state)
+sd_rng_mt_long(sd_rng_mt_state *state)
 {
-    return rk_ulong(state) >> 1;
+    return sd_rng_mt_ulong(state) >> 1;
 }
 
 unsigned long
-rk_ulong(rk_state *state)
+sd_rng_mt_ulong(sd_rng_mt_state *state)
 {
 #if ULONG_MAX <= 0xffffffffUL
-    return rk_random(state);
+    return sd_rng_mt_random(state);
 #else
-    return (rk_random(state) << 32) | (rk_random(state));
+    return (sd_rng_mt_random(state) << 32) | (sd_rng_mt_random(state));
 #endif
 }
 
 unsigned long
-rk_interval(unsigned long max, rk_state *state)
+sd_rng_mt_interval(unsigned long max, sd_rng_mt_state *state)
 {
     unsigned long mask = max, value;
 
@@ -280,33 +280,33 @@ rk_interval(unsigned long max, rk_state *state)
     /* Search a random value in [0..mask] <= max */
 #if ULONG_MAX > 0xffffffffUL
     if (max <= 0xffffffffUL) {
-        while ((value = (rk_random(state) & mask)) > max);
+        while ((value = (sd_rng_mt_random(state) & mask)) > max);
     }
     else {
-        while ((value = (rk_ulong(state) & mask)) > max);
+        while ((value = (sd_rng_mt_ulong(state) & mask)) > max);
     }
 #else
-    while ((value = (rk_ulong(state) & mask)) > max);
+    while ((value = (sd_rng_mt_ulong(state) & mask)) > max);
 #endif
     return value;
 }
 
 double
-rk_double(rk_state *state)
+sd_rng_mt_double(sd_rng_mt_state *state)
 {
     /* shifts : 67108864 = 0x4000000, 9007199254740992 = 0x20000000000000 */
-    long a = rk_random(state) >> 5, b = rk_random(state) >> 6;
+    long a = sd_rng_mt_random(state) >> 5, b = sd_rng_mt_random(state) >> 6;
     return (a * 67108864.0 + b) / 9007199254740992.0;
 }
 
 void
-rk_fill(void *buffer, size_t size, rk_state *state)
+sd_rng_mt_fill(void *buffer, size_t size, sd_rng_mt_state *state)
 {
     unsigned long r;
     unsigned char *buf = buffer;
 
     for (; size >= 4; size -= 4) {
-        r = rk_random(state);
+        r = sd_rng_mt_random(state);
         *(buf++) = r & 0xFF;
         *(buf++) = (r >> 8) & 0xFF;
         *(buf++) = (r >> 16) & 0xFF;
@@ -316,14 +316,14 @@ rk_fill(void *buffer, size_t size, rk_state *state)
     if (!size) {
         return;
     }
-    r = rk_random(state);
+    r = sd_rng_mt_random(state);
     for (; size; r >>= 8, size --) {
         *(buf++) = (unsigned char)(r & 0xFF);
     }
 }
 
-rk_error
-rk_devfill(void *buffer, size_t size, int strong)
+sd_rng_mt_error
+sd_rng_mt_devfill(void *buffer, size_t size, int strong)
 {
 #ifndef _WIN32
     FILE *rfile;
@@ -364,20 +364,20 @@ rk_devfill(void *buffer, size_t size, int strong)
     return RK_ENODEV;
 }
 
-rk_error
-rk_altfill(void *buffer, size_t size, int strong, rk_state *state)
+sd_rng_mt_error
+sd_rng_mt_altfill(void *buffer, size_t size, int strong, sd_rng_mt_state *state)
 {
-    rk_error err;
+    sd_rng_mt_error err;
 
-    err = rk_devfill(buffer, size, strong);
+    err = sd_rng_mt_devfill(buffer, size, strong);
     if (err) {
-        rk_fill(buffer, size, state);
+        sd_rng_mt_fill(buffer, size, state);
     }
     return err;
 }
 
 double
-rk_gauss(rk_state *state)
+sd_rng_mt_gauss(sd_rng_mt_state *state)
 {
     if (state->has_gauss) {
         const double tmp = state->gauss;
@@ -389,8 +389,8 @@ rk_gauss(rk_state *state)
         double f, x1, x2, r2;
 
         do {
-            x1 = 2.0*rk_double(state) - 1.0;
-            x2 = 2.0*rk_double(state) - 1.0;
+            x1 = 2.0*sd_rng_mt_double(state) - 1.0;
+            x2 = 2.0*sd_rng_mt_double(state) - 1.0;
             r2 = x1*x1 + x2*x2;
         }
         while (r2 >= 1.0 || r2 == 0.0);
@@ -405,7 +405,7 @@ rk_gauss(rk_state *state)
 }
 
 void
-rk_gauss_fill(rk_state *state, int nx, double *x)
+sd_rng_mt_gauss_fill(sd_rng_mt_state *state, int nx, double *x)
 {
 	int i;
 	for (i=0; i<nx; i++)
@@ -420,8 +420,8 @@ rk_gauss_fill(rk_state *state, int nx, double *x)
 			double f, x1, x2, r2;
 
 			do {
-				x1 = 2.0*rk_double(state) - 1.0;
-				x2 = 2.0*rk_double(state) - 1.0;
+				x1 = 2.0*sd_rng_mt_double(state) - 1.0;
+				x2 = 2.0*sd_rng_mt_double(state) - 1.0;
 				r2 = x1*x1 + x2*x2;
 			}
 			while (r2 >= 1.0 || r2 == 0.0);
