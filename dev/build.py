@@ -36,7 +36,10 @@ def configure():
     if '-g' in sys.argv:
         append_flags('-g', '-Wall', '-Wextra')
     else:
-        append_flags('-O3')#, '-flto')
+        append_flags('-O3', '-flto')
+
+    if '-G' in sys.argv:
+        append_flags('-g')
 
     if '-pg' in sys.argv:
         append_flags('-pg')
