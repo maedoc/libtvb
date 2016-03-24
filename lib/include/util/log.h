@@ -16,6 +16,9 @@ SD_API sd_log_handler sd_log_get_handler();
 /*! Handle log message; low-level: prefer macros below. */
 SD_API void sd_log_handle(enum sd_log_level level, char *format, ...);
 
+/*! Get if error occurred and reset. */
+SD_API bool sd_log_get_err_and_reset();
+
 /* Macros that user should use & library MUST use. {{{ */
 
 #ifdef _MSC_VER /* MSVC silently drops final comma when appropriate */
