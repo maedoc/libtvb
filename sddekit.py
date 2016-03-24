@@ -59,6 +59,9 @@ sd_log_level = make_enum('sd_log_level', 'ERROR INFO DEBUG'.split(' '))
 sd_log_handler = ctypes.CFUNCTYPE(None, sd_log_level, ctypes.c_char_p)
 sd_log_set_handler = make_func('sd_log_set_handler', None, sd_log_handler)
 sd_log_get_handler = make_func('sd_log_get_handler', sd_log_handler)
+sd_log_get_err_and_reset = make_func('sd_log_get_err_and_reset', ctypes.c_bool)
+
+class SDDEKitException(Exception): pass
 
 @sd_log_handler
 def handler(level, message):
@@ -67,12 +70,15 @@ def handler(level, message):
 	elif level == sd_log_level.INFO:
 		LOG.info(message)
 	elif level == sd_log_level.ERROR:
+		handler.last_error_message = message
 		LOG.error(message)
-		raise Exception(message)
 	else:
 		fmt = 'unhandled SDDEKit log level %r for message %r'
 		LOG.warn(fmt, level, message)
 
+def check_and_raise():
+	if sd_log_get_err_and_reset():
+		raise SDDEKitException(handler.last_error_message)
 
 sd_log_set_handler(handler)
 #}}}
@@ -125,6 +131,23 @@ sd_conn_new_dense = make_func('sd_conn_new_dense',
 
 #}}}
 
+def ndf64p(array):
+	return array.ctypes.data_as(f64p)
+
+def make_class(struct, *):
+	attrs = {}
+	@classmethod
+	def new_dense(cls, W, D):
+		obj = cls()
+		n = len(W)
+		obj._ptr = sd_conn_new_dense(n, n, ndf64p(W), ndf64p(D))
+		check_and_raise()
+		return obj
+	attrs['new_dense'] = new_dense
+	for name, fp in struct._fields_:
+		def wrap(self, *args):
+
+
 import numpy as np
 W = np.random.randn(50, 50)
 W = (W > 2.0) * W
@@ -138,5 +161,6 @@ assert c.get_n_row(conn) == 50 and c.get_n_col(conn) == 50
 assert c.get_n_nonzeros(conn) == (W!=0.0).sum()
 
 print c.set_delay_scale(conn, -42.42)
+check_and_raise()
 
 # vim: foldmethod=marker
