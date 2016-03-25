@@ -39,6 +39,7 @@ extern "C" {
 #include "util/misc.h"
 #include "util/log.h"
 #include "util/interface_macros.h"
+#include "util/ocl.h"
 
 #include "conn/base.h"
 
