@@ -1,4 +1,4 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 PAR(D, 1e-4)
 PAR(a, 0.270)

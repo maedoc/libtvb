@@ -1,12 +1,12 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 #include <stdlib.h>
 
-#include "sddekit.h"
+#include "libtvb.h"
 
-static sd_malloc_t _sd_malloc = malloc;
-static sd_realloc_t _sd_realloc = realloc;
-static sd_free_t _sd_free = free;
+static tvb_malloc_t _tvb_malloc = malloc;
+static tvb_realloc_t _tvb_realloc = realloc;
+static tvb_free_t _tvb_free = free;
 
 /* Memory register */
 
@@ -36,22 +36,22 @@ static void reg_push(void *, size_t);
 static void reg_pop(void *ptr);
 
 /* Initiates memory register */
-void sd_malloc_reg_init() {
+void tvb_malloc_reg_init() {
 	reg_active = true;
 }
 
 /* Stops memory register and free register memory */
-void sd_malloc_reg_stop() {
+void tvb_malloc_reg_stop() {
 	if(mem_reg_base == NULL) {
 		reg_active = false;
 		return;
 	}
 	mem_register *temp = mem_reg_base;
 	for(mem_reg_base = mem_reg_base->next; mem_reg_base != NULL; mem_reg_base = mem_reg_base->next) {
-		(*_sd_free)(temp);
+		(*_tvb_free)(temp);
 		temp = mem_reg_base;
 	}
-	(*_sd_free)(temp);
+	(*_tvb_free)(temp);
 	mem_reg_base = NULL;
 	mem_reg_end = NULL;
 	total_reg_bytes = 0;
@@ -59,7 +59,7 @@ void sd_malloc_reg_stop() {
 }
 
 /* Return total registered bytes stored. */
-uint32_t sd_malloc_total_nbytes() {
+uint32_t tvb_malloc_total_nbytes() {
        return total_reg_bytes;
 }
 
@@ -79,11 +79,11 @@ static mem_register *reg_search(void *ptr) {
 }
 
 /* Checks if ptr exists in register */
-enum sd_stat sd_malloc_reg_query(void *ptr){
+enum tvb_stat tvb_malloc_reg_query(void *ptr){
 	if(reg_active)
-		return reg_search(ptr) != NULL ? SD_OK : SD_ERR;
+		return reg_search(ptr) != NULL ? TVB_OK : TVB_ERR;
 	else
-		return SD_UNKNOWN;
+		return TVB_UNKNOWN;
 }
 
 /* Adds a record of a new chunk of memory to register */
@@ -91,9 +91,9 @@ static void reg_push(void *new_ptr, size_t size) {
 	if(new_ptr == NULL)
 		return;
 	mem_register *n;
-	n = (mem_register *)(*_sd_malloc)(sizeof(mem_register));
+	n = (mem_register *)(*_tvb_malloc)(sizeof(mem_register));
 	if(n == NULL) {
-		sd_err( "malloc returned a NULL pointer while mem_register allocation" );
+		tvb_err( "malloc returned a NULL pointer while mem_register allocation" );
 		return;
 	}
 	n->start = new_ptr;
@@ -138,38 +138,38 @@ static void reg_pop(void *ptr) {
 			mem_reg_end = temp2;
 	}
 	total_reg_bytes -= (uint32_t)( (char*)(temp->upto) - (char*)(temp->start) );
-	(*_sd_free)(temp);
+	(*_tvb_free)(temp);
 }
 
-void sd_malloc_set_allocators(sd_malloc_t malloc, sd_realloc_t realloc, sd_free_t free) {
+void tvb_malloc_set_allocators(tvb_malloc_t malloc, tvb_realloc_t realloc, tvb_free_t free) {
 	if (malloc == NULL || realloc == NULL || free == NULL) {
-		sd_err( "sd_malloc_set_allocators passed a NULL allocator." );
+		tvb_err( "tvb_malloc_set_allocators passed a NULL allocator." );
 		return;
 	}
-	_sd_malloc = malloc;
-	_sd_realloc = realloc;
-	_sd_free = free;
+	_tvb_malloc = malloc;
+	_tvb_realloc = realloc;
+	_tvb_free = free;
 }
 
-void sd_malloc_set_stdlib_allocators() {
-	sd_malloc_set_allocators(&malloc, &realloc, &free);
+void tvb_malloc_set_stdlib_allocators() {
+	tvb_malloc_set_allocators(&malloc, &realloc, &free);
 }
 
-void *sd_malloc(size_t size) {
+void *tvb_malloc(size_t size) {
 	void *new_ptr;
-	new_ptr = (*_sd_malloc)(size);
+	new_ptr = (*_tvb_malloc)(size);
 	if (new_ptr==NULL)
-		sd_err( "alloc returned a NULL pointer." );
+		tvb_err( "alloc returned a NULL pointer." );
 	if (reg_active)
 		reg_push(new_ptr, size);
 	return new_ptr;
 }
 
-void *sd_realloc(void *ptr, size_t size) {
+void *tvb_realloc(void *ptr, size_t size) {
 	void *new_ptr;
-	new_ptr = (*_sd_realloc)(ptr, size);
+	new_ptr = (*_tvb_realloc)(ptr, size);
 	if (new_ptr==NULL)
-		sd_err( "realloc returned a NULL pointer." );
+		tvb_err( "realloc returned a NULL pointer." );
 	if (reg_active) {
 		reg_pop(ptr);
 		reg_push(new_ptr, size);
@@ -177,12 +177,12 @@ void *sd_realloc(void *ptr, size_t size) {
 	return new_ptr;
 }
 
-void sd_free(void *ptr) {
+void tvb_free(void *ptr) {
 	if (ptr==NULL) {
-		sd_log_debug( "cowardly refusing to free a NULL pointer." );
+		tvb_log_debug( "cowardly refusing to free a NULL pointer." );
 		return;
 	}
 	if (reg_active)
 		reg_pop(ptr);
-	(*_sd_free)(ptr);
+	(*_tvb_free)(ptr);
 }

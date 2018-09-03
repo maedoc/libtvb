@@ -24,7 +24,7 @@ From 9,
 
 > Boilerplate works best when libraries are expected to cater to all tastes, but sometimes there is just too much duplication. It’s time to wrap your flexible library with one that has opinions on policy, workflow, and state. Building simple-to-use APIs is about turning your boilerplate into a library.
 
-is a good point, and sddekit should provide two levels of apis. The current work provides the highly verbose API and later on a second opinionated API can be placed on top.
+is a good point, and libtvb should provide two levels of apis. The current work provides the highly verbose API and later on a second opinionated API can be placed on top.
 
 10 has a few interesting tidbits, such as 
 ```c

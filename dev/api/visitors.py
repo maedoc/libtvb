@@ -1,8 +1,8 @@
-# copyright 2016 Apache 2 sddekit authors
+# copyright 2016 Apache 2 libtvb authors
 
 """
-This module implements visitors for extracting SDDEKit's API
-from pycparser's parse tree of SDDEKit's header.
+This module implements visitors for extracting libtvb's API
+from pycparser's parse tree of libtvb's header.
 
 """
 
@@ -142,5 +142,5 @@ class Enums(BaseVisitor):
 
 import dev.api.preprocess
 api = dev.api.preprocess.header_ast()
-for method in InterfaceMethods.apply(api).interfaces['sd_hist']:
+for method in InterfaceMethods.apply(api).interfaces['tvb_hist']:
     print (method)

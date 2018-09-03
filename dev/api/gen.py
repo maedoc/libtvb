@@ -1,4 +1,4 @@
-# copyright 2016 Apache 2 sddekit authors
+# copyright 2016 Apache 2 libtvb authors
 
 """
 This module implements functions for generating code based
@@ -52,9 +52,9 @@ def generate_fn_ptr_field_wrapper_files(path=None, redo=False, filename='fn_ptr_
         for line in wrappers.header_lines:
             fd.write(line)
     with open(cpath, 'w') as fd:
-        fd.write('''/* copyright 2016 Apache 2 sddekit authors */\n
-/* This file was automatically generated based on src/sddekit_simple.h */\n
-#include "sddekit.h"\n
+        fd.write('''/* copyright 2016 Apache 2 libtvb authors */\n
+/* This file was automatically generated based on src/libtvb_simple.h */\n
+#include "libtvb.h"\n
 ''')
         for line in wrappers.source_lines:
             fd.write(line)

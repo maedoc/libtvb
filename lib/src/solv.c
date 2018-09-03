@@ -1,22 +1,22 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include <time.h>
 
 struct data
 {
-	enum sd_stat cont;
-	struct sd_sch *sch;
-	struct sd_out *out;
-	struct sd_sol sol;
+	enum tvb_stat cont;
+	struct tvb_sch *sch;
+	struct tvb_out *out;
+	struct tvb_sol sol;
 };
 
-static void sd_sol_free(struct sd_sol *sol)
+static void tvb_sol_free(struct tvb_sol *sol)
 {
-	sd_free(sol->data);
+	tvb_free(sol->data);
 }
 
-static uint32_t sd_sol_n_byte(struct sd_sol *sol)
+static uint32_t tvb_sol_n_byte(struct tvb_sol *sol)
 {
 	struct data *data = sol->data;
 	uint32_t n_byte = sizeof(struct data);
@@ -25,11 +25,11 @@ static uint32_t sd_sol_n_byte(struct sd_sol *sol)
 	return n_byte;
 }
 
-static struct sd_sol *sd_sol_copy(struct sd_sol *sol)
+static struct tvb_sol *tvb_sol_copy(struct tvb_sol *sol)
 {
     struct data *data = sol->data;
-    struct sd_sch *sch = data->sch;
-    return sd_sol_new_default(
+    struct tvb_sch *sch = data->sch;
+    return tvb_sol_new_default(
         sch->get_time(sch),
         sch->get_state(sch),
         sch,
@@ -37,68 +37,68 @@ static struct sd_sol *sd_sol_copy(struct sd_sol *sol)
     );
 }
 
-static enum sd_stat cont(struct sd_sol *sol)
+static enum tvb_stat cont(struct tvb_sol *sol)
 {
 	clock_t tic = clock();
 	struct data *data = sol->data;
-	struct sd_out *out = data->out;
-    struct sd_sch *sch = data->sch;
-	data->cont = SD_CONT;
+	struct tvb_out *out = data->out;
+    struct tvb_sch *sch = data->sch;
+	data->cont = TVB_CONT;
 	do {
-		if (sch->apply(sch)!=SD_OK)
+		if (sch->apply(sch)!=TVB_OK)
 		{
-			sd_err("scheme application failed.");
-			return SD_ERR;
+			tvb_err("scheme application failed.");
+			return TVB_ERR;
 		}
-        struct sd_out_sample sample = sch->sample(sch);
+        struct tvb_out_sample sample = sch->sample(sch);
 		data->cont = out->apply(out, &sample);
-    } while (data->cont == SD_CONT);
+    } while (data->cont == TVB_CONT);
 	clock_t toc = clock();
 	double walltime = (double) (toc - tic) / CLOCKS_PER_SEC;
-	sd_log_debug("continuation required %.3f s walltime", walltime);
-	return SD_OK;
+	tvb_log_debug("continuation required %.3f s walltime", walltime);
+	return TVB_OK;
 }
 
-struct sd_sch *get_scheme(struct sd_sol *sol)
+struct tvb_sch *get_scheme(struct tvb_sol *sol)
 {
     struct data *data = sol->data;
     return data->sch;    
 }
 
-struct sd_out *get_out(struct sd_sol *sol)
+struct tvb_out *get_out(struct tvb_sol *sol)
 {
     struct data *data = sol->data;
     return data->out;    
 }
 
-double get_time(struct sd_sol *sol)
+double get_time(struct tvb_sol *sol)
 {
     struct data *data = sol->data;
     return data->sch->get_time(data->sch);
 }
 
-static struct sd_sol sd_sol_defaults = {
-    sd_declare_tag_vtable(sd_sol),
+static struct tvb_sol tvb_sol_defaults = {
+    tvb_declare_tag_vtable(tvb_sol),
     .get_scheme = &get_scheme,
     .get_out = &get_out,
     .cont = &cont,
     .get_time = &get_time
 };
 
-struct sd_sol *
-sd_sol_new_default(double init_time, double *init_state,
-		   struct sd_sch *sch, struct sd_out *out)
+struct tvb_sol *
+tvb_sol_new_default(double init_time, double *init_state,
+		   struct tvb_sch *sch, struct tvb_out *out)
 {
 	struct data *data;
-	if ((data = sd_malloc(sizeof(struct data))) == NULL)
+	if ((data = tvb_malloc(sizeof(struct data))) == NULL)
 	{
-		sd_err("failed to alloc solver");
+		tvb_err("failed to alloc solver");
 		return NULL;
 	}
-    data->cont = SD_CONT;
+    data->cont = TVB_CONT;
     data->out = out;
     data->sch = sch;
-    data->sol = sd_sol_defaults;
+    data->sol = tvb_sol_defaults;
     data->sol.data = data;
     return &data->sol;
 }

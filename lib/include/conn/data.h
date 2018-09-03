@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,7 +14,7 @@ struct conn
 	double *weights
 	     , *delays
 	     , delay_scale;
-	struct sd_conn sd_conn;
+	struct tvb_conn tvb_conn;
 };
 
 #ifdef __cplusplus

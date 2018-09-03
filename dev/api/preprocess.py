@@ -1,4 +1,4 @@
-# copyright 2016 Apache 2 sddekit authors
+# copyright 2016 Apache 2 libtvb authors
 
 """
 This module helps build the preprocessed header
@@ -20,10 +20,10 @@ def build_cpp_cmd():
     cmd = dev.build.COMPILE['.c'][:]
     cmd.append('-nostdinc')
     cmd.append('-I%s' % ('dev/pycparser/utils/fake_libc_include', ))
-    cmd += ['-E', os.path.join('lib', 'include', 'sddekit.h')]
+    cmd += ['-E', os.path.join('lib', 'include', 'libtvb.h')]
     return cmd
 
-PPFNAME = os.path.join(dev.build.BUILD_DIR, 'sddekit_pp.h')
+PPFNAME = os.path.join(dev.build.BUILD_DIR, 'libtvb_pp.h')
 
 def preprocess_header():
     cmd = build_cpp_cmd()

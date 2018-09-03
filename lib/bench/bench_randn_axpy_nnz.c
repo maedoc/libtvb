@@ -1,24 +1,24 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 int main()
 {
 	int i, j, n, m;
 	double *g, *z;
 	time_t tic, toc;
-	sd_rng *rng = sd_rng_new_default();
+	tvb_rng *rng = tvb_rng_new_default();
 
 	n = 10000;
 	m = 10;
 	rng->seed(rng, 42);
 
-	g = sd_malloc (sizeof(double) * n);
-	z = sd_malloc (sizeof(double) * n);
+	g = tvb_malloc (sizeof(double) * n);
+	z = tvb_malloc (sizeof(double) * n);
 	for (i=1; i<n; i+=100)
 	{
 		for (j=0; j<n; j++) g[i] = 0.0;

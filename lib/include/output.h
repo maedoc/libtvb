@@ -1,3 +1,3 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"

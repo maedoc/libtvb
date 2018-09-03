@@ -1,4 +1,4 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 /* Defines the data fields in the sch_base structure, for
  * use in sch_base.h.
@@ -16,6 +16,6 @@ FIELD(double , time)
 FIELD(double *, state)
 FIELD(double *, input)
 FIELD(double *, output)
-FIELD(struct sd_sys *, sys)
-FIELD(struct sd_hist *, hist)
-FIELD(struct sd_rng *, rng)
+FIELD(struct tvb_sys *, sys)
+FIELD(struct tvb_hist *, hist)
+FIELD(struct tvb_rng *, rng)

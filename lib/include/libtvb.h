@@ -1,7 +1,7 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#ifndef SDDEKIT_H
-#define SDDEKIT_H
+#ifndef TVB_H
+#define TVB_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,23 +13,23 @@ extern "C" {
 #include <stddef.h>
 
 /* handle symbol export/import for MSVC/Windows */
-#ifdef SD_API_EXPORT
-    #define SD_API __declspec(dllexport)
+#ifdef TVB_API_EXPORT
+    #define TVB_API __declspec(dllexport)
 #else
-    #ifdef SD_API_IMPORT
-        #define SD_API __declspec(dllimport)
+    #ifdef TVB_API_IMPORT
+        #define TVB_API __declspec(dllimport)
     #else
-        #define SD_API
+        #define TVB_API
     #endif
 #endif
 
 /* cases where restrict not supported or not desired */
-#ifdef SD_NO_RESTRICT
+#ifdef TVB_NO_RESTRICT
 #define restrict 
 #endif
 
 /* TODO look at test failures under single precision */
-#ifdef SD_USE_SINGLE_PRECISION
+#ifdef TVB_USE_SINGLE_PRECISION
 #define double float
 #endif
 
@@ -69,4 +69,4 @@ extern "C" {
 }; /* extern "C" */
 #endif
 
-#endif /* SDDEKIT_H */
+#endif /* TVB_H */

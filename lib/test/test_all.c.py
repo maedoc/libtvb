@@ -1,4 +1,4 @@
-# copyright 2016 Apache 2 sddekit authors
+# copyright 2016 Apache 2 libtvb authors
 
 import os
 import glob
@@ -7,7 +7,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 def get_test_name(line):
 	topic, name = line.split('(')[1].split(')')[0].split(',')
-	test_name = 'sd_test__%s_%s' % (topic.strip(), name.strip())
+	test_name = 'tvb_test__%s_%s' % (topic.strip(), name.strip())
 	return test_name
 
 def test_files():
@@ -21,15 +21,15 @@ def file_test_def_lines(file_name):
 			if 'TEST' in line:
 				yield line
 
-all_source = """/* copyright 2016 Apache 2 sddekit authors */
+all_source = """/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 {decls}
 
-int sd_test_run_all() {{
+int tvb_test_run_all() {{
 {calls}
-	return sd_test_report();
+	return tvb_test_report();
 }}
 """
 

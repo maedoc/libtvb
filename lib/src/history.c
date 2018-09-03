@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include <math.h>
 
 struct hist_data
@@ -48,15 +48,15 @@ static struct delay_buffer*
 delay_buffer_new(double time_step, uint32_t source_index, double max_delay)
 {
 	struct delay_buffer *buf, zero = {0};
-	if ((buf = sd_malloc(sizeof(struct delay_buffer))) == NULL
+	if ((buf = tvb_malloc(sizeof(struct delay_buffer))) == NULL
 	 || (*buf = zero, 0)
-	 || (buf->data = sd_malloc(sizeof(double)*
+	 || (buf->data = tvb_malloc(sizeof(double)*
 		(buf->length = (uint32_t) (ceil(max_delay) + 2)))) == NULL
 	 )
 	{
 		if (buf != NULL)
-			sd_free(buf);
-		sd_err("alloc delay buffer failed.");
+			tvb_free(buf);
+		tvb_err("alloc delay buffer failed.");
 		return NULL;
 	}
 	buf->time_step = time_step;
@@ -73,7 +73,7 @@ delay_buffer_copy(struct delay_buffer *buf)
 	struct delay_buffer *copy = delay_buffer_new(
 		buf->time_step, buf->source_index, buf->max_delay);
 	if (copy == NULL)
-		{sd_err("alloc delay buffer copy failed.");}
+		{tvb_err("alloc delay buffer copy failed.");}
 	else
 		memcpy(copy->data, buf->data, sizeof(double) * buf->length);
 	return copy;
@@ -82,16 +82,16 @@ delay_buffer_copy(struct delay_buffer *buf)
 static void
 delay_buffer_free(struct delay_buffer *buffer)
 {
-	sd_free(buffer->data);
-	sd_free(buffer);
+	tvb_free(buffer->data);
+	tvb_free(buffer);
 }
 
 /* }}} */
 
-static inline enum sd_stat
+static inline enum tvb_stat
 update_delay_buffer(struct delay_buffer *buffer, double time, double *value);
 
-static inline enum sd_stat
+static inline enum tvb_stat
 query_delay_buffer(struct delay_buffer *buffer, double time, double *value);
 
 /* }}} */
@@ -134,7 +134,7 @@ struct sparse_delay_set
 
 /* }}} */
 
-static void update_time(struct sd_hist *hist, double new_t)/*{{{*/
+static void update_time(struct tvb_hist *hist, double new_t)/*{{{*/
 {
 	uint32_t i, n_steps;
 	struct hist_data *h = hist->data;
@@ -167,23 +167,23 @@ static void update_time(struct sd_hist *hist, double new_t)/*{{{*/
 	}
 }/*}}}*/
 
-static void hist_free(struct sd_hist *hist)/*{{{*/
+static void hist_free(struct tvb_hist *hist)/*{{{*/
 {
 	struct hist_data *h = hist->data;
-	sd_free(h->uvi);
-	sd_free(h->del);
-	sd_free(h->vi);
-	sd_free(h->maxd);
-	sd_free(h->lim);
-	sd_free(h->len);
-	sd_free(h->pos);
-	sd_free(h->vi2i);
-	sd_free(h->buf);
-	sd_free(h);
-	sd_free(hist);
+	tvb_free(h->uvi);
+	tvb_free(h->del);
+	tvb_free(h->vi);
+	tvb_free(h->maxd);
+	tvb_free(h->lim);
+	tvb_free(h->len);
+	tvb_free(h->pos);
+	tvb_free(h->vi2i);
+	tvb_free(h->buf);
+	tvb_free(h);
+	tvb_free(hist);
 }/*}}}*/
 
-static enum sd_stat fill(struct sd_hist *hist, struct sd_hfill *hf)/*{{{*/
+static enum tvb_stat fill(struct tvb_hist *hist, struct tvb_hfill *hf)/*{{{*/
 {
 	uint32_t i, j, ui, o, n, *vi;
 	double *t;
@@ -194,8 +194,8 @@ static enum sd_stat fill(struct sd_hist *hist, struct sd_hfill *hf)/*{{{*/
 	vi = NULL;
 
 	n = h->lim[h->nu];
-	if ((t = sd_malloc (sizeof(double) * n))==NULL ||
-		(vi = sd_malloc (sizeof(uint32_t) * n))==NULL) {
+	if ((t = tvb_malloc (sizeof(double) * n))==NULL ||
+		(vi = tvb_malloc (sizeof(uint32_t) * n))==NULL) {
 		errmsg = "failed to allocate memory for evaluating hist fill.";
 		goto end;
 	}
@@ -227,17 +227,17 @@ static enum sd_stat fill(struct sd_hist *hist, struct sd_hfill *hf)/*{{{*/
 		t[o] = h->t + h->dt; /* last point is next grid point */
 	}
 
-	if (hf->apply(hf, n, t, vi, h->buf) != SD_OK)
+	if (hf->apply(hf, n, t, vi, h->buf) != TVB_OK)
 		errmsg = "history fill function failed.";
 
 end:
-	if (t!=NULL) sd_free(t);
-	if (vi!=NULL) sd_free(vi);
+	if (t!=NULL) tvb_free(t);
+	if (vi!=NULL) tvb_free(vi);
 
-	return errmsg == NULL ? SD_OK : SD_ERR;
+	return errmsg == NULL ? TVB_OK : TVB_ERR;
 }/*}}}*/
 
-static void get(struct sd_hist *hist, double t, double *aff) /* {{{ */
+static void get(struct tvb_hist *hist, double t, double *aff) /* {{{ */
 {
 	uint32_t i;
 	struct hist_data *h = hist->data;
@@ -277,10 +277,10 @@ static void get(struct sd_hist *hist, double t, double *aff) /* {{{ */
 
 #ifdef SDDEBUG
 		if ((i0_ < h->lim[ui]) || (i0_ >= h->lim[ui+1]))
-			sd_log_debug("oob: i0_=%d not in [%d, %d) at %s:%d\n",
+			tvb_log_debug("oob: i0_=%d not in [%d, %d) at %s:%d\n",
                                      i0_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__ );
 		if ((i1_ < h->lim[ui]) || (i1_ >= h->lim[ui+1]))
-			sd_log_debug("oob: i0_=%d not in [%d, %d) at %s:%d\n",
+			tvb_log_debug("oob: i0_=%d not in [%d, %d) at %s:%d\n",
                                      i1_, h->lim[ui], h->lim[ui+1], __FILE__, __LINE__ );
 #endif
 
@@ -293,7 +293,7 @@ static void get(struct sd_hist *hist, double t, double *aff) /* {{{ */
 	}
 } /* }}} */
 
-static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
+static void set(struct tvb_hist *hist, double t, double *eff)/*{{{*/
 {
 	uint32_t i, i0, i1;
 	double x0, dx, dt;
@@ -309,10 +309,10 @@ static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
 		i1 += h->lim[i];
 #ifdef SDDEBUG
         if ((i0 < h->lim[i]) || (i0 > h->lim[i+1]))
-            fprintf(stderr, "[sd_hist_set] t=%.3f ui=%d, i0=%d not in [%d,%d) %s:%d\n", 
+            fprintf(stderr, "[tvb_hist_set] t=%.3f ui=%d, i0=%d not in [%d,%d) %s:%d\n", 
 		    t, i, i0, h->lim[i], h->lim[i+1], __FILE__, __LINE__);
         if ((i1 < h->lim[i]) || (i1 > h->lim[i+1]))
-            fprintf(stderr, "[sd_hist_set] t=%.3f ui=%d, i1=%d not in [%d,%d) %s:%d\n", 
+            fprintf(stderr, "[tvb_hist_set] t=%.3f ui=%d, i1=%d not in [%d,%d) %s:%d\n", 
 		    t, i, i1, h->lim[i], h->lim[i+1], __FILE__, __LINE__);
 #endif
 		x0 = h->buf[i0];
@@ -320,7 +320,7 @@ static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
 
 #ifdef SDDEBUG
 		if (dt < 0)
-			sd_log_debug("unhandled dt<0 at %s:%d\n", __FILE__, __LINE__ );
+			tvb_log_debug("unhandled dt<0 at %s:%d\n", __FILE__, __LINE__ );
 #endif
 
 		if (dt > 0) {
@@ -334,11 +334,11 @@ static void set(struct sd_hist *hist, double t, double *eff)/*{{{*/
 	}
 }/*}}}*/
 
-static uint32_t nbytes(struct sd_hist *hist)/*{{{*/
+static uint32_t nbytes(struct tvb_hist *hist)/*{{{*/
 {
 	uint32_t nb;
 	struct hist_data *h = hist->data;
-	nb = sizeof(struct sd_hist) + sizeof(struct hist_data);
+	nb = sizeof(struct tvb_hist) + sizeof(struct hist_data);
 	nb += sizeof(uint32_t) * ((h->nu+1) + 3*h->nu + h->nd + h->maxvi + 1);
 	nb += sizeof(double) * (h->lim[h->nu] + h->nu + h->nd);
 	return nb;
@@ -346,37 +346,37 @@ static uint32_t nbytes(struct sd_hist *hist)/*{{{*/
 
 /* accessors {{{ */
 
-static double get_t(struct sd_hist *h) {
+static double get_t(struct tvb_hist *h) {
 	return ((struct hist_data*) h->data)->t;
 }
 
-static double get_dt(struct sd_hist *h) {
+static double get_dt(struct tvb_hist *h) {
 	return ((struct hist_data*) h->data)->dt;
 }
 
-static uint32_t get_nd(struct sd_hist *h) {
+static uint32_t get_nd(struct tvb_hist *h) {
 	return ((struct hist_data*) h->data)->nd;
 }
 
-static double get_vi(struct sd_hist *h, uint32_t i) {
+static double get_vi(struct tvb_hist *h, uint32_t i) {
 	return ((struct hist_data*) h->data)->vi[i];
 }
 
-static double get_vd(struct sd_hist *h, uint32_t i) {
+static double get_vd(struct tvb_hist *h, uint32_t i) {
 	return ((struct hist_data*) h->data)->del[i];
 }
 /* }}} */
 
-static struct sd_hist *
-hist_copy(struct sd_hist *hist)
+static struct tvb_hist *
+hist_copy(struct tvb_hist *hist)
 {
 	(void) hist;
 	/* need a way to distinguish between interp types, etc. */
-	sd_err("Not (yet) implemented.");
+	tvb_err("Not (yet) implemented.");
 	return NULL;
 }
 
-static struct sd_hist sd_hist_defaults = {/*{{{*/
+static struct tvb_hist tvb_hist_defaults = {/*{{{*/
 	.free = &hist_free,
 	.n_byte = &nbytes,
 	.copy = &hist_copy,
@@ -390,17 +390,17 @@ static struct sd_hist sd_hist_defaults = {/*{{{*/
 	.update = &set
 };/*}}}*/
 
-static enum sd_stat setup_buffer_structure(struct hist_data *h, double dt)/*{{{*/
+static enum tvb_stat setup_buffer_structure(struct hist_data *h, double dt)/*{{{*/
 {
 	uint32_t i, j, ui;
 	double maxd;
 	char *errmsg;
 	/* alloc */
 	if (
-		(h->maxd = sd_malloc (sizeof(double) * h->nu))==NULL ||
-		(h->lim = sd_malloc (sizeof(uint32_t) * (h->nu + 1)))==NULL ||
-		(h->len = sd_malloc (sizeof(uint32_t) * h->nu))==NULL ||
-		(h->pos = sd_malloc (sizeof(uint32_t) * h->nu))==NULL
+		(h->maxd = tvb_malloc (sizeof(double) * h->nu))==NULL ||
+		(h->lim = tvb_malloc (sizeof(uint32_t) * (h->nu + 1)))==NULL ||
+		(h->len = tvb_malloc (sizeof(uint32_t) * h->nu))==NULL ||
+		(h->pos = tvb_malloc (sizeof(uint32_t) * h->nu))==NULL
 	   ) {
 		errmsg = "failed to alloc internal storage.";
 		goto fail;
@@ -411,7 +411,7 @@ static enum sd_stat setup_buffer_structure(struct hist_data *h, double dt)/*{{{*
 		if (h->uvi[i] > h->maxvi)
 			h->maxvi = h->uvi[i];
 	/* alloc */
-	if ((h->vi2i = sd_malloc (sizeof(uint32_t) * (h->maxvi + 1)))==NULL) {
+	if ((h->vi2i = tvb_malloc (sizeof(uint32_t) * (h->maxvi + 1)))==NULL) {
 		errmsg = "failed to alloc internal storage.";
 		goto fail;
 	}
@@ -433,56 +433,56 @@ static enum sd_stat setup_buffer_structure(struct hist_data *h, double dt)/*{{{*
 			h->lim[i] = h->lim[i-1] + h->len[i-1];
 	}
 	h->lim[h->nu] = h->lim[h->nu-1] + h->len[h->nu-1];
-	return SD_OK;
+	return TVB_OK;
 fail:
-	if (h->maxd!=NULL) sd_free(h->maxd);
-	if (h->lim!=NULL) sd_free(h->lim);
-	if (h->len!=NULL) sd_free(h->len);
-	if (h->pos!=NULL) sd_free(h->pos);
-	if (h->vi2i!=NULL) sd_free(h->vi2i);
-	sd_err("%s", errmsg);
-	return SD_ERR;
+	if (h->maxd!=NULL) tvb_free(h->maxd);
+	if (h->lim!=NULL) tvb_free(h->lim);
+	if (h->len!=NULL) tvb_free(h->len);
+	if (h->pos!=NULL) tvb_free(h->pos);
+	if (h->vi2i!=NULL) tvb_free(h->vi2i);
+	tvb_err("%s", errmsg);
+	return TVB_ERR;
 }/*}}}*/
 
-struct sd_hist *
-sd_hist_new_linterp(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)/*{{{*/
+struct tvb_hist *
+tvb_hist_new_linterp(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)/*{{{*/
 {
-	struct sd_hist *hist;
+	struct tvb_hist *hist;
 	struct hist_data *h = NULL, zero = { 0 };
-	if ((hist = sd_malloc(sizeof(struct sd_hist))) == NULL
-		|| (h = hist->data = sd_malloc(sizeof(struct hist_data))) == NULL
+	if ((hist = tvb_malloc(sizeof(struct tvb_hist))) == NULL
+		|| (h = hist->data = tvb_malloc(sizeof(struct hist_data))) == NULL
 		|| (*h = zero, (h->nd = nd) < 1)
-		|| sd_util_uniqi(nd, vi, &(h->nu), &(h->uvi)) != SD_OK
-		|| (h->del = sd_malloc(sizeof(double) * nd)) == NULL
-		|| (h->vi = sd_malloc(sizeof(uint32_t) * nd)) == NULL
+		|| tvb_util_uniqi(nd, vi, &(h->nu), &(h->uvi)) != TVB_OK
+		|| (h->del = tvb_malloc(sizeof(double) * nd)) == NULL
+		|| (h->vi = tvb_malloc(sizeof(uint32_t) * nd)) == NULL
 		|| (memcpy(h->del, vd, nd * sizeof(double)),
 		    memcpy(h->vi, vi, nd * sizeof(uint32_t)),
 			0)
-		|| setup_buffer_structure(h, dt) != SD_OK
-		|| (h->buf = sd_malloc(sizeof(double) * h->lim[h->nu])) == NULL
+		|| setup_buffer_structure(h, dt) != TVB_OK
+		|| (h->buf = tvb_malloc(sizeof(double) * h->lim[h->nu])) == NULL
 		)
 	{
-		if (hist != NULL) sd_free(hist);
+		if (hist != NULL) tvb_free(hist);
 		if (h != NULL)
 		{
-			if (h->buf!=NULL) sd_free(h->buf);
-			if (h->uvi!=NULL) sd_free(h->uvi);
-			if (h->del!=NULL) sd_free(h->del);
-			if (h->vi!=NULL) sd_free(h->vi);
+			if (h->buf!=NULL) tvb_free(h->buf);
+			if (h->uvi!=NULL) tvb_free(h->uvi);
+			if (h->del!=NULL) tvb_free(h->del);
+			if (h->vi!=NULL) tvb_free(h->vi);
 		}
-		sd_err("number of delays < 1 or memory alloc failed.");
+		tvb_err("number of delays < 1 or memory alloc failed.");
 		return NULL;
 	}
 	h->dt = dt;
 	h->t = t0;
-	*hist = sd_hist_defaults;
+	*hist = tvb_hist_defaults;
 	hist->data = h;
 	return hist;
 }/*}}}*/
 
 /* no delay variant {{{ */
 
-static void get_no_delay(struct sd_hist *hist, double t, double *aff)
+static void get_no_delay(struct tvb_hist *hist, double t, double *aff)
 {
 	(void) t;
 	struct hist_data *hd = hist->data;
@@ -490,20 +490,20 @@ static void get_no_delay(struct sd_hist *hist, double t, double *aff)
 		aff[i] = hd->buf[hd->vi2i[hd->vi[i]]];
 }
 
-static void set_no_delay(struct sd_hist *hist, double t, double *eff)
+static void set_no_delay(struct tvb_hist *hist, double t, double *eff)
 {
 	(void) t;
 	struct hist_data *hd = hist->data;
 	memcpy(hd->buf, eff, sizeof(double) * hd->maxvi);
 }
 
-struct sd_hist *
-sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
+struct tvb_hist *
+tvb_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
 {
-	struct sd_hist *hist = sd_hist_new_linterp(nd, vi, vd, t0, dt);
+	struct tvb_hist *hist = tvb_hist_new_linterp(nd, vi, vd, t0, dt);
 	if (hist == NULL)
 	{
-		sd_err("hist no delay init failed.");
+		tvb_err("hist no delay init failed.");
 		return NULL;
 	}
 	hist->update = &get_no_delay;
@@ -515,7 +515,7 @@ sd_hist_new_no_delays(uint32_t nd, uint32_t *vi, double *vd, double t0, double d
 
 /* nearest interp variant {{{ */
 
-static void convert_delays_to_nearest(struct sd_hist *hist)
+static void convert_delays_to_nearest(struct tvb_hist *hist)
 {
 	struct hist_data *data = hist->data;
 	double *rd = data->del;
@@ -523,21 +523,21 @@ static void convert_delays_to_nearest(struct sd_hist *hist)
 		*rd = round(*rd/data->dt)*data->dt;
 }
 
-struct sd_hist * sd_hist_new_nearest(
+struct tvb_hist * tvb_hist_new_nearest(
 	uint32_t nd, uint32_t *vi, double *vd, double t0, double dt)
 {
 	/* TODO consider split off file, use shared private struct */
-	struct sd_hist *hist = sd_hist_new_linterp(nd, vi, vd, t0, dt);
+	struct tvb_hist *hist = tvb_hist_new_linterp(nd, vi, vd, t0, dt);
 	convert_delays_to_nearest(hist);
-	sd_log_debug("nearest hist for compat only, not yet optimized");
+	tvb_log_debug("nearest hist for compat only, not yet optimized");
 	return hist;
 }
 
 /* }}} */
 
 /* fill {{{ */
-static enum sd_stat
-val_fill_apply(struct sd_hfill *hf, 
+static enum tvb_stat
+val_fill_apply(struct tvb_hfill *hf, 
 	       uint32_t n, double *t,
 	       uint32_t *indices, double *buf)
 {
@@ -546,52 +546,52 @@ val_fill_apply(struct sd_hfill *hf,
 	(void) t; (void) indices;
 	for (i = 0; i < n; i++)
 		buf[i] = value;
-	return SD_OK;
+	return TVB_OK;
 }
 
-static struct sd_hfill *
-val_fill_copy(struct sd_hfill *hf)
+static struct tvb_hfill *
+val_fill_copy(struct tvb_hfill *hf)
 {
-	struct sd_hfill *copy;
-	copy = sd_hfill_new_val(*((double*) hf->data));
+	struct tvb_hfill *copy;
+	copy = tvb_hfill_new_val(*((double*) hf->data));
 	if (copy == NULL)
-		sd_err("copy val hfill failed.");
+		tvb_err("copy val hfill failed.");
 	return copy;
 }
 
 static uint32_t
-val_fill_n_byte(struct sd_hfill *hf)
+val_fill_n_byte(struct tvb_hfill *hf)
 {
 	(void) hf;
-	uint32_t byte_count = sizeof(struct sd_hfill);
+	uint32_t byte_count = sizeof(struct tvb_hfill);
 	byte_count += sizeof(double);
 	return byte_count;
 }
 
-static void val_fill_free(struct sd_hfill *hf)
+static void val_fill_free(struct tvb_hfill *hf)
 {
-	sd_free(hf->data);
-	sd_free(hf);
+	tvb_free(hf->data);
+	tvb_free(hf);
 }
 
-static struct sd_hfill hfill_val_defaults = {
+static struct tvb_hfill hfill_val_defaults = {
 	.free = &val_fill_free,
 	.copy = &val_fill_copy,
 	.n_byte = &val_fill_n_byte,
 	.apply = &val_fill_apply
 };
 
-struct sd_hfill *
-sd_hfill_new_val(double val)
+struct tvb_hfill *
+tvb_hfill_new_val(double val)
 {
-	struct sd_hfill *hf;
-	if ((hf = sd_malloc(sizeof(struct sd_hfill))) == NULL
+	struct tvb_hfill *hf;
+	if ((hf = tvb_malloc(sizeof(struct tvb_hfill))) == NULL
      || (*hf = hfill_val_defaults, 0)
-	 || (hf->data = sd_malloc(sizeof(double))) == NULL)
+	 || (hf->data = tvb_malloc(sizeof(double))) == NULL)
 	{
 		if (hf != NULL)
-			sd_free(hf);
-		sd_err("alloc hfill failed.");
+			tvb_free(hf);
+		tvb_err("alloc hfill failed.");
 		return NULL;
 	}
 	*((double*) hf->data) = val;

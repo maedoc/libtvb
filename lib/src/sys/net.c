@@ -1,15 +1,15 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 struct data
 {
 	uint32_t n_node, n_subsys, *node_subsys_map;
 	double *aff;
-	struct sd_sys sd_sys;
-	struct sd_net sd_net;
-	struct sd_conn *conn;
-	struct sd_sys **subsys;
+	struct tvb_sys tvb_sys;
+	struct tvb_net tvb_net;
+	struct tvb_conn *conn;
+	struct tvb_sys **subsys;
 	struct {
 		uint32_t n_dim, n_in, n_out, n_rpar, n_ipar;
 	} sys_counts;
@@ -19,31 +19,31 @@ struct data
 
 static void data_free(struct data *data)
 {
-	sd_free(data->subsys);
-	sd_free(data->aff);
-	sd_free(data);
+	tvb_free(data->subsys);
+	tvb_free(data->aff);
+	tvb_free(data);
 }
 
 static uint32_t data_n_byte(struct data *data)
 {
     uint32_t byte_count = sizeof(struct data);
     byte_count += data->sys_counts.n_in * sizeof(double);
-    byte_count += data->n_subsys * sizeof(struct sd_sys *);
+    byte_count += data->n_subsys * sizeof(struct tvb_sys *);
     return byte_count;
 }
 
 static struct data *data_copy(struct data *data)
 {
-    struct data *copy = sd_net_new(
+    struct data *copy = tvb_net_new(
         data->n_node, data->n_subsys, data->node_subsys_map,
         data->subsys, data->conn)->data;
     if (copy == NULL)
-        sd_err("alloc net copy failed.");
+        tvb_err("alloc net copy failed.");
     return copy;
 }
 
-sd_declare_tag_functions(sd_sys)
-sd_declare_tag_functions(sd_net)
+tvb_declare_tag_functions(tvb_sys)
+tvb_declare_tag_functions(tvb_net)
 
 static void update_sys_counts(struct data *data)
 {
@@ -54,7 +54,7 @@ static void update_sys_counts(struct data *data)
 	data->sys_counts.n_ipar = 0;
 	for (uint32_t i=0; i<data->n_node; i++)
 	{
-		struct sd_sys *sys = data->subsys[data->node_subsys_map[i]];
+		struct tvb_sys *sys = data->subsys[data->node_subsys_map[i]];
 		data->sys_counts.n_out += sys->get_n_out(sys);
 		data->sys_counts.n_in += sys->get_n_in(sys);
 		data->sys_counts.n_dim += sys->get_n_dim(sys);
@@ -63,38 +63,38 @@ static void update_sys_counts(struct data *data)
 	}
 }
 
-static struct sd_sys * as_sys(struct sd_net *net) { return &((struct data *) net->data)->sd_sys; }
+static struct tvb_sys * as_sys(struct tvb_net *net) { return &((struct data *) net->data)->tvb_sys; }
 
-static struct sd_conn * net_get_conn(struct sd_net *net) { return ((struct data *) net->data)->conn; }
+static struct tvb_conn * net_get_conn(struct tvb_net *net) { return ((struct data *) net->data)->conn; }
 
-static uint32_t net_get_n_node(struct sd_net *net) { return ((struct data *) net->data)->n_node; }
+static uint32_t net_get_n_node(struct tvb_net *net) { return ((struct data *) net->data)->n_node; }
 
-static uint32_t net_get_n_sub_sys(struct sd_net *net) { return ((struct data *) net->data)->n_subsys; }
+static uint32_t net_get_n_sub_sys(struct tvb_net *net) { return ((struct data *) net->data)->n_subsys; }
 
-static struct sd_sys * net_get_subsys(struct sd_net *net, uint32_t i) { return ((struct data *) net->data)->subsys[i]; }
+static struct tvb_sys * net_get_subsys(struct tvb_net *net, uint32_t i) { return ((struct data *) net->data)->subsys[i]; }
 
-static enum sd_stat net_set_subsys(struct sd_net *net, uint32_t i_sys, struct sd_sys *sys)
+static enum tvb_stat net_set_subsys(struct tvb_net *net, uint32_t i_sys, struct tvb_sys *sys)
 {
 	struct data *data = net->data;
 	data->subsys[i_sys] = sys;
 	update_sys_counts(data);
-	return SD_OK;
+	return TVB_OK;
 }
 
-static uint32_t net_get_node_subsys(struct sd_net *net, uint32_t i_node) { return ((struct data *) net->data)->node_subsys_map[i_node]; }
+static uint32_t net_get_node_subsys(struct tvb_net *net, uint32_t i_node) { return ((struct data *) net->data)->node_subsys_map[i_node]; }
 
-static enum sd_stat net_set_node_subsys(struct sd_net *net, uint32_t i_node, uint32_t i_sys)
+static enum tvb_stat net_set_node_subsys(struct tvb_net *net, uint32_t i_node, uint32_t i_sys)
 {
 	struct data *data = net->data;
 	data->node_subsys_map[i_node] = i_sys;
 	update_sys_counts(data);
-	return SD_OK;
+	return TVB_OK;
 }
 /* }}} */
 
 /* sys impl {{{ */
 #define GET_COUNT(name) \
-static uint32_t sys_ ## name(struct sd_sys *sys) \
+static uint32_t sys_ ## name(struct tvb_sys *sys) \
 { \
 	return ((struct data *) sys->data)->sys_counts.name;\
 }
@@ -110,13 +110,13 @@ GET_COUNT(n_ipar)
 
 /* sys apply impl */
 
-static enum sd_stat sys_apply(struct sd_sys *sys, 
-		struct sd_sys_in *in, struct sd_sys_out *out)
+static enum tvb_stat sys_apply(struct tvb_sys *sys, 
+		struct tvb_sys_in *in, struct tvb_sys_out *out)
 {
 	struct data *data = sys->data;
-	struct sd_conn *conn = data->conn;
-	struct sd_sys_in in_i = *in;
-	struct sd_sys_out out_i = *out;
+	struct tvb_conn *conn = data->conn;
+	struct tvb_sys_in in_i = *in;
+	struct tvb_sys_out out_i = *out;
 	/* apply weights to delayed data, use result as input to subsystems */
 	conn->row_wise_weighted_sum(conn, in->input, data->aff);
 	in_i.input = data->aff;
@@ -124,13 +124,13 @@ static enum sd_stat sys_apply(struct sd_sys *sys,
     /* TODO omp parallel for */
 	for (uint32_t i_node=0; i_node<data->n_node; i_node++)
 	{
-		struct sd_sys *subsys = data->subsys[data->node_subsys_map[i_node]];
+		struct tvb_sys *subsys = data->subsys[data->node_subsys_map[i_node]];
         in_i.id = i_node;
         in_i.n_dim = subsys->get_n_dim(subsys);
         in_i.n_in = subsys->get_n_in(subsys);
         in_i.n_out = subsys->get_n_out(subsys);
-		enum sd_stat stat = subsys->apply(subsys, &in_i, &out_i);
-		if (stat != SD_OK)
+		enum tvb_stat stat = subsys->apply(subsys, &in_i, &out_i);
+		if (stat != TVB_OK)
 			return stat;
 		in_i.state += in_i.n_dim;
 		out_i.drift += in_i.n_dim;
@@ -138,10 +138,10 @@ static enum sd_stat sys_apply(struct sd_sys *sys,
 		in_i.input += in_i.n_in;
 		out_i.output += in_i.n_out;
 	}
-	return SD_OK;
+	return TVB_OK;
 }
 
-static bool incompat_subsys_and_conn(struct data *data, struct sd_conn *conn)
+static bool incompat_subsys_and_conn(struct data *data, struct tvb_conn *conn)
 {
 	uint32_t n_in  = data->sys_counts.n_in
 	       , n_out = data->sys_counts.n_out
@@ -151,7 +151,7 @@ static bool incompat_subsys_and_conn(struct data *data, struct sd_conn *conn)
 
 	if (n_in != n_rows || n_out != n_cols)
 	{
-		sd_log_info(
+		tvb_log_info(
                 "incompatible subsys & connectivity "
                 "(n_in=%d != n_rows=%d || n_out=%d != n_cols=%d)",
 			    n_in, n_rows, n_out, n_cols);
@@ -161,19 +161,19 @@ static bool incompat_subsys_and_conn(struct data *data, struct sd_conn *conn)
 }
 
 /* TODO refactor */
-static uint32_t count_aff(uint32_t n, uint32_t *node_subsys_map, struct sd_sys **subsys)
+static uint32_t count_aff(uint32_t n, uint32_t *node_subsys_map, struct tvb_sys **subsys)
 {
 	uint32_t aff = 0;
 	for (uint32_t i=0; i<n; i++)
 	{
-		struct sd_sys *sub = subsys[node_subsys_map[i]];
+		struct tvb_sys *sub = subsys[node_subsys_map[i]];
 		aff += sub->get_n_in(sub);
 	}
 	return aff;
 }
 
-static struct sd_sys sd_sys_defaults = {
-    sd_declare_tag_vtable(sd_sys),
+static struct tvb_sys tvb_sys_defaults = {
+    tvb_declare_tag_vtable(tvb_sys),
     .get_n_dim = &sys_n_dim,
     .get_n_in = &sys_n_in,
     .get_n_out = &sys_n_out,
@@ -182,8 +182,8 @@ static struct sd_sys sd_sys_defaults = {
     .apply = sys_apply
 };
 
-static struct sd_net sd_net_defaults = {
-    sd_declare_tag_vtable(sd_net),
+static struct tvb_net tvb_net_defaults = {
+    tvb_declare_tag_vtable(tvb_net),
     .as_sys = &as_sys,
     .get_conn = &net_get_conn,
     .get_n_node = &net_get_n_node,
@@ -194,36 +194,36 @@ static struct sd_net sd_net_defaults = {
     .set_node_subsys = &net_set_node_subsys
 };
 
-struct sd_net *
-sd_net_new(uint32_t n_node, uint32_t n_subsys, uint32_t *node_subsys_map, 
-	   struct sd_sys **subsys,
-	   struct sd_conn *conn)
+struct tvb_net *
+tvb_net_new(uint32_t n_node, uint32_t n_subsys, uint32_t *node_subsys_map, 
+	   struct tvb_sys **subsys,
+	   struct tvb_conn *conn)
 {
 	struct data *data, zero = {0};
 	uint32_t n_aff = count_aff(n_node, node_subsys_map, subsys);
-	if ((data = sd_malloc(sizeof(struct data))) == NULL
+	if ((data = tvb_malloc(sizeof(struct data))) == NULL
 	 || (*data = zero, 0)
-	 || (data->aff = sd_malloc(sizeof(double)*n_aff)) == NULL
-     || (data->node_subsys_map = sd_malloc(sizeof(uint32_t) * n_node)) == NULL
-     || (data->subsys = sd_malloc(sizeof(struct sd_sys *) * n_subsys)) == NULL
+	 || (data->aff = tvb_malloc(sizeof(double)*n_aff)) == NULL
+     || (data->node_subsys_map = tvb_malloc(sizeof(uint32_t) * n_node)) == NULL
+     || (data->subsys = tvb_malloc(sizeof(struct tvb_sys *) * n_subsys)) == NULL
      || incompat_subsys_and_conn(data, conn)
 	 )
 	{
-        if (data->aff != NULL) sd_free(data->aff);
-        if (data->node_subsys_map != NULL) sd_free(data->node_subsys_map);
-        if (data->subsys != NULL) sd_free(data->subsys);
-		if (data != NULL) sd_free(data);
-		sd_err("alloc net failed.");
+        if (data->aff != NULL) tvb_free(data->aff);
+        if (data->node_subsys_map != NULL) tvb_free(data->node_subsys_map);
+        if (data->subsys != NULL) tvb_free(data->subsys);
+		if (data != NULL) tvb_free(data);
+		tvb_err("alloc net failed.");
 		return NULL;
 	}
 	data->n_node = n_node;
 	data->n_subsys = n_subsys;
     memcpy(data->node_subsys_map, node_subsys_map, sizeof(uint32_t) * n_node);
-    data->sd_sys = sd_sys_defaults;
-    data->sd_net = sd_net_defaults;
-    data->sd_sys.data = data->sd_net.data = data; 
+    data->tvb_sys = tvb_sys_defaults;
+    data->tvb_net = tvb_net_defaults;
+    data->tvb_sys.data = data->tvb_net.data = data; 
 	data->conn = conn;
-    memcpy(data->subsys, subsys, sizeof(struct sd_sys *) * n_subsys);
+    memcpy(data->subsys, subsys, sizeof(struct tvb_sys *) * n_subsys);
 	update_sys_counts(data);
-	return &data->sd_net;
+	return &data->tvb_net;
 }

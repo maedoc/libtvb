@@ -1,22 +1,22 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include "test.h"
 
-static sd_stat test_net_apply(
+static tvb_stat test_net_apply(
 		void *data, 
-		struct sd_sys_in *in,
-		struct sd_sys_out *out
+		struct tvb_sys_in *in,
+		struct tvb_sys_out *out
 		)
 {
 	(void) data;
 	out->o[0] = in->i[0];
-	return SD_OK;
+	return TVB_OK;
 }
 
 TEST(net, matmult)
 {
-	struct sd_rng *rng = sd_rng_new_default();
+	struct tvb_rng *rng = tvb_rng_new_default();
 	rng->seed(rng, 42);
 
 	uint32_t n=10, Ic[100], Or[11];
@@ -37,12 +37,12 @@ TEST(net, matmult)
 	}
 	Or[10] = 100;
 
-	struct sd_sys *sys = sd_sys_new_cb(1, 1, 1, 0, 0, NULL, &test_net_apply);
-	struct sd_net *net = sd_net_new_hom(n, sys, 1, 1, 1, 100, Or, Ic, w, NULL);
-	struct sd_sys *net_sys = net->sys(net);
+	struct tvb_sys *sys = tvb_sys_new_cb(1, 1, 1, 0, 0, NULL, &test_net_apply);
+	struct tvb_net *net = tvb_net_new_hom(n, sys, 1, 1, 1, 100, Or, Ic, w, NULL);
+	struct tvb_sys *net_sys = net->sys(net);
 
-	struct sd_sys_in in = {.nx=10, .nc=10, .id=0, .t=0.0, .x=x, .i=i, .hist=NULL, .rng=NULL};
-	struct sd_sys_out out = {.f=f, .g=g, .o=o};
+	struct tvb_sys_in in = {.nx=10, .nc=10, .id=0, .t=0.0, .x=x, .i=i, .hist=NULL, .rng=NULL};
+	struct tvb_sys_out out = {.f=f, .g=g, .o=o};
 	net_sys->apply(net_sys, &in, &out);
 
 	for (int j=0; j<10; j++)
@@ -60,9 +60,9 @@ TEST(net, matmult)
 
 TEST(net, simple) {
 
-	sd_net *net;
-	sd_sys_exc *exc;
-	sd_sys *sys;
+	tvb_net *net;
+	tvb_sys_exc *exc;
+	tvb_sys *sys;
 
 	/* three nodes with feedforward arch 0 -> 1 -> 2 */
 	uint32_t n=3, ns=2, na=1, ne=1, nnz=2
@@ -70,7 +70,7 @@ TEST(net, simple) {
 	       , Ic[] = { 0, 1 };
 	double w[] = { 0.1, 0.2 };
 
-	exc = sd_sys_exc_new();
+	exc = tvb_sys_exc_new();
 	sys = exc->sys(exc);
 	exc->set_a(exc, 1.0);
 	exc->set_k(exc, 0.5);
@@ -78,9 +78,9 @@ TEST(net, simple) {
 
 	uint32_t vi[] = { 0, 1 };
 	double vd[] = { 0.0, 0.0 };
-	struct sd_hist *hist = sd_hist_new_default(2, vi, vd, 0.0, 1.0);
+	struct tvb_hist *hist = tvb_hist_new_default(2, vi, vd, 0.0, 1.0);
 
-	net = sd_net_new_hom(n, sys, ns, na, ne, nnz, Or, Ic, w, vd);
+	net = tvb_net_new_hom(n, sys, ns, na, ne, nnz, Or, Ic, w, vd);
 
 	/* initn */
 	EXPECT_EQ(n,net->get_n(net));
@@ -104,27 +104,27 @@ TEST(net, simple) {
 	EXPECT_EQ(1, net->get__init1(net));
 
 	/* evaluate */
-	sd_sys_in in;
-	sd_sys_out out;
+	tvb_sys_in in;
+	tvb_sys_out out;
 	in.nx = n*ns;
 	in.nc = n*ne;
 	in.id = 0;
 	in.t = 0.0;
-	in.x = sd_malloc (sizeof(double) * n*ns);
+	in.x = tvb_malloc (sizeof(double) * n*ns);
 	in.hist = hist;
 	in.rng = NULL;
-	out.f = sd_malloc (sizeof(double) * n*ns);
-	out.g = sd_malloc (sizeof(double) * n*ns);
+	out.f = tvb_malloc (sizeof(double) * n*ns);
+	out.g = tvb_malloc (sizeof(double) * n*ns);
 	{
 		uint32_t i;
 		for (i=0; i<(n*ns); i++)
 			out.f[i] = out.g[i] = 1.0/0.0;
 	}
-	in.i = out.o = sd_malloc (sizeof(double) * n*ne);
+	in.i = out.o = tvb_malloc (sizeof(double) * n*ne);
 	in.i[0] = in.x[0] = 1.0;
 	in.i[1] = in.x[2] = 2.0;
 	in.i[2] = in.x[4] = 3.0;
-	SD_CALL_AS(net, sys, apply, &in, &out);
+	TVB_CALL_AS(net, sys, apply, &in, &out);
 	{
 		double a=exc->get_a(exc), k=exc->get_k(exc),
 		       tau=exc->get_tau(exc)
@@ -142,8 +142,8 @@ TEST(net, simple) {
 	sys->free(sys);
 	net->free(net);
 	hist->free(hist);
-	sd_free(in.x);
-	sd_free(out.f);
-	sd_free(out.g);
-	sd_free(out.o);
+	tvb_free(in.x);
+	tvb_free(out.f);
+	tvb_free(out.g);
+	tvb_free(out.o);
 }

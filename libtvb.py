@@ -1,11 +1,11 @@
-# copyright 2016 Apache 2 sddekit authors
+# copyright 2016 Apache 2 libtvb authors
 
 import ctypes
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-LOG = logging.getLogger('SDDEKit')
-LIB_NAME = 'build/libSDDEKit.so'
+LOG = logging.getLogger('libtvb')
+LIB_NAME = './libtvb.so'
 LOG.info("using shared library %r" % (LIB_NAME, ))
 LIB = ctypes.CDLL(LIB_NAME)
 
@@ -39,48 +39,48 @@ def make_func(name, restype=None, *argtypes): #{{{
 	return fn
 #}}}
 
-sd_stat = make_enum('sd_stat',
+tvb_stat = make_enum('tvb_stat',
 	'OK ERR CONT STOP UKNOWN ZERO NON_ZERO OUT_OF_BOUNDS'.split(' '))
 
 # util/ver.h {{{
-sd_ver_major = make_func('sd_ver_major', ctypes.c_uint32)
-sd_ver_minor = make_func('sd_ver_minor', ctypes.c_uint32)
+tvb_ver_major = make_func('tvb_ver_major', ctypes.c_uint32)
+tvb_ver_minor = make_func('tvb_ver_minor', ctypes.c_uint32)
 #}}}
 
 # util/malloc.h {{{
-sd_malloc_reg_init = make_func('sd_malloc_reg_init')
-sd_malloc_reg_stop = make_func('sd_malloc_reg_stop')
-sd_malloc_reg_query = make_func('sd_malloc_reg_query', sd_stat, ctypes.c_void_p)
-sd_malloc_total_nbytes = make_func('sd_malloc_total_nbytes', ctypes.c_uint32)
+tvb_malloc_reg_init = make_func('tvb_malloc_reg_init')
+tvb_malloc_reg_stop = make_func('tvb_malloc_reg_stop')
+tvb_malloc_reg_query = make_func('tvb_malloc_reg_query', tvb_stat, ctypes.c_void_p)
+tvb_malloc_total_nbytes = make_func('tvb_malloc_total_nbytes', ctypes.c_uint32)
 #}}}
 
 # util/log.h {{{
-sd_log_level = make_enum('sd_log_level', 'ERROR INFO DEBUG'.split(' '))
-sd_log_handler = ctypes.CFUNCTYPE(None, sd_log_level, ctypes.c_char_p)
-sd_log_set_handler = make_func('sd_log_set_handler', None, sd_log_handler)
-sd_log_get_handler = make_func('sd_log_get_handler', sd_log_handler)
-sd_log_get_err_and_reset = make_func('sd_log_get_err_and_reset', ctypes.c_bool)
+tvb_log_level = make_enum('tvb_log_level', 'ERROR INFO DEBUG'.split(' '))
+tvb_log_handler = ctypes.CFUNCTYPE(None, tvb_log_level, ctypes.c_char_p)
+tvb_log_set_handler = make_func('tvb_log_set_handler', None, tvb_log_handler)
+tvb_log_get_handler = make_func('tvb_log_get_handler', tvb_log_handler)
+tvb_log_get_err_and_reset = make_func('tvb_log_get_err_and_reset', ctypes.c_bool)
 
-class SDDEKitException(Exception): pass
+class libtvbException(Exception): pass
 
-@sd_log_handler
+@tvb_log_handler
 def handler(level, message):
-	if level == sd_log_level.DEBUG:
+	if level == tvb_log_level.DEBUG:
 		LOG.debug(message)
-	elif level == sd_log_level.INFO:
+	elif level == tvb_log_level.INFO:
 		LOG.info(message)
-	elif level == sd_log_level.ERROR:
+	elif level == tvb_log_level.ERROR:
 		handler.last_error_message = message
 		LOG.error(message)
 	else:
-		fmt = 'unhandled SDDEKit log level %r for message %r'
+		fmt = 'unhandled libtvb log level %r for message %r'
 		LOG.warn(fmt, level, message)
 
 def check_and_raise():
-	if sd_log_get_err_and_reset():
-		raise SDDEKitException(handler.last_error_message)
+	if tvb_log_get_err_and_reset():
+		raise libtvbException(handler.last_error_message)
 
-sd_log_set_handler(handler)
+tvb_log_set_handler(handler)
 #}}}
 
 # util/interface_macros.h {{{
@@ -109,53 +109,54 @@ def make_struct(name, *members):
 #}}}
 
 # conn/base.h {{{
-sd_conn = make_struct('sd_conn',
+tvb_conn = make_struct('tvb_conn',
 	('row_wise_weighted_sum', (None, f64p, f64p)),
 	('get_n_nonzeros', (u32, )),
 	('get_nonzero_indices', (u32p, )),
 	('get_weights', (f64p, )),
 	('get_delays', (f64p, )),
 	('get_delay_scale', (f64, )),
-	('set_delay_scale', (sd_stat, f64)),
+	('set_delay_scale', (tvb_stat, f64)),
 	('get_n_row', (u32, )),
 	('get_n_col', (u32, ))
 )
 
-sd_conn_p = ctypes.POINTER(sd_conn)
+tvb_conn_p = ctypes.POINTER(tvb_conn)
 
-sd_conn_new_sparse = make_func('sd_conn_new_sparse',
-	sd_conn_p, u32, u32, u32, u32p, u32p, f64p, f64p)
+tvb_conn_new_sparse = make_func('tvb_conn_new_sparse',
+	tvb_conn_p, u32, u32, u32, u32p, u32p, f64p, f64p)
 
-sd_conn_new_dense = make_func('sd_conn_new_dense',
-	sd_conn_p, u32, u32, f64p, f64p)
+tvb_conn_new_dense = make_func('tvb_conn_new_dense',
+	tvb_conn_p, u32, u32, f64p, f64p)
 
 #}}}
 
 def ndf64p(array):
 	return array.ctypes.data_as(f64p)
 
-def make_class(struct, *):
-	attrs = {}
-	@classmethod
-	def new_dense(cls, W, D):
-		obj = cls()
-		n = len(W)
-		obj._ptr = sd_conn_new_dense(n, n, ndf64p(W), ndf64p(D))
-		check_and_raise()
-		return obj
-	attrs['new_dense'] = new_dense
-	for name, fp in struct._fields_:
-		def wrap(self, *args):
+# def make_class(struct, *args):
+# 	attrs = {}
+# 	@classmethod
+# 	def new_dense(cls, W, D):
+# 		obj = cls()
+# 		n = len(W)
+# 		obj._ptr = tvb_conn_new_dense(n, n, ndf64p(W), ndf64p(D))
+# 		check_and_raise()
+# 		return obj
+# 	attrs['new_dense'] = new_dense
+# 	for name, fp in struct._fields_:
+# 		def wrap(self, *args):
 
+LOG.debug('libtvb API built')
 
 import numpy as np
 W = np.random.randn(50, 50)
 W = (W > 2.0) * W
 D = np.ones((50, 50))
-conn = sd_conn_new_dense(50, 50, W.ctypes.data_as(f64p), D.ctypes.data_as(f64p))
+conn = tvb_conn_new_dense(50, 50, W.ctypes.data_as(f64p), D.ctypes.data_as(f64p))
 c = conn.contents
 scale = 42.42
-assert c.set_delay_scale(conn, scale) == sd_stat.OK
+assert c.set_delay_scale(conn, scale) == tvb_stat.OK
 assert c.get_delay_scale(conn) == scale
 assert c.get_n_row(conn) == 50 and c.get_n_col(conn) == 50
 assert c.get_n_nonzeros(conn) == (W!=0.0).sum()

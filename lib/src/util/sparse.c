@@ -1,9 +1,9 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 #include <math.h>
-#include "sddekit.h"
+#include "libtvb.h"
 
-enum sd_stat sd_util_sparse_from_dense(uint32_t m, uint32_t n, 
+enum tvb_stat tvb_util_sparse_from_dense(uint32_t m, uint32_t n, 
 		double *dA, double *dB, double eps,
 		uint32_t *nnz, uint32_t **Or, uint32_t **Ic, 
 		double **sA, double **sB)
@@ -21,11 +21,11 @@ enum sd_stat sd_util_sparse_from_dense(uint32_t m, uint32_t n,
 	}
 #undef DO_IF
 	/* alloc */
-	*Or = sd_malloc (sizeof(uint32_t)*(m + 1));
-	*Ic = sd_malloc (sizeof(uint32_t)**nnz);
-	*sA = sd_malloc (sizeof(double)**nnz);
+	*Or = tvb_malloc (sizeof(uint32_t)*(m + 1));
+	*Ic = tvb_malloc (sizeof(uint32_t)**nnz);
+	*sA = tvb_malloc (sizeof(double)**nnz);
 	if (dB!=NULL)
-		*sB = sd_malloc (sizeof(double)**nnz);
+		*sB = tvb_malloc (sizeof(double)**nnz);
 	if (Or==NULL || Ic==NULL || sA==NULL || (dB!=NULL && sB==NULL)) {
 		errmsg = "failed to allocate memory for sparse storage.";
 		goto fail;
@@ -54,11 +54,11 @@ enum sd_stat sd_util_sparse_from_dense(uint32_t m, uint32_t n,
 #undef DO_IF
 	return 0;
 fail:
-	if (*Or!=NULL) sd_free(*Or);
-	if (*Ic!=NULL) sd_free(*Ic);
-	if (*sA!=NULL) sd_free(*sA);
+	if (*Or!=NULL) tvb_free(*Or);
+	if (*Ic!=NULL) tvb_free(*Ic);
+	if (*sA!=NULL) tvb_free(*sA);
 	if (dB!=NULL)
-		if (*sB!=NULL) sd_free(*sB);
-	sd_err("%s", errmsg);
+		if (*sB!=NULL) tvb_free(*sB);
+	tvb_err("%s", errmsg);
 	return 1;
 }

@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "../sddekit.h"
+#include "../libtvb.h"
 
 /*! Data structure passed to an output apply function.
  *
@@ -10,7 +10,7 @@
  * \param state state variable vector.
  * \param output efferent / output vector.
  */
-struct sd_out_sample
+struct tvb_out_sample
 {
 	double time;
 	uint32_t n_dim;

@@ -1,18 +1,18 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 struct data
 {
-	struct sd_out out;
+	struct tvb_out out;
 	void *user_data;
-	enum sd_stat (*user_apply)(
+	enum tvb_stat (*user_apply)(
 		void *user_data,
-		struct sd_out_sample *sample);
+		struct tvb_out_sample *sample);
 };
 
-static enum sd_stat apply(struct sd_out *out,
-		          struct sd_out_sample *sample)
+static enum tvb_stat apply(struct tvb_out *out,
+		          struct tvb_out_sample *sample)
 {
 	struct data *d = out->data;
 	return d->user_apply(d->user_data, sample);
@@ -20,47 +20,47 @@ static enum sd_stat apply(struct sd_out *out,
 
 /* obj {{{ */
 
-static void cb_free(struct sd_out *out)
+static void cb_free(struct tvb_out *out)
 {
-	sd_free(out->data);
+	tvb_free(out->data);
 }
 
-static uint32_t n_byte(struct sd_out *out)
+static uint32_t n_byte(struct tvb_out *out)
 {
 	(void) out;
-	return sizeof(struct sd_out);
+	return sizeof(struct tvb_out);
 }
 
-static struct sd_out* copy(struct sd_out *out)
+static struct tvb_out* copy(struct tvb_out *out)
 {
 	struct data *data = out->data;
-	struct sd_out *copy;
-	copy = sd_out_new_cb(data->user_data, data->user_apply);
+	struct tvb_out *copy;
+	copy = tvb_out_new_cb(data->user_data, data->user_apply);
 	if (copy == NULL)
 	{
-		sd_err("out cb copy failed.");
+		tvb_err("out cb copy failed.");
 	}
 	return copy;
 }
 
 /* }}} */
 
-static struct sd_out defaults = {
+static struct tvb_out defaults = {
 	.free = &cb_free,
 	.copy = &copy,
 	.n_byte = &n_byte,
 	.apply = &apply
 };
 
-SD_API struct sd_out *
-sd_out_new_cb(void *user_data,
-	enum sd_stat (*user_apply)(
-		void *, struct sd_out_sample *))
+TVB_API struct tvb_out *
+tvb_out_new_cb(void *user_data,
+	enum tvb_stat (*user_apply)(
+		void *, struct tvb_out_sample *))
 {
 	struct data *data;
-        if ((data = sd_malloc(sizeof(struct data))) == NULL)
+        if ((data = tvb_malloc(sizeof(struct data))) == NULL)
 	{
-		sd_err("alloc out cb failed.");
+		tvb_err("alloc out cb failed.");
 		return NULL;
 	}
 	data->out = defaults;

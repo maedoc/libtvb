@@ -1,29 +1,29 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "../sddekit.h"
+#include "../libtvb.h"
 
 /*! Interface for linear operator output. */
-struct sd_out_linop
+struct tvb_out_linop
 {
-	sd_declare_common_members(sd_out_linop);
+	tvb_declare_common_members(tvb_out_linop);
 
 	/*! Get out interface for this instance. */
-	struct sd_out *(*as_out)(struct sd_out_linop *linop);
+	struct tvb_out *(*as_out)(struct tvb_out_linop *linop);
 
 	/*! True if linop applies to state vector, otherwise false. */
-	bool (*get_on_state)(struct sd_out_linop *linop);
+	bool (*get_on_state)(struct tvb_out_linop *linop);
 
 	/*! Get number of rows in linear operator matrix. */
-	uint32_t (*get_n_row)(struct sd_out_linop *linop);
+	uint32_t (*get_n_row)(struct tvb_out_linop *linop);
 
 	/*! Get number of columns in linear operator matrix. */
-	uint32_t (*get_n_col)(struct sd_out_linop *linop);
+	uint32_t (*get_n_col)(struct tvb_out_linop *linop);
 
 	/*! Get elements of linear operator matrix. */
-	double *(*get_matrix)(struct sd_out_linop *linop);
+	double *(*get_matrix)(struct tvb_out_linop *linop);
 
 	/*! Get output callback of spatial filter output. */
-	struct sd_out *(*get_receiver)(struct sd_out_linop *linop);
+	struct tvb_out *(*get_receiver)(struct tvb_out_linop *linop);
 };
 
 /**
@@ -44,11 +44,11 @@ struct sd_out_linop
  *
  * TODO variant with stride or index on state/output vector.
  */
-SD_API struct sd_out_linop *
-sd_out_linop_new(
+TVB_API struct tvb_out_linop *
+tvb_out_linop_new(
 	bool on_state,
 	uint32_t n_row,
 	uint32_t n_col,
 	double *matrix,
-	struct sd_out *receiver
+	struct tvb_out *receiver
 	);

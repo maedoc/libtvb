@@ -1,7 +1,7 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
-uint32_t sd_ver_major() { return 0; }
+uint32_t tvb_ver_major() { return 0; }
 
-uint32_t sd_ver_minor() { return 0; }
+uint32_t tvb_ver_minor() { return 0; }

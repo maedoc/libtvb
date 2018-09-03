@@ -1,22 +1,22 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 struct data
 {
 	bool on_state;
 	uint32_t n_row, n_col;
 	double *matrix, *result;
-	struct sd_out sd_out;
-	struct sd_out_linop sd_out_linop;
-	struct sd_out *receiver;
+	struct tvb_out tvb_out;
+	struct tvb_out_linop tvb_out_linop;
+	struct tvb_out *receiver;
 };
 
 /* apply {{{ */
 
-static enum sd_stat out_apply(struct sd_out *sd_out, struct sd_out_sample *samp)
+static enum tvb_stat out_apply(struct tvb_out *tvb_out, struct tvb_out_sample *samp)
 {
-	struct data *data = sd_out->data;
+	struct data *data = tvb_out->data;
 	double *input = data->on_state ? samp->state : samp->output;
 	/* apply lin op as mat vec multiply */
 	for (uint32_t i_row=0; i_row<data->n_row; i_row++)
@@ -31,7 +31,7 @@ static enum sd_stat out_apply(struct sd_out *sd_out, struct sd_out_sample *samp)
 		data->result[i_row] = sum;
 	}
 	/* prep samp for receiver */
-	struct sd_out_sample proj_samp = { .time = samp->time };
+	struct tvb_out_sample proj_samp = { .time = samp->time };
 	if (data->on_state)
 	{
 		proj_samp.n_dim = data->n_row;
@@ -51,9 +51,9 @@ static enum sd_stat out_apply(struct sd_out *sd_out, struct sd_out_sample *samp)
 
 static void data_free(struct data *data)
 {
-	sd_free(data->matrix);
-	sd_free(data->result);
-	sd_free(data);
+	tvb_free(data->matrix);
+	tvb_free(data->result);
+	tvb_free(data);
 }
 
 static uint32_t data_n_byte(struct data *data)
@@ -65,31 +65,31 @@ static uint32_t data_n_byte(struct data *data)
 
 static struct data *data_copy(struct data *data)
 {
-	struct data *copy = sd_out_linop_new(
+	struct data *copy = tvb_out_linop_new(
 			data->on_state, data->n_row, data->n_col,
 			data->matrix, data->receiver)->data;
 	if (copy == NULL)
-		sd_err("copy linop out failed.");
+		tvb_err("copy linop out failed.");
 	return copy;
 
 }
 
-sd_declare_tag_functions(sd_out)
-sd_declare_tag_functions(sd_out_linop)
+tvb_declare_tag_functions(tvb_out)
+tvb_declare_tag_functions(tvb_out_linop)
 
 /* }}} */
 
 /* out get n_dim n_out {{{ */
 
-static uint32_t out_get_n_dim(struct sd_out *sd_out)
+static uint32_t out_get_n_dim(struct tvb_out *tvb_out)
 {
-	struct data *data = sd_out->data;
+	struct data *data = tvb_out->data;
 	return data->on_state ? data->n_row : 0;
 }
 
-static uint32_t out_get_n_out(struct sd_out *sd_out)
+static uint32_t out_get_n_out(struct tvb_out *tvb_out)
 {
-	struct data *data = sd_out->data;
+	struct data *data = tvb_out->data;
 	return data->on_state ? 0 : data->n_row;
 }
 
@@ -98,7 +98,7 @@ static uint32_t out_get_n_out(struct sd_out *sd_out)
 /* linop getters {{{ */
 
 #define GET(type, field) \
-static type linop_get_ ## field(struct sd_out_linop *linop) \
+static type linop_get_ ## field(struct tvb_out_linop *linop) \
 { \
 	return ((struct data *) linop->data)->field; \
 }
@@ -107,28 +107,28 @@ GET(bool , on_state)
 GET(uint32_t , n_row)
 GET(uint32_t , n_col)
 GET(double *, matrix)
-GET(struct sd_out *, receiver)
+GET(struct tvb_out *, receiver)
 
 #undef GET
 
-static struct sd_out* linop_as_out(struct sd_out_linop *linop)
+static struct tvb_out* linop_as_out(struct tvb_out_linop *linop)
 {
-	return &((struct data *) linop->data)->sd_out;
+	return &((struct data *) linop->data)->tvb_out;
 }
 
 /* }}} */
 
 /* vtables {{{ */
 
-static struct sd_out sd_out_defaults = {
-	sd_declare_tag_vtable(sd_out),
+static struct tvb_out tvb_out_defaults = {
+	tvb_declare_tag_vtable(tvb_out),
 	.get_n_dim = &out_get_n_dim,
 	.get_n_out = &out_get_n_out,
 	.apply = &out_apply
 };
 
-static struct sd_out_linop sd_out_linop_defaults = {
-	sd_declare_tag_vtable(sd_out_linop),
+static struct tvb_out_linop tvb_out_linop_defaults = {
+	tvb_declare_tag_vtable(tvb_out_linop),
 	.get_on_state = &linop_get_on_state,
 	.get_n_row = &linop_get_n_row,
 	.get_n_col = &linop_get_n_col,
@@ -140,21 +140,21 @@ static struct sd_out_linop sd_out_linop_defaults = {
 
 /* ctor {{{ */
 
-struct sd_out_linop *
-sd_out_linop_new(bool on_state, uint32_t n_row, uint32_t n_col,
-		 double *matrix, struct sd_out *receiver)
+struct tvb_out_linop *
+tvb_out_linop_new(bool on_state, uint32_t n_row, uint32_t n_col,
+		 double *matrix, struct tvb_out *receiver)
 {
 	struct data *data, zero = {0};
 	/* alloc & error check {{{ */
-	if ((data = sd_malloc(sizeof(struct data))) == NULL
+	if ((data = tvb_malloc(sizeof(struct data))) == NULL
 	 || (*data = zero, n_row == 0 || n_col == 0 || matrix == NULL)
-	 || (data->matrix = sd_malloc(sizeof(double) * n_row * n_col)) == NULL
-	 || (data->result = sd_malloc(sizeof(double) * n_row)) == NULL
+	 || (data->matrix = tvb_malloc(sizeof(double) * n_row * n_col)) == NULL
+	 || (data->result = tvb_malloc(sizeof(double) * n_row)) == NULL
 	)
 	{
-		if (data->matrix != NULL) sd_free(data->matrix);
-		if (data != NULL) sd_free(data);
-		sd_err("alloc linop fail or n_row=0 or n_col=0 or NULL matrix array.");
+		if (data->matrix != NULL) tvb_free(data->matrix);
+		if (data != NULL) tvb_free(data);
+		tvb_err("alloc linop fail or n_row=0 or n_col=0 or NULL matrix array.");
 		return NULL;
 	}
 	/* }}} */
@@ -163,10 +163,10 @@ sd_out_linop_new(bool on_state, uint32_t n_row, uint32_t n_col,
 	data->n_col = n_col;
 	data->receiver = receiver;
 	memcpy(data->matrix, matrix, sizeof(double) * n_row * n_col);
-	data->sd_out = sd_out_defaults;
-	data->sd_out_linop = sd_out_linop_defaults;
-	data->sd_out.data = data->sd_out_linop.data = data;
-	return &data->sd_out_linop;
+	data->tvb_out = tvb_out_defaults;
+	data->tvb_out_linop = tvb_out_linop_defaults;
+	data->tvb_out.data = data->tvb_out_linop.data = data;
+	return &data->tvb_out_linop;
 }
 
 /* }}} */

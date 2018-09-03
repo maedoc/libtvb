@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 #include <stdlib.h>
 
@@ -11,26 +11,26 @@ static int compare_int(const void *a, const void *b)
 	else /* a > b */ return  1;
 }
 
-enum sd_stat sd_util_uniqi(uint32_t n, uint32_t *ints, uint32_t *nuniq, uint32_t ** uints)
+enum tvb_stat tvb_util_uniqi(uint32_t n, uint32_t *ints, uint32_t *nuniq, uint32_t ** uints)
 { 
 	uint32_t i, j, *ints_copy;
 
-	if (n==0) return SD_OK;
+	if (n==0) return TVB_OK;
 
 	if (n==1) {
 		*nuniq = 1;
-		if ((*uints = sd_malloc (sizeof(uint32_t)))==NULL) {
-			sd_err("failed to allocate memory for unique integers");
-			return SD_ERR;
+		if ((*uints = tvb_malloc (sizeof(uint32_t)))==NULL) {
+			tvb_err("failed to allocate memory for unique integers");
+			return TVB_ERR;
 		}
 		(*uints)[0] = ints[0];
-		return SD_OK;
+		return TVB_OK;
 	}
 
 	/* sort copy of input vector */
-	if ((ints_copy = sd_malloc(sizeof(uint32_t) * n))==NULL) {
-		sd_err("failed to allocate memory for ints copy.");
-		return SD_ERR;
+	if ((ints_copy = tvb_malloc(sizeof(uint32_t) * n))==NULL) {
+		tvb_err("failed to allocate memory for ints copy.");
+		return TVB_ERR;
 	}
 	memcpy(ints_copy, ints, n*sizeof(uint32_t));
 
@@ -42,10 +42,10 @@ enum sd_stat sd_util_uniqi(uint32_t n, uint32_t *ints, uint32_t *nuniq, uint32_t
 		if (ints_copy[i] != ints_copy[i+1])
 			(*nuniq)++;
 
-	if ((*uints = sd_malloc (sizeof(uint32_t) * *nuniq))==NULL) {
-		sd_err("failed to allocate memory for unique integers.");
-		sd_free(ints_copy);
-		return SD_ERR;
+	if ((*uints = tvb_malloc (sizeof(uint32_t) * *nuniq))==NULL) {
+		tvb_err("failed to allocate memory for unique integers.");
+		tvb_free(ints_copy);
+		return TVB_ERR;
 	}
 
 	/* copy unique into output array */
@@ -55,7 +55,7 @@ enum sd_stat sd_util_uniqi(uint32_t n, uint32_t *ints, uint32_t *nuniq, uint32_t
 		if (ints_copy[i] != ints_copy[i+1])
 			(*uints)[j++] = ints_copy[i+1];
 
-	sd_free(ints_copy);
+	tvb_free(ints_copy);
 	
-	return SD_OK;
+	return TVB_OK;
 }

@@ -31,7 +31,7 @@ Contributing an implementation of a particular interface therefore implies
 
 - writing implementations for each of the members of the interface struct
 - writing a constructor function which
-  - alloc with sd_malloc
+  - alloc with tvb_malloc
   - fill out interface struct
   - return it
 - document & test
@@ -52,17 +52,17 @@ valgrind --tool=cachegrind build/bench_net_gen2d
 kcachegrind  cachegrind.out.*
 ```
 
-## What is SD_API?
+## What is TVB_API?
 
-It is defined in [sddekit.h](https://github.com/maedoc/sddekit/blob/master/src/sddekit.h#L22)
+It is defined in [libtvb.h](https://github.com/maedoc/libtvb/blob/master/src/libtvb.h#L22)
 
 When you are compiling with Microsoft Visual Studio, the visibility of an API function depends on a non-standard declaration in front of the function declaration:
 
 - when compiling the library itself, it has to be dllexport
 - when compiling a code using the library it has to be dllimport
 
-To support these cases, all sddekit public functions are declared with SD_API,
+To support these cases, all libtvb public functions are declared with TVB_API,
 which is defined according to whether the code in which the header is included
 is part of the library or just using the library.
 
-On Linux or Mac, SD_API is ignored for the moment.
+On Linux or Mac, TVB_API is ignored for the moment.
