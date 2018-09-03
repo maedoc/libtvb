@@ -1,10 +1,10 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include "test.h"
 
 TEST(log, simple)
 {
-	sd_log_info("formatting %s, answer is %d.", "supported", 42);
-	sd_log_debug("Voldemort is %0.2f %% alive.", 32.4); 
+	tvb_log_info("formatting %s, answer is %d.", "supported", 42);
+	tvb_log_debug("Voldemort is %0.2f %% alive.", 32.4); 
 }

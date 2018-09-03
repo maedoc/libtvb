@@ -1,8 +1,8 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 #include <stdlib.h>
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include "test.h"
 
 TEST(sparse, fromdense) {
@@ -20,7 +20,7 @@ TEST(sparse, fromdense) {
 	B[3] = 4;
 
 	/* no cutoff, eps=0 */
-	sd_sparse_from_dense(n, n, A, NULL, 0.0, &nnz, &Or, &Ic, &sA, NULL);
+	tvb_sparse_from_dense(n, n, A, NULL, 0.0, &nnz, &Or, &Ic, &sA, NULL);
 
 	EXPECT_EQ(3,nnz);
 	EXPECT_EQ(0,Or[0]);
@@ -33,25 +33,25 @@ TEST(sparse, fromdense) {
 	EXPECT_EQ(A[1],sA[1]);
 	EXPECT_EQ(A[3],sA[2]);
 
-	sd_free(Or);
-	sd_free(Ic);
-	sd_free(sA);
+	tvb_free(Or);
+	tvb_free(Ic);
+	tvb_free(sA);
 
 	/* with auxiliary matrix */
-	sd_sparse_from_dense(n, n, A, B, 0.0, &nnz, &Or, &Ic, &sA, &sB);
+	tvb_sparse_from_dense(n, n, A, B, 0.0, &nnz, &Or, &Ic, &sA, &sB);
 
 	EXPECT_EQ(3,nnz);
 	EXPECT_EQ(B[0],sB[0]);
 	EXPECT_EQ(B[1],sB[1]);
 	EXPECT_EQ(B[3],sB[2]);
 
-	sd_free(Or);
-	sd_free(Ic);
-	sd_free(sA);
-	sd_free(sB);
+	tvb_free(Or);
+	tvb_free(Ic);
+	tvb_free(sA);
+	tvb_free(sB);
 
 	/* apply cutoff */
-	sd_sparse_from_dense(n, n, A, NULL, 1e-5, &nnz, &Or, &Ic, &sA, NULL);
+	tvb_sparse_from_dense(n, n, A, NULL, 1e-5, &nnz, &Or, &Ic, &sA, NULL);
 
 	EXPECT_EQ(2,nnz);
 	EXPECT_EQ(0,Or[0]);
@@ -62,26 +62,26 @@ TEST(sparse, fromdense) {
 	EXPECT_EQ(A[0],sA[0]);
 	EXPECT_EQ(A[3],sA[1]);
 
-	sd_free(Or);
-	sd_free(Ic);
-	sd_free(sA);
+	tvb_free(Or);
+	tvb_free(Ic);
+	tvb_free(sA);
 
 	/* with auxiliary matrix */
-	sd_sparse_from_dense(n, n, A, B, 1e-5, &nnz, &Or, &Ic, &sA, &sB);
+	tvb_sparse_from_dense(n, n, A, B, 1e-5, &nnz, &Or, &Ic, &sA, &sB);
 
 	EXPECT_EQ(2,nnz);
 	EXPECT_EQ(B[0],sB[0]);
 	EXPECT_EQ(B[3],sB[1]);
 
-	sd_free(Or);
-	sd_free(Ic);
-	sd_free(sA);
-	sd_free(sB);
+	tvb_free(Or);
+	tvb_free(Ic);
+	tvb_free(sA);
+	tvb_free(sB);
 }
 
 /*
 int main() {
 	test_sparse_from_dense();
-	return sd_test_report();
+	return tvb_test_report();
 }
 */

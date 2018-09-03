@@ -38,30 +38,30 @@ installation, so if you run into link-time error such as missing
 Running the tests will print any failed tests in the following
 format
 ```
-[sd_test] FAILURE 36/320 test/test_solv.c:114 `(2.34)==(sysd.t)`
+[tvb_test] FAILURE 36/320 test/test_solv.c:114 `(2.34)==(sysd.t)`
 ```
 identifying the responsible file, line number and condition.
 
 Sometimes it is useful to jump into the debugger to inspect
 state at the failure point. Every failure results in a call to
-`sd_test_failed`, so breaking on this function and jumping up
+`tvb_test_failed`, so breaking on this function and jumping up
 two stack frames:
 
 ```
-~/sddekit gdb tests
+~/libtvb gdb tests
 GNU gdb (Ubuntu 7.7.1-0ubuntu5~14.04.2) 7.7.1
 ...
 Reading symbols from tests...done.
-(gdb) b sd_test_failed
-Breakpoint 1 at 0x804e659: file src/sd_test.c, line 85.
+(gdb) b tvb_test_failed
+Breakpoint 1 at 0x804e659: file src/tvb_test.c, line 85.
 (gdb) r
-Starting program: /home/sophie/sddekit/tests 
+Starting program: /home/sophie/libtvb/tests 
 ...
-Breakpoint 1, sd_test_failed (scond=0x8059a94 "(sol->get_x(sol))==(sysd.x+1)", fname=0x8059950 "test/test_solv.c", lineno=116)
-    at src/sd_test.c:85
+Breakpoint 1, tvb_test_failed (scond=0x8059a94 "(sol->get_x(sol))==(sysd.x+1)", fname=0x8059950 "test/test_solv.c", lineno=116)
+    at src/tvb_test.c:85
 85		nfail++;
 (gdb) up 2
-#2  0x0805607e in sd_test__solv_simple () at test/test_solv.c:116
+#2  0x0805607e in tvb_test__solv_simple () at test/test_solv.c:116
 116		EXPECT_EQ(sol->get_x(sol),sysd.x+1);
 (gdb) p sysd.x
 $1 = (double *) 0x8064418
@@ -92,7 +92,7 @@ with the Hudson continuous integration system.
 
 ## Travis
 
-All commits to `maedoc/sddekit` as well as pull requests are checked
+All commits to `maedoc/libtvb` as well as pull requests are checked
 via the Travis continuous integration server, which runs tests through
 Valgrind as well as checking coverage. See `.travis.yml` for details.
 

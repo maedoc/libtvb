@@ -1,19 +1,19 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 struct data
 {
 	bool ignore_state, ignore_output;
 	uint32_t n_dim, n_out;
-	struct sd_out *receiver;
-	struct sd_out sd_out;
+	struct tvb_out *receiver;
+	struct tvb_out tvb_out;
 };
 
-static enum sd_stat apply(struct sd_out *sd_out, struct sd_out_sample *samp)
+static enum tvb_stat apply(struct tvb_out *tvb_out, struct tvb_out_sample *samp)
 {
-	struct data *data = sd_out->data;
-	struct sd_out_sample samp_out = *samp;
+	struct data *data = tvb_out->data;
+	struct tvb_out_sample samp_out = *samp;
 	if (data->ignore_state)
 	{
 		samp_out.n_dim = 0;
@@ -29,39 +29,39 @@ static enum sd_stat apply(struct sd_out *sd_out, struct sd_out_sample *samp)
 	return data->receiver->apply(data->receiver, &samp_out);
 }
 
-static void data_free(struct sd_out *sd_out)
+static void data_free(struct tvb_out *tvb_out)
 {
-	sd_free(sd_out->data);
+	tvb_free(tvb_out->data);
 }
 
-static uint32_t data_n_byte(struct sd_out *sd_out)
+static uint32_t data_n_byte(struct tvb_out *tvb_out)
 {
 	return sizeof(struct data);
 }
 
-static struct sd_out *data_copy(struct sd_out *sd_out)
+static struct tvb_out *data_copy(struct tvb_out *tvb_out)
 {
-	struct data *data = sd_out->data;
-	struct sd_out *copy = sd_out_new_ign(
+	struct data *data = tvb_out->data;
+	struct tvb_out *copy = tvb_out_new_ign(
 		data->ignore_state,
 		data->ignore_output,
 		data->receiver);
 	if (copy == NULL)
-		sd_err("copy out ign failed.");
+		tvb_err("copy out ign failed.");
 	return copy;
 }
 
-static uint32_t get_n_dim(struct sd_out *sd_out)
+static uint32_t get_n_dim(struct tvb_out *tvb_out)
 {
-	return ((struct data *) sd_out->data)->n_dim;
+	return ((struct data *) tvb_out->data)->n_dim;
 }
 
-static uint32_t get_n_out(struct sd_out *sd_out)
+static uint32_t get_n_out(struct tvb_out *tvb_out)
 {
-	return ((struct data *) sd_out->data)->n_out;
+	return ((struct data *) tvb_out->data)->n_out;
 }
 
-static struct sd_out sd_out_defaults = {
+static struct tvb_out tvb_out_defaults = {
 	.free = &data_free,
 	.n_byte = &data_n_byte,
 	.copy = &data_copy,
@@ -70,22 +70,22 @@ static struct sd_out sd_out_defaults = {
 	.get_n_out = &get_n_out
 };
 
-struct sd_out *
-sd_out_new_ign(bool ignore_state, bool ignore_output, struct sd_out *receiver)
+struct tvb_out *
+tvb_out_new_ign(bool ignore_state, bool ignore_output, struct tvb_out *receiver)
 {
 	struct data *data, zero = {0};
-	if ((data = sd_malloc(sizeof(struct data))) == NULL
+	if ((data = tvb_malloc(sizeof(struct data))) == NULL
 	 || (*data = zero, receiver == NULL)
 	)
 	{
-		if (data != NULL) sd_free(data);
-		sd_err("alloc ign out failed or NULL receiver.");
+		if (data != NULL) tvb_free(data);
+		tvb_err("alloc ign out failed or NULL receiver.");
 		return NULL;
 	}
 	data->ignore_state = ignore_state;
 	data->ignore_output = ignore_output;
 	data->receiver = receiver;
-	data->sd_out = sd_out_defaults;
-	data->sd_out.data = data;
-	return &(data->sd_out);
+	data->tvb_out = tvb_out_defaults;
+	data->tvb_out.data = data;
+	return &(data->tvb_out);
 }

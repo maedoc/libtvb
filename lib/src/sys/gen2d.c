@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 /* parameters & defaults */
 struct pars {
@@ -22,8 +22,8 @@ static struct pars pars_defaults = {
 
 struct data
 {
-	struct sd_sys sd_sys;
-	struct sd_sys_gen2d sd_sys_gen2d;
+	struct tvb_sys tvb_sys;
+	struct tvb_sys_gen2d tvb_sys_gen2d;
 	struct pars pars;
 };
 
@@ -31,7 +31,7 @@ struct data
 static void
 data_free(struct data *data)
 {
-    sd_free(data);
+    tvb_free(data);
 }
 
 static uint32_t
@@ -44,30 +44,30 @@ data_n_byte(struct data *data)
 static struct data * 
 data_copy(struct data *data)
 {
-    struct data *copy = sd_malloc(sizeof(struct data));
+    struct data *copy = tvb_malloc(sizeof(struct data));
     if (copy == NULL)
-        sd_err("copy gen2d failed.");
+        tvb_err("copy gen2d failed.");
     *copy = *data;
     return copy;
 }
 
-sd_declare_tag_functions(sd_sys)
-sd_declare_tag_functions(sd_sys_gen2d)
+tvb_declare_tag_functions(tvb_sys)
+tvb_declare_tag_functions(tvb_sys_gen2d)
 
 /* get & set parameters */
 #define PAR(name, value)\
-	static double get_ ## name(struct sd_sys_gen2d *s)\
+	static double get_ ## name(struct tvb_sys_gen2d *s)\
 		{ return ((struct data *) s->data)->pars.name; } \
-	static void set_ ## name(struct sd_sys_gen2d *s, double new)\
+	static void set_ ## name(struct tvb_sys_gen2d *s, double new)\
 		{ ((struct data *) s->data)->pars.name = new; }
 #define LASTPAR(n, v) PAR(n, v)
 #include "sys/gen2d_pars.h"
 #undef PAR
 #undef LASTPAR
 
-static enum sd_stat 
-apply(struct sd_sys *s, 
-    struct sd_sys_in *in, struct sd_sys_out *out)
+static enum tvb_stat 
+apply(struct tvb_sys *s, 
+    struct tvb_sys_in *in, struct tvb_sys_out *out)
 {
 		struct pars *p = &((struct data*) s->data)->pars;
 		double *x = in->state, *c = in->input, *f = out->drift
@@ -79,17 +79,17 @@ apply(struct sd_sys *s,
 		g[0] = p->D;
 		g[1] = p->D;
 		o[0] = x[0];
-		return SD_OK;
+		return TVB_OK;
 }
 
-static uint32_t  ndim(struct sd_sys *s) { (void) s;  return 2; }
-static uint32_t   ndc(struct sd_sys *s) { (void) s;  return 1; }
-static uint32_t  nobs(struct sd_sys *s) { (void) s;  return 1; }
-static uint32_t nrpar(struct sd_sys *s) { (void) s;  return 4; }
-static uint32_t nipar(struct sd_sys *s) { (void) s;  return 0; }
+static uint32_t  ndim(struct tvb_sys *s) { (void) s;  return 2; }
+static uint32_t   ndc(struct tvb_sys *s) { (void) s;  return 1; }
+static uint32_t  nobs(struct tvb_sys *s) { (void) s;  return 1; }
+static uint32_t nrpar(struct tvb_sys *s) { (void) s;  return 4; }
+static uint32_t nipar(struct tvb_sys *s) { (void) s;  return 0; }
 
-static struct sd_sys sd_sys_defaults = {
-    sd_declare_tag_vtable(sd_sys),
+static struct tvb_sys tvb_sys_defaults = {
+    tvb_declare_tag_vtable(tvb_sys),
     .get_n_dim = &ndim,
     .get_n_in = &ndc,
     .get_n_out = &nobs,
@@ -98,15 +98,15 @@ static struct sd_sys sd_sys_defaults = {
     .apply = &apply
 };
 
-static struct sd_sys *
-as_sys(struct sd_sys_gen2d *sd_sys_gen2d)
+static struct tvb_sys *
+as_sys(struct tvb_sys_gen2d *tvb_sys_gen2d)
 {
-    struct data *data = sd_sys_gen2d->data;
-    return &data->sd_sys;
+    struct data *data = tvb_sys_gen2d->data;
+    return &data->tvb_sys;
 }
 
-static struct sd_sys_gen2d sd_sys_gen2d_defaults = {
-    sd_declare_tag_vtable(sd_sys_gen2d),
+static struct tvb_sys_gen2d tvb_sys_gen2d_defaults = {
+    tvb_declare_tag_vtable(tvb_sys_gen2d),
 	.as_sys = &as_sys,
 #define PAR(n, v) .get_##n = &get_##n, .set_##n = &set_##n,
 #define LASTPAR(n, v) .get_##n = &get_##n, .set_##n = &set_##n
@@ -115,18 +115,18 @@ static struct sd_sys_gen2d sd_sys_gen2d_defaults = {
 #undef LASTPAR
 };
 
-struct sd_sys_gen2d *
-sd_sys_gen2d_new()
+struct tvb_sys_gen2d *
+tvb_sys_gen2d_new()
 {
     struct data *data;
-    if ((data = sd_malloc(sizeof(struct data))) == NULL)
+    if ((data = tvb_malloc(sizeof(struct data))) == NULL)
     {
-        sd_err("alloc gen2d failed.");
+        tvb_err("alloc gen2d failed.");
         return NULL;
     }
-    data->sd_sys = sd_sys_defaults;
-    data->sd_sys_gen2d = sd_sys_gen2d_defaults;
+    data->tvb_sys = tvb_sys_defaults;
+    data->tvb_sys_gen2d = tvb_sys_gen2d_defaults;
     data->pars = pars_defaults;
-    data->sd_sys.data = data->sd_sys_gen2d.data = data;
-    return &data->sd_sys_gen2d;
+    data->tvb_sys.data = data->tvb_sys_gen2d.data = data;
+    return &data->tvb_sys_gen2d;
 }

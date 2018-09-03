@@ -1,23 +1,23 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include "test.h"
 
-static sd_stat hf_t_apply(sd_hfill *data, uint32_t n, 
+static tvb_stat hf_t_apply(tvb_hfill *data, uint32_t n, 
 				double * restrict t, uint32_t *indices, double * restrict buf) {
 	(void) data; (void) indices;
 	/* fill buffer from times */
 	memcpy(buf, t, n*sizeof(double));
-	return SD_OK;
+	return TVB_OK;
 }
 
-sd_hfill *hf_t_new()
+tvb_hfill *hf_t_new()
 {
-	sd_hfill *hf = sd_malloc(sizeof(sd_hfill));
-	hf->free = (void(*)(sd_hfill*)) &sd_free;
+	tvb_hfill *hf = tvb_malloc(sizeof(tvb_hfill));
+	hf->free = (void(*)(tvb_hfill*)) &tvb_free;
 	hf->apply = &hf_t_apply;
 	hf->ptr = NULL;
 	return hf;
@@ -28,7 +28,7 @@ sd_hfill *hf_t_new()
 TEST(hist, basic) {
 	uint32_t i, vi[ND];
 	double dt, vd[ND], x[ND];
-	sd_hist *h;
+	tvb_hist *h;
 
 	/* set up */
 	dt = 0.1;
@@ -40,7 +40,7 @@ TEST(hist, basic) {
 	vd[1] = 4.5 * dt;
 	vd[2] = 33.3 * dt;
 	vd[3] = 0.0;
-	h = sd_hist_new_default(ND, vi, vd, 0.0, dt);
+	h = tvb_hist_new_default(ND, vi, vd, 0.0, dt);
 
 	EXPECT_EQ(ND, h->get_nd(h));
 	EXPECT_EQ(0.0, h->get_t(h));
@@ -70,7 +70,7 @@ TEST(hist, basic) {
 	EXPECT_EQ(vd[3], h->get_vd(h, 3));
 	EXPECT_TRUE(!h->buf_is_null(h));
 
-	sd_hfill *hf = hf_t_new();
+	tvb_hfill *hf = hf_t_new();
 	h->fill(h, hf);
 	hf->free(hf);
 	for (i=0; i<35; i++)
@@ -95,12 +95,12 @@ TEST(hist, basic) {
 	h->free(h);
 }
 
-static uint32_t het_ndim(sd_sys *sys) { (void) sys; return 1; }
-static uint32_t het_ndc(sd_sys *sys) { (void) sys; return 1; }
-static uint32_t het_nobs(sd_sys *sys) { (void) sys; return 1; }
-static uint32_t het_nrpar(sd_sys *sys) { (void) sys; return 0; }
-static uint32_t het_nipar(sd_sys *sys) { (void) sys; return 0; }
-static sd_stat het_apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
+static uint32_t het_ndim(tvb_sys *sys) { (void) sys; return 1; }
+static uint32_t het_ndc(tvb_sys *sys) { (void) sys; return 1; }
+static uint32_t het_nobs(tvb_sys *sys) { (void) sys; return 1; }
+static uint32_t het_nrpar(tvb_sys *sys) { (void) sys; return 0; }
+static uint32_t het_nipar(tvb_sys *sys) { (void) sys; return 0; }
+static tvb_stat het_apply(tvb_sys *sys, tvb_sys_in *in, tvb_sys_out *out)
 {
 	(void) sys;
 	out->f[0] = in->x[0] + in->i[0];
@@ -108,14 +108,14 @@ static sd_stat het_apply(sd_sys *sys, sd_sys_in *in, sd_sys_out *out)
 	out->o[0] = in->x[0];
 	return 0;
 }
-static void het_free(sd_sys *sys) { sd_free(sys); }
+static void het_free(tvb_sys *sys) { tvb_free(sys); }
 
-static sd_sys *het_new()
+static tvb_sys *het_new()
 {
-	sd_sys val = { .ndim=&het_ndim, .ndc=&het_ndc, .nobs=&het_nobs,
+	tvb_sys val = { .ndim=&het_ndim, .ndc=&het_ndc, .nobs=&het_nobs,
 			 .nrpar=&het_nrpar, .nipar=&het_nipar, .apply=&het_apply,
 			 .free=&het_free, .ptr=NULL };
-	sd_sys *sys = sd_malloc(sizeof(sd_sys));
+	tvb_sys *sys = tvb_malloc(sizeof(tvb_sys));
 	*sys = val;
 	return sys;
 }
@@ -160,8 +160,8 @@ static double xexpect[12][4] = {
 	{61, 22, 12, 1}
 };
 
-static void heo_free(sd_out *o) { sd_free(o); }
-static sd_stat heo_apply(sd_out *o, double t,
+static void heo_free(tvb_out *o) { tvb_free(o); }
+static tvb_stat heo_apply(tvb_out *o, double t,
 	uint32_t nx, double * restrict x,
 	uint32_t nc, double * restrict c)
 {
@@ -170,12 +170,12 @@ static sd_stat heo_apply(sd_out *o, double t,
 	EXPECT_EQ(4,nx);
 	for (i=0; i<4; i++)
 		EXPECT_EQ(x[i], xexpect[(int) t][i]);
-	return t < 11 ? SD_CONT : SD_STOP;
+	return t < 11 ? TVB_CONT : TVB_STOP;
 }
 
-static sd_out *heo_new()
+static tvb_out *heo_new()
 {
-	sd_out *o = sd_malloc (sizeof(sd_out));
+	tvb_out *o = tvb_malloc (sizeof(tvb_out));
 	o->ptr = NULL;
 	o->free = &heo_free;
 	o->apply = &heo_apply;
@@ -185,13 +185,13 @@ static sd_out *heo_new()
 TEST(hist, exact) {
 	uint32_t i, n=4, nnz, *Or, *Ic;
 	double w[16], d[16], *nzw, *nzd, x0[4];
-	sd_net *net;
-	sd_sol *sol;
-	sd_sch *sch = sd_sch_new_id(n);
-	sd_sys *sys = het_new();
-	sd_out *out = heo_new();
-	sd_hfill *hf = sd_hfill_new_val(1.0);
-	sd_hist *hist;
+	tvb_net *net;
+	tvb_sol *sol;
+	tvb_sch *sch = tvb_sch_new_id(n);
+	tvb_sys *sys = het_new();
+	tvb_out *out = heo_new();
+	tvb_hfill *hf = tvb_hfill_new_val(1.0);
+	tvb_hist *hist;
 
 	x0[0] = 1;
 	x0[1] = 1;
@@ -207,7 +207,7 @@ TEST(hist, exact) {
 	/* 3 nnz, so hist expects c size 3, but net setups for c size 4 */
 
 	/* setup network */
-	sd_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &nzw, &nzd);
+	tvb_sparse_from_dense(n, n, w, d, 0.0, &nnz, &Or, &Ic, &nzw, &nzd);
 	EXPECT_EQ(0,Or[0]);
 	EXPECT_EQ(1,Or[1]);
 	EXPECT_EQ(2,Or[2]);
@@ -222,13 +222,13 @@ TEST(hist, exact) {
 	EXPECT_EQ(6,nzd[1]);
 	EXPECT_EQ(11,nzd[2]);
 
-	net = sd_net_new_hom(n, sys, 1, 1, 1, nnz, Or, Ic, nzw, nzd);
+	net = tvb_net_new_hom(n, sys, 1, 1, 1, nnz, Or, Ic, nzw, nzd);
 
 	EXPECT_EQ(3, nnz);
 	EXPECT_EQ(4, net->get_ne(net));
 
 	/* setup scheme & driver */
-	sol = sd_sol_new_default(net->sys(net), sch, out, hf, 
+	sol = tvb_sol_new_default(net->sys(net), sch, out, hf, 
 			42, n, x0, 4, nnz, Ic, nzd, 0.0, 1.0);
 
 	EXPECT_EQ(3, sol->get_nca(sol));
@@ -247,8 +247,8 @@ TEST(hist, exact) {
 	sys->free(sys);
 	out->free(out);
 	hf->free(hf);
-	sd_free(Or);
-	sd_free(Ic);
-	sd_free(nzw);
-	sd_free(nzd);
+	tvb_free(Or);
+	tvb_free(Ic);
+	tvb_free(nzw);
+	tvb_free(nzd);
 }

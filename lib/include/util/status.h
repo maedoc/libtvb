@@ -1,33 +1,33 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 
-#include "../sddekit.h"
+#include "../libtvb.h"
 
 /*! Status codes returned by various functions. */
-enum sd_stat
+enum tvb_stat
 {
 	/*! Function call succeeded */
-	SD_OK,
+	TVB_OK,
     
 	/*! An error occurred during the function call or one of the functions it called. */
-	SD_ERR,
+	TVB_ERR,
     
 	/*! Returned by output object to indicate solver should continue */
-	SD_CONT,
+	TVB_CONT,
     
 	/*! Returned by output object to indicate solver should stop */
-	SD_STOP,
+	TVB_STOP,
     
 	/*! Returned by function it doesn't know */
-	SD_UNKNOWN,
+	TVB_UNKNOWN,
     
 	/*! Returned to indicate zero value in sparse matrix */
-	SD_ZERO,
+	TVB_ZERO,
     
 	/*! Returned to indicate non zero value in sparse matrix */
-	SD_NON_ZERO,
+	TVB_NON_ZERO,
     
 	/*! Returned to indicate an out-of-bounds condition */
-	SD_OUT_OF_BOUNDS
+	TVB_OUT_OF_BOUNDS
     
 };

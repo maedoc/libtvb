@@ -1,17 +1,17 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 
 #include <math.h>
-#include "sddekit.h"
+#include "libtvb.h"
 
-void sd_conv_kern_flat(uint32_t n, double *kernel)
+void tvb_conv_kern_flat(uint32_t n, double *kernel)
 {
 	double value = 1.0 / n;
 	for (uint32_t i=0; i<n; i++)
 		kernel[i] = value;
 }
 
-void sd_conv_kern_hanning(uint32_t n, double *kernel)
+void tvb_conv_kern_hanning(uint32_t n, double *kernel)
 {
 	double inv_n_m_1 = 1.0 / (n - 1.0);
 	for (uint32_t i=0; i<n; i++)
@@ -55,7 +55,7 @@ static double gamma_eval(double T, gamma_params gp)
 		* exp(-(T + 1e-14)/gp.scale);
 }
 
-void sd_hrf_glover(uint32_t n, double dt, double *x)
+void tvb_hrf_glover(uint32_t n, double dt, double *x)
 {
 	uint32_t i;
 	gamma_params gp1 = compute_gamma_params(5.4, 5.2),
@@ -63,7 +63,7 @@ void sd_hrf_glover(uint32_t n, double dt, double *x)
 
 	if (n < 2 || dt<=0.0 || x==NULL)
 	{
-		sd_err("n<2, non-positive dt or NULL x pointers");
+		tvb_err("n<2, non-positive dt or NULL x pointers");
 		return ;
 	}
 
@@ -73,7 +73,7 @@ void sd_hrf_glover(uint32_t n, double dt, double *x)
 	normalize(n, x, dt);
 }
 
-void sd_hrf_volt1(uint32_t n, double dt, double *x)
+void tvb_hrf_volt1(uint32_t n, double dt, double *x)
 {
 	uint32_t i;
 	double tau_s = 0.8,
@@ -85,7 +85,7 @@ void sd_hrf_volt1(uint32_t n, double dt, double *x)
 
 	if (n < 2 || dt<=0.0 || x==NULL)
 	{
-		sd_err("n<2, non-positive dt or NULL x pointers");
+		tvb_err("n<2, non-positive dt or NULL x pointers");
 		return ;
 	}
 

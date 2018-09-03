@@ -21,7 +21,7 @@ $ make CC=emcc BUILD=js OBJEXT=bc EXE=.html -B -j bench_net_exc.html
 ...
 ```
 
-Open [`bench_net_exc.html`](http://rawgit.com/maedoc/sddekit/js-bench-html/bench_net_exc.html)
+Open [`bench_net_exc.html`](http://rawgit.com/maedoc/libtvb/js-bench-html/bench_net_exc.html)
  with your browser. On this same machine, Safari
 runs the benchmark in 74 s, Firefox 55 s. On a win 10 workstation,
 GCC-compiled takes 12 s, Firefox takes 32 s & MS Edge 39 s.

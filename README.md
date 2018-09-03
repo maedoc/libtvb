@@ -26,6 +26,6 @@ Many thanks to our contributors
 
 This work is partially funded by the French Medical Foundation.
 
-[![Build Status](https://travis-ci.org/maedoc/sddekit.svg?branch=master)](https://travis-ci.org/maedoc/sddekit)
-![Coverage Status](https://coveralls.io/repos/github/maedoc/sddekit/badge.svg?branch=master)
+[![Build Status](https://travis-ci.org/maedoc/libtvb.svg?branch=master)](https://travis-ci.org/maedoc/libtvb)
+![Coverage Status](https://coveralls.io/repos/github/maedoc/libtvb/badge.svg?branch=master)
 

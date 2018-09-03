@@ -1,4 +1,4 @@
-# copyright 2016 Apache 2 sddekit authors
+# copyright 2016 Apache 2 libtvb authors
 
 """
 This module provides facilities for recursively converting pycparser

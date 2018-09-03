@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "../sddekit.h"
+#include "../libtvb.h"
 
 /**
  * Solver interface.
@@ -15,21 +15,21 @@
  * stepping loop, for the user, but should more control be needed, the
  * individual components can be called in a custom loop.
  */
-struct sd_sol
+struct tvb_sol
 {
-	sd_declare_common_members(sd_sol);
+	tvb_declare_common_members(tvb_sol);
 
 	/*! Get associated scheme object. */
-	struct sd_sch * (*get_scheme)(struct sd_sol *sol);
+	struct tvb_sch * (*get_scheme)(struct tvb_sol *sol);
 
 	/*! Get associated out object */
-	struct sd_out * (*get_out)(struct sd_sol *sol);
+	struct tvb_out * (*get_out)(struct tvb_sol *sol);
 
 	/*! Continue stepping in time. */
-	enum sd_stat (*cont)(struct sd_sol *sol);
+	enum tvb_stat (*cont)(struct tvb_sol *sol);
 
 	/*! Get current time in solution. */
-	double (*get_time)(struct sd_sol *sol);
+	double (*get_time)(struct tvb_sol *sol);
 };
 
 /* TODO initial conditions would more consistently specified through
@@ -41,6 +41,6 @@ struct sd_sol
  *
  * Initial time & state used to initialize the scheme's data.
  */
-SD_API struct sd_sol *
-sd_sol_new_default(double init_time, double *init_state,
-		   struct sd_sch *scheme, struct sd_out *out);
+TVB_API struct tvb_sol *
+tvb_sol_new_default(double init_time, double *init_state,
+		   struct tvb_sch *scheme, struct tvb_out *out);

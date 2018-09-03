@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include "sch/base.h"
 #include <math.h>
 
@@ -14,37 +14,37 @@ struct data
 /* obj free n byte copy {{{ */
 
 static void
-emc_free(struct sd_sch *sch)
+emc_free(struct tvb_sch *sch)
 {
 	struct data *d = sch->data;
     sch_base_pointers_free(&d->base);
-	sd_free(d->f);
-	sd_free(d->g);
-	sd_free(d->z);
-	sd_free(d->eps);
-	sd_free(d);
+	tvb_free(d->f);
+	tvb_free(d->g);
+	tvb_free(d->z);
+	tvb_free(d->eps);
+	tvb_free(d);
 }
 
 static uint32_t
-emc_n_byte(struct sd_sch *sd_sch)
+emc_n_byte(struct tvb_sch *tvb_sch)
 {
-	struct data *data = sd_sch->data;
+	struct data *data = tvb_sch->data;
 	uint32_t byte_count = sizeof(struct data);
 	byte_count += sizeof(double ) * data->base.n_dim * 4;
 	byte_count += sch_base_pointers_n_byte(&data->base);
 	return byte_count;
 }
 
-static struct sd_sch*
-emc_copy(struct sd_sch *sd_sch)
+static struct tvb_sch*
+emc_copy(struct tvb_sch *tvb_sch)
 {
-	struct data *data = sd_sch->data;
+	struct data *data = tvb_sch->data;
 	struct sch_base *base = &data->base;
-	struct sd_sch *copy;
-	copy = sd_sch_new_emc(base->time, base->dt,
+	struct tvb_sch *copy;
+	copy = tvb_sch_new_emc(base->time, base->dt,
 			data->lam, base->sys, base->hist, base->rng);
 	if (copy == NULL)
-		sd_err("copy emc sch failed.");
+		tvb_err("copy emc sch failed.");
 	struct data *copy_data = copy->data;
 	sch_base_pointers_copy(base, &copy_data->base);
 	memcpy(copy_data->f, data->f, sizeof(double) * base->n_dim);
@@ -54,24 +54,24 @@ emc_copy(struct sd_sch *sd_sch)
 	return copy;
 }
 
-static struct sd_out_sample sample(struct sd_sch *sd_sch)
+static struct tvb_out_sample sample(struct tvb_sch *tvb_sch)
 {
-    struct data *data = sd_sch->data;
+    struct data *data = tvb_sch->data;
     return sch_base_sample(&data->base);
 }
 
 /* apply {{{ */
 
-static enum sd_stat emc_apply(struct sd_sch *sch)
+static enum tvb_stat emc_apply(struct tvb_sch *sch)
 {
-	enum sd_stat stat;
+	enum tvb_stat stat;
 	struct data *d = sch->data;
 	struct sch_base *b = &(d->base);
-	struct sd_sys_in in = sch_base_sys_in(b, b->time);
-	struct sd_sys_out out = sch_base_sys_out(b, d->f, d->g);
+	struct tvb_sys_in in = sch_base_sys_in(b, b->time);
+	struct tvb_sys_out out = sch_base_sys_out(b, d->f, d->g);
 	if (d->first_call) {
 		b->rng->fill_norm(b->rng, b->n_dim, d->z);
-		if ((stat = b->sys->apply(b->sys, &in, &out)) != SD_OK)
+		if ((stat = b->sys->apply(b->sys, &in, &out)) != TVB_OK)
 			return stat;
 		for (uint32_t i=0; i<b->n_dim; i++)
 			d->eps[i] = sqrt(d->g[i] * d->lam) * d->z[i];
@@ -80,7 +80,7 @@ static enum sd_stat emc_apply(struct sd_sch *sch)
 	}
 	b->rng->fill_norm(b->rng, b->n_dim, d->z);
 	b->hist->query(b->hist, b->time, b->input);
-	if ((stat = b->sys->apply(b->sys, &in, &out)) != SD_OK)
+	if ((stat = b->sys->apply(b->sys, &in, &out)) != TVB_OK)
 		return stat;
 	for (uint32_t i=0; i<b->n_dim; i++) {
 		b->state[i] += b->dt * (d->f[i] + d->eps[i]);
@@ -89,39 +89,39 @@ static enum sd_stat emc_apply(struct sd_sch *sch)
 	}
 	b->time += b->dt;
 	b->hist->update(b->hist, b->time, b->output);
-	return SD_OK;
+	return TVB_OK;
 }
 
 /* }}} */
 
-struct sd_sch *
-sd_sch_new_emc(double time, double dt, double lam,
-	       struct sd_sys *sys, struct sd_hist *hist, struct sd_rng *rng)
+struct tvb_sch *
+tvb_sch_new_emc(double time, double dt, double lam,
+	       struct tvb_sys *sys, struct tvb_hist *hist, struct tvb_rng *rng)
 {
 	struct data *d, z={0};
 	uint32_t n_dim = sys->get_n_dim(sys)
 	       , n_in  = sys->get_n_in(sys)
 	       , n_out = sys->get_n_out(sys)
 	       ;
-	if ((d = sd_malloc(sizeof(struct data))) == NULL
+	if ((d = tvb_malloc(sizeof(struct data))) == NULL
 	 || (*d=z, 0)
-	 || (d->f=sd_malloc(sizeof(double)*n_dim))==NULL
-	 || (d->g=sd_malloc(sizeof(double)*n_dim))==NULL
-	 || (d->z=sd_malloc(sizeof(double)*n_dim))==NULL
-	 || (d->eps=sd_malloc(sizeof(double)*n_dim))==NULL
+	 || (d->f=tvb_malloc(sizeof(double)*n_dim))==NULL
+	 || (d->g=tvb_malloc(sizeof(double)*n_dim))==NULL
+	 || (d->z=tvb_malloc(sizeof(double)*n_dim))==NULL
+	 || (d->eps=tvb_malloc(sizeof(double)*n_dim))==NULL
      || sch_base_init(&d->base,
             time, dt,
             n_dim, n_in, n_out,
             sys, hist, rng, 
-            emc_n_byte, emc_free, emc_copy, emc_apply, &sample) != SD_OK
+            emc_n_byte, emc_free, emc_copy, emc_apply, &sample) != TVB_OK
 	)
 	{
-		if (d->f!=NULL) sd_free(d->f);
-		if (d->g!=NULL) sd_free(d->g);
-		if (d->z!=NULL) sd_free(d->z);
-		if (d->eps!=NULL) sd_free(d->eps);
-		if (d != NULL) sd_free(d);
-		sd_err("alloc for emc scheme failed.");
+		if (d->f!=NULL) tvb_free(d->f);
+		if (d->g!=NULL) tvb_free(d->g);
+		if (d->z!=NULL) tvb_free(d->z);
+		if (d->eps!=NULL) tvb_free(d->eps);
+		if (d != NULL) tvb_free(d);
+		tvb_err("alloc for emc scheme failed.");
 		return NULL;
 	}
 	d->first_call = true;

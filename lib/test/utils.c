@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 
 typedef struct { bool pass; char *f, *cond, *fn; int l; } test;
 
@@ -11,7 +11,7 @@ static uint32_t ntest=0, nfail=0, tests_len=0;
 static char *cpstr(const char *str)
 {
 	uint32_t nc = (uint32_t) (strlen(str) + 1);
-	char *out = sd_malloc(sizeof(char) * nc);
+	char *out = tvb_malloc(sizeof(char) * nc);
 	memcpy(out, str, sizeof(char) * nc);
 	return out;
 }
@@ -26,12 +26,12 @@ static void test_record(bool cond, const char *scond, const char *fname, int lin
 	{
 		if (tests_len == 0)
 		{
-			tests = sd_malloc(sizeof(test));
+			tests = tvb_malloc(sizeof(test));
 			tests_len = 1;
 		}
 		else
 		{
-			tests = sd_realloc(tests, sizeof(test) * 2 * tests_len);
+			tests = tvb_realloc(tests, sizeof(test) * 2 * tests_len);
 			tests_len *= 2;
 		}
 		if (tests == NULL)
@@ -49,11 +49,11 @@ static void free_tests()
 	for (i=0; i<ntest; i++)
 	{
 		test t = tests[i];
-		sd_free(t.f);
-		sd_free(t.cond);
-		sd_free(t.fn);
+		tvb_free(t.f);
+		tvb_free(t.cond);
+		tvb_free(t.fn);
 	}
-	sd_free(tests);
+	tvb_free(tests);
 }
 
 static void dump_junit_xml()
@@ -80,22 +80,22 @@ static void dump_junit_xml()
 	fprintf(fd, "</testsuite>\n");
 }
 
-void sd_test_failed(const char *scond, const char *fname, int lineno)
+void tvb_test_failed(const char *scond, const char *fname, int lineno)
 {
 	nfail++;
-	sd_log_fail("test failure %d/%d %s:%d `%s'",
+	tvb_log_fail("test failure %d/%d %s:%d `%s'",
 			nfail, ntest, fname, lineno, scond);
 }
 
-void sd_test_true(bool cond, const char *scond, const char *fname, int lineno, const char *func)
+void tvb_test_true(bool cond, const char *scond, const char *fname, int lineno, const char *func)
 {
 	test_record(cond, scond, fname, lineno, func);
 	ntest++;
 	if (!cond)
-		sd_test_failed(scond, fname, lineno);
+		tvb_test_failed(scond, fname, lineno);
 }
 
-void sd_test_assert_near(double expected, double actual, double tol, const char *fname, int lineno, const char *func)
+void tvb_test_assert_near(double expected, double actual, double tol, const char *fname, int lineno, const char *func)
 {
 	bool cond;
 	char buf[512];
@@ -104,15 +104,15 @@ void sd_test_assert_near(double expected, double actual, double tol, const char 
 	d = l - r;
 	cond = (d * d) < tol;
 	sprintf(buf, "(|| %g - %g || = %g) < %g", l, r, d*d, tol);
-	sd_test_true(cond, buf, fname, lineno, func);
+	tvb_test_true(cond, buf, fname, lineno, func);
 }
 
-int sd_test_report()
+int tvb_test_report()
 {
 	if (nfail > 0) {
-		sd_log_fail("%d/%d tests failed", nfail, ntest );
+		tvb_log_fail("%d/%d tests failed", nfail, ntest );
 	} else {
-		sd_log_info("all %d tests passed", ntest );
+		tvb_log_info("all %d tests passed", ntest );
 	}
 	dump_junit_xml();
 	free_tests();

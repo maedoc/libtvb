@@ -1,8 +1,8 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 #include <stdio.h>
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include "test.h"
 
 typedef struct out_data {
@@ -11,7 +11,7 @@ typedef struct out_data {
 	FILE *fd;
 } out_data;
 
-static sd_stat test_out_apply(sd_out *out, double t, 
+static tvb_stat test_out_apply(tvb_out *out, double t, 
 			     uint32_t nx, double * restrict x,
 			     uint32_t nc, double * restrict c)
 {
@@ -20,31 +20,31 @@ static sd_stat test_out_apply(sd_out *out, double t,
 	fprintf(d->fd, "%f\t%f\t%f\n", t, x[0], x[1]);
 	if (x[0] < 0.0)
 		d->crossed = 1;
-	return t < d->tf ? SD_CONT : SD_STOP;
+	return t < d->tf ? TVB_CONT : TVB_STOP;
 }
 
-static void test_out_free(sd_out *out) { sd_free(out->ptr); sd_free(out); }
+static void test_out_free(tvb_out *out) { tvb_free(out->ptr); tvb_free(out); }
 
-sd_out test_out_defaults = {.free=&test_out_free, 
+tvb_out test_out_defaults = {.free=&test_out_free, 
 	        .apply=&test_out_apply, 
 		    .ptr=NULL};
 
-sd_out * test_out_new()
+tvb_out * test_out_new()
 {
-	sd_out *out = sd_malloc(sizeof(sd_out));;
+	tvb_out *out = tvb_malloc(sizeof(tvb_out));;
 	*out = test_out_defaults;
-	out->ptr = sd_malloc(sizeof(out_data));
+	out->ptr = tvb_malloc(sizeof(out_data));
 	return out;
 }
 
 static double x0[2] = {1.010403, 0.030870};
 
-static int for_scheme(sd_sch *sch, char *name)
+static int for_scheme(tvb_sch *sch, char *name)
 {
-	sd_sys_exc *sys = sd_sys_exc_new();
-	sd_sol *sol;
-	sd_out *out = test_out_new();
-	sd_hfill *hf = sd_hfill_new_val(0.0);
+	tvb_sys_exc *sys = tvb_sys_exc_new();
+	tvb_sol *sol;
+	tvb_out *out = test_out_new();
+	tvb_hfill *hf = tvb_hfill_new_val(0.0);
 	out_data *outd = out->ptr;
 	char dat_name[100];
 	uint32_t vi[1];
@@ -53,7 +53,7 @@ static int for_scheme(sd_sch *sch, char *name)
 	/* init solver */
 	vi[0] = 0;
 	vd[0] = 25.0;
-	sol = sd_sol_new_default(sys->sys(sys), sch, out, hf, 42, 2, x0, 
+	sol = tvb_sol_new_default(sys->sys(sys), sch, out, hf, 42, 2, x0, 
 					         1, 1, vi, vd, 0.0, 0.05);
 
 	/* fill in data */
@@ -80,7 +80,7 @@ static int for_scheme(sd_sch *sch, char *name)
 	/* clean up */
 	fclose(outd->fd);
 	out->free(out);
-	sd_sys *exc_sys_if = sys->sys(sys);
+	tvb_sys *exc_sys_if = sys->sys(sys);
 	exc_sys_if->free(exc_sys_if);
 	sol->free(sol);
 	hf->free(hf);
@@ -90,19 +90,19 @@ static int for_scheme(sd_sch *sch, char *name)
 
 
 TEST(exc, em) {
-	sd_sch *sch = sd_sch_new_em(2);
+	tvb_sch *sch = tvb_sch_new_em(2);
 	for_scheme(sch, "em");
 	sch->free(sch);
 }
 	
 TEST(exc, heun){
-	sd_sch *sch = sd_sch_new_heun(2);
+	tvb_sch *sch = tvb_sch_new_heun(2);
 	for_scheme(sch, "heun");
 	sch->free(sch);
 }
 
 TEST(exc, emcolor){
-	sd_sch *sch = sd_sch_new_emc(2, 1.0);
+	tvb_sch *sch = tvb_sch_new_emc(2, 1.0);
 	for_scheme(sch, "emc");
 	sch->free(sch);
 }

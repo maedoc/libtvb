@@ -15,8 +15,8 @@ optimization and inversion techniques.
 
 ## Using
 
-Currently the [overview](https://github.com/maedoc/sddekit/wiki/High-level-overview),
-[documentation](https://maedoc.github.io/sddekit),
+Currently the [overview](https://github.com/maedoc/libtvb/wiki/High-level-overview),
+[documentation](https://maedoc.github.io/libtvb),
 [tests](tests) and [benchmark](bench/bench_net_exc.c) are the best places 
 to look to understand what you can do with SDDEKit.
 
@@ -67,7 +67,7 @@ Current implemented
 ## Where to go from here?
 
 - If you're a programmer, we'd be happy to have help! See [`DEVELOP.md`](DEVELOP.md).
-- If you wish to use sddekit in a webpage, see [`JS.md`](JS.md).
+- If you wish to use libtvb in a webpage, see [`JS.md`](JS.md).
 - Numerical analysis references
   - Kloeden & Platen 1999 *Numerical Solution of Stochastic Differential Equations*.
   - Fox et al 1998

@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "sddekit.h"
+#include "libtvb.h"
 #include "test.h"
 
 typedef struct {
@@ -8,7 +8,7 @@ typedef struct {
 	double t, *x, *c, *f, *g;
 } sys_data;
 
-static sd_stat test_sys(void *data, sd_sys_in *in, sd_sys_out *out)
+static tvb_stat test_sys(void *data, tvb_sys_in *in, tvb_sys_out *out)
 {
 	sys_data *d = data;
 	d->n_calls++;
@@ -19,16 +19,16 @@ static sd_stat test_sys(void *data, sd_sys_in *in, sd_sys_out *out)
 	d->c = in->i;
 	d->f = out->f;
 	d->g = out->g;
-	return SD_OK;
+	return TVB_OK;
 }
 
 typedef struct {
 	int n_calls;
 	double dt;
-	sd_rng *rng;
+	tvb_rng *rng;
 } sch_data;
 
-static sd_stat test_sch(void *data, sd_hist *hist, sd_rng *rng, sd_sys *sys,
+static tvb_stat test_sch(void *data, tvb_hist *hist, tvb_rng *rng, tvb_sys *sys,
 		double t, double dt, 
 		uint32_t nx, double * restrict x,
 		uint32_t nc, double * restrict c)
@@ -37,8 +37,8 @@ static sd_stat test_sch(void *data, sd_hist *hist, sd_rng *rng, sd_sys *sys,
 	d->n_calls++;
 	d->dt = dt;
 	d->rng = rng;
-	sd_sys_in in = {.nx=nx, .nc=nc, .id=0, .t=t, .x=x, .i=c, .hist=hist, .rng=rng};
-	sd_sys_out out = {.f=NULL, .g=NULL, .o=c};
+	tvb_sys_in in = {.nx=nx, .nc=nc, .id=0, .t=t, .x=x, .i=c, .hist=hist, .rng=rng};
+	tvb_sys_out out = {.f=NULL, .g=NULL, .o=c};
 	return sys->apply(sys, &in, &out);
 }
 
@@ -47,7 +47,7 @@ typedef struct {
 	double tf, *x;
 } out_data;
 
-static sd_stat test_out(void *data, double t, 
+static tvb_stat test_out(void *data, double t, 
 	     uint32_t nx, double * restrict x,
 	     uint32_t nc, double * restrict c)
 {
@@ -55,7 +55,7 @@ static sd_stat test_out(void *data, double t,
 	/* unused */ (void) nc; (void) c;
 	d->nx = nx;
 	d->x = x;
-	return t < d->tf ? SD_CONT : SD_STOP;
+	return t < d->tf ? TVB_CONT : TVB_STOP;
 }
 
 #define SEED 42
@@ -70,22 +70,22 @@ TEST(solv, simple) {
 	sys_data sysd;
 	sch_data schd;
 	out_data outd;
-	sd_sys *sys;
-	sd_sch *sch;
-	sd_out *out;
-	sd_sol *sol;
-	sd_rng *rng;
-	sd_hfill *hf;
+	tvb_sys *sys;
+	tvb_sch *sch;
+	tvb_out *out;
+	tvb_sol *sol;
+	tvb_rng *rng;
+	tvb_hfill *hf;
 
-	rng = sd_rng_new_default();
+	rng = tvb_rng_new_default();
 	rng->seed(rng, SEED);
 	rand0 = rng->norm(rng);
 	rng->free(rng);
 
-	sys = sd_sys_new_cb(1, 1, 1, 0, 0, &sysd, &test_sys);
-	sch = sd_sch_new_cb(1, &schd, &test_sch);
-	out = sd_out_new_cb(&outd, &test_out);
-	hf = sd_hfill_new_val(0.0);
+	sys = tvb_sys_new_cb(1, 1, 1, 0, 0, &sysd, &test_sys);
+	sch = tvb_sch_new_cb(1, &schd, &test_sch);
+	out = tvb_out_new_cb(&outd, &test_out);
+	hf = tvb_hfill_new_val(0.0);
 
 	sysd.n_calls = 0;
 	schd.n_calls = 0;
@@ -94,10 +94,10 @@ TEST(solv, simple) {
 	vd[0] = 2.1;
 	vd[1] = 0.42;
 
-	sol = sd_sol_new_default(sys, sch, out, hf, 
+	sol = tvb_sol_new_default(sys, sch, out, hf, 
 		SEED, NX, x, NC, NC, vi, vd, T0, DT);
 
-	sd_rng *sol_rng = sol->get_rng(sol);
+	tvb_rng *sol_rng = sol->get_rng(sol);
 	EXPECT_EQ(sol_rng->norm(sol_rng), rand0);
 
 	outd.tf = T0 + DT;

@@ -12,7 +12,7 @@ for the Euler method. Add a stochastic term, and it looks like this
 ```
 x_{t + dt} = x_t + f(x_t) dt + g(x_t) dW_t
 ```
-where `dW_t` is a Gaussian random number. This is the Euler-Maruyama method (implemented [here](https://github.com/maedoc/sddekit/blob/master/src/sd_scheme.c#L103), provided by the [`sd_sch_em_new`](https://github.com/maedoc/sddekit/blob/master/src/sddekit_api.h#L1244) constructor).
+where `dW_t` is a Gaussian random number. This is the Euler-Maruyama method (implemented [here](https://github.com/maedoc/libtvb/blob/master/src/tvb_scheme.c#L103), provided by the [`tvb_sch_em_new`](https://github.com/maedoc/libtvb/blob/master/src/libtvb_api.h#L1244) constructor).
 
 Now, add delays,
 ```

@@ -1,4 +1,4 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 PAR(a, 1.0)
 PAR(b, 3)

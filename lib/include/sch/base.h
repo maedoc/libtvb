@@ -1,14 +1,14 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
 /* private header for common scheme data & impl, for inclusion
  * in a scheme's implementation (.c) file.
  */
 
-#include "../sddekit.h"
+#include "../libtvb.h"
 
 struct sch_base
 {
-	struct sd_sch sch;
+	struct tvb_sch sch;
 #define FIELD(type, name) type name;
 #include "sch/base_fields.h"
 #undef FIELD
@@ -16,7 +16,7 @@ struct sch_base
 
 /* make getters for each field {{{ */
 #define FIELD(type, name) \
-static type get_ ## name(struct sd_sch *sch) \
+static type get_ ## name(struct tvb_sch *sch) \
 { \
 	struct sch_base *base = sch->data; \
 	return base->name; \
@@ -48,18 +48,18 @@ sch_base_pointers_copy(struct sch_base *base, struct sch_base *copy)
 static void
 sch_base_pointers_free(struct sch_base *base)
 {
-    sd_free(base->state);
-    sd_free(base->input);
-    sd_free(base->output);
+    tvb_free(base->state);
+    tvb_free(base->input);
+    tvb_free(base->output);
 }
 
 /* }}} */
 
 /* common set up for sys in out {{{ */
-static inline struct sd_sys_in
+static inline struct tvb_sys_in
 sch_base_sys_in(struct sch_base *b, double time)
 {
-	struct sd_sys_in in = {
+	struct tvb_sys_in in = {
 		.id=0, .n_dim=b->n_dim, .n_in=b->n_in, .n_out=b->n_out,
 		.time=time, .state=b->state, .input=b->input,
 		.hist=b->hist, .rng=b->rng
@@ -67,20 +67,20 @@ sch_base_sys_in(struct sch_base *b, double time)
 	return in;
 }
 
-static inline struct sd_sys_out
+static inline struct tvb_sys_out
 sch_base_sys_out(struct sch_base *b, double *drift, double *diffusion)
 {
-	struct sd_sys_out out = {
+	struct tvb_sys_out out = {
 		.drift=drift, .diffusion=diffusion,
 		.output=b->output
 	};
 	return out;
 }
 
-static inline struct sd_out_sample
+static inline struct tvb_out_sample
 sch_base_sample(struct sch_base *b)
 {
-    struct sd_out_sample sample = {
+    struct tvb_out_sample sample = {
         .time = b->time,
         .n_dim = b->n_dim,
         .n_out = b->n_out,
@@ -92,18 +92,18 @@ sch_base_sample(struct sch_base *b)
 
 
 /* common init sets base fields + sch getters  {{{ */
-static inline enum sd_stat
+static inline enum tvb_stat
 sch_base_init(struct sch_base *base,
 	double time, double dt,
 	uint32_t n_dim, uint32_t n_in, uint32_t n_out,
-	struct sd_sys *sys,
-	struct sd_hist *hist,
-	struct sd_rng *rng,
-	uint32_t (*n_byte)(struct sd_sch*),
-	void (*free)(struct sd_sch*),
-	struct sd_sch*(*copy)(struct sd_sch*),
-	enum sd_stat(*apply)(struct sd_sch*),
-    struct sd_out_sample(*sample)(struct sd_sch*)
+	struct tvb_sys *sys,
+	struct tvb_hist *hist,
+	struct tvb_rng *rng,
+	uint32_t (*n_byte)(struct tvb_sch*),
+	void (*free)(struct tvb_sch*),
+	struct tvb_sch*(*copy)(struct tvb_sch*),
+	enum tvb_stat(*apply)(struct tvb_sch*),
+    struct tvb_out_sample(*sample)(struct tvb_sch*)
 )
 {
 	base->n_dim = n_dim;
@@ -112,20 +112,20 @@ sch_base_init(struct sch_base *base,
 	base->dt = dt;
 	base->time = time;
     base->state = base->input = NULL;
-    if ((base->state = sd_malloc(sizeof(double) * n_dim)) == NULL
-     || (base->input = sd_malloc(sizeof(double) * n_in)) == NULL
-     || (base->output = sd_malloc(sizeof(double) * n_out)) == NULL
+    if ((base->state = tvb_malloc(sizeof(double) * n_dim)) == NULL
+     || (base->input = tvb_malloc(sizeof(double) * n_in)) == NULL
+     || (base->output = tvb_malloc(sizeof(double) * n_out)) == NULL
     )
     {
-        if (base->state) sd_free(base->state);
-        if (base->input) sd_free(base->input);
-        sd_err("alloc sch base failed.");
-        return SD_OK;
+        if (base->state) tvb_free(base->state);
+        if (base->input) tvb_free(base->input);
+        tvb_err("alloc sch base failed.");
+        return TVB_OK;
     }
 	base->sys = sys;
 	base->hist = hist;
 	base->rng = rng;
-	struct sd_sch *sch = &(base->sch);
+	struct tvb_sch *sch = &(base->sch);
 	/* set getter function pointers */
 #define FIELD(type, name) sch->get_ ## name = &get_ ## name;
 #include "sch/base_fields.h"
@@ -135,5 +135,5 @@ sch_base_init(struct sch_base *base,
 	sch->copy = copy;
 	sch->apply = apply;
     sch->sample = sample;
-    return SD_OK;
+    return TVB_OK;
 }

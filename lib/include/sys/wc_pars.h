@@ -1,6 +1,6 @@
-/* copyright 2016 Apache 2 sddekit authors */
+/* copyright 2016 Apache 2 libtvb authors */
 
-#include "../sddekit.h"
+#include "../libtvb.h"
 
 /* Sanz-Leon 2014 */
 PAR(k_e, 1.0)
