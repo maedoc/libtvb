@@ -1,6 +1,6 @@
 # Javascript
 
-Because SDDEKit is a C library, it's straighforward to build it as a JavaScript
+Because libtvb is a C library, it's straighforward to build it as a JavaScript
 library and embed it in HTML with Emscripten. With the benchmark mentioned above
 as an example, compile it natively,
 

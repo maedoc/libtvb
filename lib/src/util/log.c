@@ -19,7 +19,7 @@ static void fprintf_handler(enum tvb_log_level level, char *message)
 		out = stdout;
 		s_level = "";
 	}
-	fprintf(out, "[SDDEKit%s] %s\n", s_level, message); 
+	fprintf(out, "[libtvb%s] %s\n", s_level, message); 
 }
 
 static tvb_log_handler handler = &fprintf_handler;

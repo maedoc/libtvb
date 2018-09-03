@@ -68,7 +68,7 @@ def compile_file(source_file, debug=False):
 def assemble_shared_lib(object_files):
     cmd = COMPILE['.c'] + ['-shared', '-lm']
     cmd += object_files
-    cmd += ['-o', os.path.join(BUILD_DIR, 'libSDDEKit') + DLL_EXT]
+    cmd += ['-o', os.path.join(BUILD_DIR, 'liblibtvb') + DLL_EXT]
     sh(cmd)
     
 def source_files():
@@ -95,7 +95,7 @@ def build_benchmarks(object_files, use_shared=False):
         source = os.path.join('lib', 'bench', benchmark)
         cmd = COMPILE['.c'][:]
         if use_shared:
-            cmd += ['-L' + os.path.abspath(BUILD_DIR), '-lSDDEKit']
+            cmd += ['-L' + os.path.abspath(BUILD_DIR), '-llibtvb']
         else:
             cmd += object_files
         cmd += [source + '.c', '-lm', '-o', os.path.join(BUILD_DIR, benchmark)]

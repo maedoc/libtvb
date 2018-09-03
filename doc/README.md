@@ -1,8 +1,8 @@
-# SDDEKit
+# libtvb
 
-Welcome to the documentation of SDDEKit.
+Welcome to the documentation of libtvb.
 
-## What is SDDEKit?
+## What is libtvb?
 
 A library for stochastic delay differential equations implementing published
 numerical schemes, utilities for constructing network models and handling
@@ -18,7 +18,7 @@ optimization and inversion techniques.
 Currently the [overview](https://github.com/maedoc/libtvb/wiki/High-level-overview),
 [documentation](https://maedoc.github.io/libtvb),
 [tests](tests) and [benchmark](bench/bench_net_exc.c) are the best places 
-to look to understand what you can do with SDDEKit.
+to look to understand what you can do with libtvb.
 
 Python, MATLAB bindings and C++ header are in the works, on separate 
 (`ctype`/`cython`/`py-c-api`, `matlab`, `cpp` respectively) branches of

@@ -4,8 +4,8 @@ import ctypes
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
-LOG = logging.getLogger('SDDEKit')
-LIB_NAME = 'build/libSDDEKit.so'
+LOG = logging.getLogger('libtvb')
+LIB_NAME = './libtvb.so'
 LOG.info("using shared library %r" % (LIB_NAME, ))
 LIB = ctypes.CDLL(LIB_NAME)
 
@@ -61,7 +61,7 @@ tvb_log_set_handler = make_func('tvb_log_set_handler', None, tvb_log_handler)
 tvb_log_get_handler = make_func('tvb_log_get_handler', tvb_log_handler)
 tvb_log_get_err_and_reset = make_func('tvb_log_get_err_and_reset', ctypes.c_bool)
 
-class SDDEKitException(Exception): pass
+class libtvbException(Exception): pass
 
 @tvb_log_handler
 def handler(level, message):
@@ -73,12 +73,12 @@ def handler(level, message):
 		handler.last_error_message = message
 		LOG.error(message)
 	else:
-		fmt = 'unhandled SDDEKit log level %r for message %r'
+		fmt = 'unhandled libtvb log level %r for message %r'
 		LOG.warn(fmt, level, message)
 
 def check_and_raise():
 	if tvb_log_get_err_and_reset():
-		raise SDDEKitException(handler.last_error_message)
+		raise libtvbException(handler.last_error_message)
 
 tvb_log_set_handler(handler)
 #}}}
@@ -134,19 +134,20 @@ tvb_conn_new_dense = make_func('tvb_conn_new_dense',
 def ndf64p(array):
 	return array.ctypes.data_as(f64p)
 
-def make_class(struct, *):
-	attrs = {}
-	@classmethod
-	def new_dense(cls, W, D):
-		obj = cls()
-		n = len(W)
-		obj._ptr = tvb_conn_new_dense(n, n, ndf64p(W), ndf64p(D))
-		check_and_raise()
-		return obj
-	attrs['new_dense'] = new_dense
-	for name, fp in struct._fields_:
-		def wrap(self, *args):
+# def make_class(struct, *args):
+# 	attrs = {}
+# 	@classmethod
+# 	def new_dense(cls, W, D):
+# 		obj = cls()
+# 		n = len(W)
+# 		obj._ptr = tvb_conn_new_dense(n, n, ndf64p(W), ndf64p(D))
+# 		check_and_raise()
+# 		return obj
+# 	attrs['new_dense'] = new_dense
+# 	for name, fp in struct._fields_:
+# 		def wrap(self, *args):
 
+LOG.debug('libtvb API built')
 
 import numpy as np
 W = np.random.randn(50, 50)

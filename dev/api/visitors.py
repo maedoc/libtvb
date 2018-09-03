@@ -1,8 +1,8 @@
 # copyright 2016 Apache 2 libtvb authors
 
 """
-This module implements visitors for extracting SDDEKit's API
-from pycparser's parse tree of SDDEKit's header.
+This module implements visitors for extracting libtvb's API
+from pycparser's parse tree of libtvb's header.
 
 """
 

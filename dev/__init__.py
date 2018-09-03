@@ -1,7 +1,7 @@
 # copyright 2016 Apache 2 libtvb authors
 
 """
-This package supports SDDEKit development from preparing bindings
+This package supports libtvb development from preparing bindings
 to building the C code.
 
 """
